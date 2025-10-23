@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  name String
+  image String?
+  role Role @default(USER)
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  properties Property[]
+
+}
+
+
+model Property {
+  id String @id @default(uuid())
+  title String
+  description String
+  property_type propertyType @default(APARTMENT)
+  status Status @default(FOR_RENT)
+  price Float
+  currency Currency @default(USD)
+  payment_frequency PaymentFrequency @default(MONTHLY)
+  deposit_amount Float?
+
+  // location
+  country String
+  city String
+  address String
+  zip_code String
+  latitude Float
+  longitude Float
+
+  // property feature
+  bedrooms Int?
+  bathrooms Int?
+  garages Int?
+  size Float?
+  is_furnished Boolean? @default(false)
+  floor Int?
+  total_floors Int?
+  balcony Boolean? @default(false)
+  amenities String[]
+
+
+  //  media
+
+
+  // relations
+  landlord User @relation(fields: [landlord_id], references: [id])
+  landlord_id String
+  contact_name String?
+  contact_email String?
+  contact_phone String?
+  contact_method ContactMethod @default(EMAIL)
+
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+
+
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  PROPERTY_OWNER
+}
+enum propertyType {
+  APARTMENT
+  HOUSE
+  STUDIO
+  OFFICE
+  LAND
+}
+
+
+enum Status {
+  FOR_SALE
+  FOR_RENT
+  SOLD
+  RENTED
+  
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  CAD
+  AUD
+  NZD
+  CHF
+  JPY
+  CNY
+}
+
+enum PaymentFrequency {
+  MONTHLY
+  YEARLY
+  WEEKLY
+  DAILY
+}
+
+
+enum ContactMethod {
+  EMAIL
+  PHONE
+  WHATSAPP
+  TELEGRAM
+  SMS
+}
