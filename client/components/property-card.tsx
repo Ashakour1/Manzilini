@@ -1,6 +1,5 @@
 "use client"
-import { MapPin, Bed, Bath, Maximize2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Bed, Bath, Maximize2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PropertyCardProps {
@@ -9,72 +8,79 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property, onClick }: PropertyCardProps) {
-
-
-
   const router = useRouter();
 
+  // Format address from property data
+  const address = property.address || `${property.city || ''}, ${property.country || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || property.location || '';
 
+  // Check if property is featured (you can add a featured field to your schema later)
+  const isFeatured = property.featured || false;
 
+  // Handle image URL - support both relative paths and full URLs
+  const getImageUrl = () => {
+    if (!property.image) return "/placeholder.svg";
+    if (property.image.startsWith('http://') || property.image.startsWith('https://')) {
+      return property.image;
+    }
+    // If it's a relative path starting with /uploads, use it as is
+    if (property.image.startsWith('/uploads')) {
+      return `http://localhost:4000${property.image}`;
+    }
+    // Otherwise, assume it's in the uploads folder
+    return `http://localhost:4000/uploads/images/${property.image}`;
+  };
 
   return (
     <div
-    
-      className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer"
+      onClick={() => router.push(`/properties/${property.id}`)}
+      className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer"
     >
-      <div className="relative h-48 bg-muted overflow-hidden">
+      <div className="relative h-56 bg-gray-200 overflow-hidden">
         <img
-          src={property.image || "/placeholder.svg"}
+          src={getImageUrl()}
           alt={property.title}
-          className="w-full h-full object-cover hover:scale-105 transition"
+          className="w-full h-full object-cover rounded-t-lg"
         />
-        {property.furnished && (
-          <div className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-            Furnished
+        {isFeatured && (
+          <div className="absolute top-3 left-3 bg-orange-600 text-white px-3 py-1 rounded-md text-xs font-semibold">
+            FEATURED
           </div>
         )}
       </div>
 
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">{property.title}</h3>
-
-        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <MapPin className="w-4 h-4" />
-          {property.location}
+      <div className="p-5">
+        {/* Price - prominently displayed */}
+        <div className="mb-3">
+          <span className="text-2xl font-bold text-gray-900">
+            ${property.price?.toLocaleString() || property.price}
+          </span>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{property.description}</p>
+        {/* Property Title */}
+        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+          {property.title}
+        </h3>
 
-        <div className="flex gap-4 mb-4 text-sm">
-          <div className="flex items-center gap-1">
-            <Bed className="w-4 h-4 text-primary" />
-            <span className="text-foreground">{property.bedrooms} BR</span>
+        {/* Address */}
+        <p className="text-sm text-gray-500 mb-4 line-clamp-1">
+          {address}
+        </p>
+
+        {/* Features */}
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-1.5">
+            <Bed className="w-4 h-4" />
+            <span>{property.bedrooms || 0} Beds</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Bath className="w-4 h-4 text-primary" />
-            <span className="text-foreground">{property.bathrooms} BA</span>
+          <div className="flex items-center gap-1.5">
+            <Bath className="w-4 h-4" />
+            <span>{property.bathrooms || 0} Baths</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Maximize2 className="w-4 h-4 text-primary" />
-            <span className="text-foreground">{property.size} sqft</span>
+          <div className="flex items-center gap-1.5">
+            <Maximize2 className="w-4 h-4" />
+            <span>{property.size || 0} sqft</span>
           </div>
         </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-2xl font-bold text-primary">${property.price.toLocaleString()}</span>
-            <span className="text-sm text-muted-foreground ml-2">/ {property.frequency}</span>
-          </div>
-        </div>
-
-        <Button
-          onClick={(e) => {
-            router.push(`/properties/${property.id}`)
-          }}
-          className="w-full mt-4 bg-primary hover:bg-primary/90"
-        >
-          View Details
-        </Button>
       </div>
     </div>
   )

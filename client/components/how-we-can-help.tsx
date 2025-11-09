@@ -69,10 +69,9 @@ export default function HelpSection() {
           {items.map((it, idx) => (
             <div
               key={idx}
-              className=
-                "rounded-2xl  bg-card p-8 text-center"
-                
-            
+              className={`rounded-2xl bg-card p-8 text-center transition-all duration-300 hover:shadow-lg ${
+                it.featured ? "ring-2 ring-primary shadow-md" : ""
+              }`}
             >
               <HouseIllustration accented={!!it.featured} />
               <h3 className="mt-6 text-xl font-semibold text-foreground">{it.title}</h3>

@@ -1,49 +1,92 @@
 "use client"
 
-import { MapPin, Home } from "lucide-react"
+import { useState } from "react"
+import Link from "next/link"
+import { Menu, X, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/properties", label: "Properties" },
+    { href: "/pricing", label: "Pricing" },
+    { href: "/testimonials", label: "Testimonials" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ]
+
   return (
-    <header className="border-b border-border bg-card sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between p-3">
-          <div className="flex items-center gap-2">
-         
-            <h1 className="text-2xl font-bold text-primary">
-              Manzilline
-            </h1>
-          </div>
-          <nav className="flex items-center gap-6">
-            <a href="/" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Home
-            </a>
-            <a href="/properties" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Properties
-            </a>
-            <a href="/pricing" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Pricing
-            </a>
-            <a href="/testimonials" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Testimonials
-            </a>
-            <a href="/guides" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Guides
-            </a>
-            <a href="/about" className="text-sm font-medium text-foreground hover:text-primary transition">
-              About
-            </a>
-            <a href="/contact" className="text-sm font-medium text-foreground hover:text-primary transition">
-              Contact
-            </a>
-            <Button variant="outline" size="sm" className="ml-2 bg-transparent">
-              Login
-            </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90">
-              Sign Up
-            </Button>
+    <header className="border-b border-border bg-card/95 backdrop-blur-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Home className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold text-primary">Manzilline</h1>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
+
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border py-4">
+            <nav className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button size="sm" asChild className="w-full">
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   )
