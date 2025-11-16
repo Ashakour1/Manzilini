@@ -69,7 +69,10 @@ model Property {
   contact_name String?
   contact_email String?
   contact_phone String?
+
   contact_method ContactMethod @default(EMAIL)
+
+
 
 
   // timestamps
@@ -77,10 +80,34 @@ model Property {
   updatedAt DateTime @updatedAt
 
 
+  images PropertyImages[]
 
 
 }
 
+
+// model PropertyMedia {
+//   id String @id @default(uuid())
+//   propertyId String
+//   property Property @relation(fields: [propertyId], references: [id])
+//   url String
+//   type MediaType
+// }
+
+
+// enum MediaType {
+//   IMAGE
+//   VIDEO
+// }
+
+model PropertyImages {
+  id        String   @id @default(cuid())
+  property  Property @relation(fields: [propertyId], references: [id])
+  propertyId String
+  url       String
+
+  createdAt DateTime @default(now())
+}
 // request to rent a property by a tenant to a landlord (landlord will approve or reject the request)
 model PropertyApplication {
   id         String   @id @default(cuid())

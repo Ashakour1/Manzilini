@@ -77,10 +77,55 @@ export const createProperty = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
+        // Convert uploaded files to publicly accessible URLs served by this API
+        const imageBaseUrl = `${req.protocol}://${req.get("host")}/uploads`;
+        const imageUrls = (req.files || []).map((file) => {
+            const filename = file.filename || file.originalname;
+            return `${imageBaseUrl}/${filename}`;
+        });
+        const propertyData = {
+            title,
+            description,
+            property_type,
+            status,
+            price : parseFloat(price),
+            currency,
+            payment_frequency,
+            deposit_amount : parseFloat(deposit_amount),
+            country,
+            city,
+            address,
+            zip_code,
+            latitude : parseFloat(latitude),
+            longitude : parseFloat(longitude),
+            bedrooms : parseInt(bedrooms, 10),
+            bathrooms : parseInt(bathrooms, 10),
+            garages : parseInt(garages, 10),
+            size : parseFloat(size),
+            is_furnished : is_furnished === 'true' || is_furnished === true,
+            floor : parseInt(floor, 10),
+            total_floors : parseInt(total_floors, 10),
+            balcony : balcony === 'true' || balcony === true,
+            amenities: Array.isArray(amenities) ? amenities : JSON.parse(amenities),
+            landlord_id,
+            contact_name,
+            contact_email,
+            contact_phone,
+            contact_method,
+        };
+
+        if (imageUrls.length) {
+            propertyData.images = {
+                create: imageUrls.map((url) => ({ url })),
+            };
+        }
+
         const property = await prisma.property.create({
-            data: { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, landlord_id, contact_name, contact_email, contact_phone, contact_method },
+            data: propertyData,
+            include: { images: true },
         });
 
+        
         
         res.status(201).json(property);
     } catch (error) {
@@ -126,4 +171,3 @@ export const deleteProperty = asyncHandler(async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
-
