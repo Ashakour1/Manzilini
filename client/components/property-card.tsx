@@ -1,5 +1,5 @@
 "use client"
-import { Bed, Bath, Maximize2 } from "lucide-react"
+import { Bed, Bath, Maximize2, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PropertyCardProps {
@@ -18,24 +18,28 @@ export default function PropertyCard({ property, onClick }: PropertyCardProps) {
 
   // Handle image URL - support both relative paths and full URLs
   const getImageUrl = () => {
-    if (!property.image) return "/placeholder.svg";
-    if (property.image.startsWith('http://') || property.image.startsWith('https://')) {
-      return property.image;
+    // Prefer the first uploaded image, fall back to legacy property.image
+    const imagePath =
+      property.images?.[0]?.url ||
+      property.image ||
+      property.images?.[0]?.path;
+
+    if (!imagePath) return "/placeholder.svg";
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
     }
-    // If it's a relative path starting with /uploads, use it as is
-    if (property.image.startsWith('/uploads')) {
-      return `http://localhost:4000${property.image}`;
+    if (imagePath.startsWith("/uploads")) {
+      return `http://localhost:4000${imagePath}`;
     }
-    // Otherwise, assume it's in the uploads folder
-    return `http://localhost:4000/uploads/images/${property.image}`;
+    return `http://localhost:4000/uploads/${imagePath}`;
   };
 
   return (
     <div
       onClick={() => router.push(`/properties/${property.id}`)}
-      className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer"
+      className="border rounded-lg cursor-pointer"
     >
-      <div className="relative h-56 bg-gray-200 overflow-hidden">
+      <div className="relative rounded-t-lg h-56 bg-gray-200 overflow-hidden">
         <img
           src={getImageUrl()}
           alt={property.title}
@@ -62,21 +66,22 @@ export default function PropertyCard({ property, onClick }: PropertyCardProps) {
         </h3>
 
         {/* Address */}
-        <p className="text-sm text-gray-500 mb-4 line-clamp-1">
+        <div className="text-sm text-primary mb-4 line-clamp-1 flex items-center gap-1.5 ">
+          <MapPin className="h-4 w-4 text-primary" />
           {address}
-        </p>
+        </div>
 
         {/* Features */}
         <div className="flex items-center gap-4 text-sm text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <Bed className="w-4 h-4" />
+          <div className="flex items-center gap-1.5 text-primary">
+            <Bed className="w-4 h-4 " />
             <span>{property.bedrooms || 0} Beds</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-primary">
             <Bath className="w-4 h-4" />
             <span>{property.bathrooms || 0} Baths</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-primary">
             <Maximize2 className="w-4 h-4" />
             <span>{property.size || 0} sqft</span>
           </div>

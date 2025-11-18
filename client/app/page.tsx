@@ -13,6 +13,7 @@ import WhyChooseUsSection from "@/components/why-choose-us-section"
 import TestimonialsSection from "@/components/testimonials-section"
 import ApartmentTypesSection from "@/components/apartment-types-section"
 import CTASection from "@/components/cta-section"
+import FeaturedHousesSection from "@/components/featured-houses-section"
 
 export default function Home() {
   const [selectedProperty, setSelectedProperty] = useState(null)
@@ -22,6 +23,7 @@ export default function Home() {
       <Header />
       <main className="flex-1 w-full">
         <Hero />
+        <FeaturedHousesSection />
         <HelpSection />
         <PropertyGrid onSelectProperty={setSelectedProperty} />
         <ApartmentTypesSection />

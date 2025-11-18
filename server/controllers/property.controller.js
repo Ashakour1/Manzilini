@@ -7,6 +7,9 @@ export const getProperties = asyncHandler(async (req, res) => {
         const properties = await prisma.property.findMany({
             orderBy: {
                 createdAt: 'desc'
+            },
+            include : {
+                images: true
             }
         });
         res.status(200).json(properties);
@@ -21,6 +24,9 @@ export const getPropertyById = asyncHandler(async (req, res) => {
         const { id } = req.params;
         const property = await prisma.property.findUnique({
             where: { id },
+            include : {
+                images: true
+            }
         });
         res.status(200).json(property);
     } catch (error) {
@@ -125,7 +131,7 @@ export const createProperty = asyncHandler(async (req, res) => {
             include: { images: true },
         });
 
-        
+
         
         res.status(201).json(property);
     } catch (error) {

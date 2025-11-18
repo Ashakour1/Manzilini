@@ -56,20 +56,30 @@ export default function PropertyDetailPage() {
     )
   }
 
-  // Handle image URL
-  const getImageUrl = (imagePath?: string) => {
+  // Normalize any type of image reference to an absolute URL.
+  const getImageUrl = (image: any) => {
+    const imagePath =
+      typeof image === "string"
+        ? image
+        : image?.url || image?.path || property.image || property.images?.[0]?.url || property.images?.[0]?.path
+
     if (!imagePath) return "/placeholder.svg"
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath
     }
-    if (imagePath.startsWith('/uploads')) {
+    if (imagePath.startsWith("/uploads")) {
       return `http://localhost:4000${imagePath}`
     }
-    return `http://localhost:4000/uploads/images/${imagePath}`
+    return `http://localhost:4000/uploads/${imagePath}`
   }
 
-  // Create array of images (use property.image as primary, add placeholder if needed)
-  const images = property.image ? [property.image] : ["/placeholder.svg"]
+  // Build gallery sources from uploaded images (fallback to legacy single image or placeholder).
+  const rawImages = property.images?.length
+    ? property.images
+    : property.image
+      ? [property.image]
+      : []
+  const images = rawImages.length ? rawImages : ["/placeholder.svg"]
 
   // Format address
   const fullAddress = property.address 
@@ -89,11 +99,11 @@ export default function PropertyDetailPage() {
       <Header />
       <main className="flex-1 w-full">
         {/* Hero Section with Image Gallery */}
-        <div className="bg-gray-50">
+        <div className="">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Image Gallery */}
             <div className="mb-8">
-              <div className="relative w-full h-[500px] rounded-2xl overflow-hidden bg-gray-200 mb-4">
+              <div className="relative w-full h-[600px] border rounded-2xl overflow-hidden mb-4">
                 <img
                   src={getImageUrl(images[selectedImageIndex])}
                   alt={property.title}
@@ -125,7 +135,7 @@ export default function PropertyDetailPage() {
               </div>
               
               {/* Thumbnail Gallery */}
-              {images.length > 1 && (
+              {/* {images.length > 1 && (
                 <div className="grid grid-cols-4 gap-2">
                   {images.map((img: string, index: number) => (
                     <button
@@ -143,7 +153,7 @@ export default function PropertyDetailPage() {
                     </button>
                   ))}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>

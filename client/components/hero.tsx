@@ -94,7 +94,11 @@ export default function Hero() {
                 From as low as $10 per day with limited time offer discounts. Find homes matched to your lifestyle with filters tailored for you.
               </p>
               <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button size="lg" className="h-12 min-w-[170px] gap-2 rounded-full bg-white text-gray-900 hover:bg-white/90">
+                <Button
+                  size="lg"
+                  className="h-12 min-w-[170px] gap-2 rounded-full bg-white text-primary hover:bg-white/90"
+                  onClick={() => (window.location.href = "/properties")}
+                >
                   Explore Listings
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -102,14 +106,15 @@ export default function Hero() {
                   size="lg"
                   variant="outline"
                   className="h-12 min-w-[170px] rounded-full border-white/50 bg-transparent text-white hover:bg-white/10"
+                  onClick={() => (window.location.href = "/contact")}
                 >
                   Contact Agent
                 </Button>
               </div>
             </div>
 
-            <div className="mx-auto mt-10 w-full max-w-4xl rounded-[36px] bg-white/95 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.35)] backdrop-blur">
-              <div className="flex flex-wrap gap-3">
+            <div className="mx-auto mt-10 w-full max-w-4xl  rounded-[36px] bg-white/95 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.35)] backdrop-blur">
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 {heroTabs.map((tab) => {
                   const isActive = activeTab === tab.value
                   return (
@@ -118,7 +123,7 @@ export default function Hero() {
                       type="button"
                       onClick={() => setActiveTab(tab.value)}
                       className={`rounded-full px-6 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-black/40 ${
-                        isActive ? "bg-black text-white shadow-lg" : "border border-gray-200 text-gray-500"
+                        isActive ? "bg-primary text-white " : "border border-primary text-gray-500"
                       }`}
                       aria-pressed={isActive}
                     >
@@ -130,7 +135,7 @@ export default function Hero() {
 
               <div className="mt-6 grid gap-4 md:grid-cols-[1.3fr_1fr_1fr_1fr_auto_auto] md:items-end">
                 <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                     Keyword
                   </p>
                   <Input
@@ -139,7 +144,7 @@ export default function Hero() {
                   />
                 </div>
                 <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                     Location
                   </p>
                   <Select defaultValue={locationOptions[0].value}>
@@ -156,7 +161,7 @@ export default function Hero() {
                   </Select>
                 </div>
                 <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                     Type
                   </p>
                   <Select defaultValue={propertyTypes[0].value}>
@@ -173,7 +178,7 @@ export default function Hero() {
                   </Select>
                 </div>
                 <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                     Budget
                   </p>
                   <Input
@@ -182,9 +187,10 @@ export default function Hero() {
                   />
                 </div>
            
-                <Button className="h-14 rounded-2xl bg-black px-8 text-base font-semibold text-white hover:bg-black/90">
-                  <Search className="mr-2 h-4 w-4" />
-                  Search
+                <Button className="group relative h-14 min-w-[160px] overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 px-10 text-base font-semibold text-white shadow-lg shadow-primary/30 transition-all duration-300 hover:scale-[1.02] hover:from-black hover:to-black focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">
+                  <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-10 group-active:opacity-20 bg-white" />
+                  <Search className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <span className="relative">Search</span>
                 </Button>
               </div>
             </div>
