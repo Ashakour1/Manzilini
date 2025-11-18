@@ -7,6 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
+     "postinstall": "prisma generate",
+    "build": "npm run postinstall",
     "db-push": "prisma db push"
   },
   "keywords": [],

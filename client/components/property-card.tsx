@@ -56,7 +56,7 @@ export default function PropertyCard({ property, onClick }: PropertyCardProps) {
         {/* Price - prominently displayed */}
         <div className="mb-3">
           <span className="text-2xl font-bold text-gray-900">
-            {property.price?.toLocaleString() || property.price}
+            KES {property.price?.toLocaleString() || property.price}
           </span>
         </div>
 
