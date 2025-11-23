@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:4000/api";
+const API_URL = "https://manzilline-production-fcab.up.railway.app/api";
 
 export const fetchProperties = async () => {
     const response = await fetch(`${API_URL}/properties`);
