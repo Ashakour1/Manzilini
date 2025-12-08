@@ -45,6 +45,10 @@ app.use(cookieParser())
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get("/",(req,res)=>{
+  res.send("Welcome to Manzilini HQ ");
+});
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
 app.use('/api/v1/landlords', landlordRoutes);
