@@ -1,19 +1,20 @@
 import express from 'express';
 import { createPropertyApplication, getPropertyApplications, getPropertyApplicationById, updatePropertyApplication, deletePropertyApplication, getPropertyApplicationsByTenant } from '../controllers/property.applications.controller.js';
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 
-router.post('/', createPropertyApplication);
+router.post('/',createPropertyApplication);
 
-router.get('/', getPropertyApplications);
+router.get('/', AuthMiddleware,getPropertyApplications);
 
-router.get('/:id', getPropertyApplicationById);
+router.get('/:id',AuthMiddleware, getPropertyApplicationById);
 
-router.put('/:id', updatePropertyApplication);
+router.put('/:id',AuthMiddleware, updatePropertyApplication);
 
-router.delete('/:id', deletePropertyApplication);
+router.delete('/:id',AuthMiddleware, deletePropertyApplication);
 
-router.get('/tenant/:tenantId', getPropertyApplicationsByTenant);
+router.get('/tenant/:tenantId', AuthMiddleware,getPropertyApplicationsByTenant);
 
 export default router;

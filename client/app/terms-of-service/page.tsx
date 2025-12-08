@@ -1,10 +1,6 @@
-import Footer from "@/components/footer"
-import Header from "@/components/header"
-
 const TermsOfService = () => {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-        <Header/>
+    <>
     <div className="max-w-4xl mx-auto px-4 py-10">
       <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
       <p className="mb-4">  
@@ -46,11 +42,9 @@ const TermsOfService = () => {
         <a href="tel:+1234567890" className="text-primary hover:underline"> +123-456-7890</a>
         </p>
       </div>
-        <Footer />
-</div>
-
-    )
-    }
+    </>
+  )
+}
         
 
 export default TermsOfService

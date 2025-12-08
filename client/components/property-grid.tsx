@@ -22,6 +22,7 @@ interface Property {
   bathrooms?: number;
   size?: number;
   image?: string;
+  is_featured?: boolean;
 }
 
 export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
@@ -32,7 +33,15 @@ export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
     setLoading(true);
     
     fetchProperties().then((data) => {
-      setProperties(data);
+      // Sort properties: featured first, then by creation date
+      const sorted = (data || []).sort((a: Property, b: Property) => {
+        const aFeatured = a.is_featured || false;
+        const bFeatured = b.is_featured || false;
+        if (aFeatured && !bFeatured) return -1;
+        if (!aFeatured && bFeatured) return 1;
+        return 0;
+      });
+      setProperties(sorted);
       setLoading(false);
     }).catch((error) => {
       console.error(error);

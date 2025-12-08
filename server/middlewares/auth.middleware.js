@@ -1,15 +1,22 @@
+import jwt from 'jsonwebtoken'
 export const AuthMiddleware = (req, res, next) => {
+
+    console.log(req)
+
+    // console.log(req.cookies.manzilini)
    
-    let tokan;
-
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
+ 
         try {
-            tokan = req.headers.authorization.split(' ')[1];
+             const token = req.cookies.manzilini;
 
-            const decoded = jwt.verify(tokan, process.env.JWT_SECRET);
+             if(!token){
+                return res.status(401).json({
+                    message : "UnAuthorized"
+                })
+             }
+            
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             req.user = decoded.user;
 
@@ -19,9 +26,3 @@ export const AuthMiddleware = (req, res, next) => {
             throw new Error('Not authorized, token failed');
         }
     }
-
-    if (!tokan) {
-        res.status(401);
-        throw new Error('Not authorized, no token');
-    }
-}

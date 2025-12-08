@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, Home } from "lucide-react"
+import { Menu, X, Home, MessageCircle, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Header() {
@@ -42,13 +42,19 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Login</Link>
+            <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
+              <Link href="/contact" className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                Contact Us
+              </Link>
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup">Sign Up</Link>
+            <Button size="sm" asChild className="bg-primary hover:bg-primary/90 shadow-md">
+              <Link href="/properties" className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                Post Property
+              </Link>
             </Button>
           </div>
 
@@ -77,11 +83,17 @@ export default function Header() {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
-                  <Link href="/login">Login</Link>
+                <Button variant="ghost" size="sm" asChild className="w-full hover:bg-primary/10">
+                  <Link href="/contact" className="flex items-center gap-2 justify-center">
+                    <MessageCircle className="w-4 h-4" />
+                    Contact Us
+                  </Link>
                 </Button>
-                <Button size="sm" asChild className="w-full">
-                  <Link href="/signup">Sign Up</Link>
+                <Button size="sm" asChild className="w-full bg-primary hover:bg-primary/90 shadow-md">
+                  <Link href="/properties" className="flex items-center gap-2 justify-center">
+                    <Upload className="w-4 h-4" />
+                    Post Property
+                  </Link>
                 </Button>
               </div>
             </nav>

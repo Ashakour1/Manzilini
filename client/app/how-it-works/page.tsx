@@ -1,5 +1,3 @@
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Search, FileCheck, Home, CheckCircle } from "lucide-react"
 
 const steps = [
@@ -29,9 +27,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <section className="py-20 md:py-28 bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">How It Works</h1>
@@ -87,8 +83,6 @@ export default function HowItWorks() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

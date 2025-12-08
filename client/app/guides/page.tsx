@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
@@ -60,9 +58,7 @@ export default function GuidesPage() {
   const categories = ["All", "Renting", "Landlording", "Safety", "Buying", "Legal", "Lifestyle"]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <div className="bg-card border-b border-border py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">Guides & Resources</h1>
@@ -120,8 +116,6 @@ export default function GuidesPage() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -37,9 +35,7 @@ export default function FavoritesPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <div className="bg-card border-b border-border py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">Your Favorite Properties</h1>
@@ -90,8 +86,6 @@ export default function FavoritesPage() {
             )}
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

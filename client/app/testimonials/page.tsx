@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Star, Quote } from "lucide-react"
 import Image from "next/image"
 
@@ -82,9 +80,7 @@ export default function TestimonialsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <div className="bg-card  pt-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-start">
@@ -139,8 +135,6 @@ export default function TestimonialsPage() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

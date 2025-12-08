@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { fetchPropertyById } from "@/services/properties.service"
 import { Bed, Bath, Maximize2, MapPin, Car, Home, Building2, Mail, Phone, MessageCircle, Calendar, DollarSign, Key, Layers, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -29,29 +27,19 @@ export default function PropertyDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header />
-        <main className="flex-1 w-full flex items-center justify-center py-20">
-          <div className="text-center">
-            <p className="text-gray-500">Loading property...</p>
-          </div>
-        </main>
-        <Footer />
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <p className="text-gray-500">Loading property...</p>
+        </div>
       </div>
     )
   }
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header />
-        <main className="flex-1 w-full">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <h1 className="text-2xl font-semibold text-gray-900">Property not found</h1>
-            <p className="text-gray-500 mt-2">The property you are looking for does not exist.</p>
-          </div>
-        </main>
-        <Footer />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h1 className="text-2xl font-semibold text-gray-900">Property not found</h1>
+        <p className="text-gray-500 mt-2">The property you are looking for does not exist.</p>
       </div>
     )
   }
@@ -95,9 +83,8 @@ export default function PropertyDetailPage() {
   }).format(property.price || 0)
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <div className="bg-white">
+      <div className="w-full">
         {/* Hero Section with Image Gallery */}
         <div className="">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -314,41 +301,64 @@ export default function PropertyDetailPage() {
                 <div className="rounded-2xl p-6 ">
                   <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h3>
                   
-                  {property.contact_name && (
+
+                  {/* // to see the landlord details you want to pay a small fee to the landlord
+                  {property.landlord.name && (
                     <div className="mb-4">
                       <p className="text-sm text-gray-600 mb-1">Contact Name</p>
-                      <p className="text-lg font-semibold text-gray-900">{property.contact_name}</p>
+                      <p className="text-lg font-semibold text-gray-900">{property.landlord.name}</p>
                     </div>
                   )}
 
                   <div className="space-y-4 mb-6">
-                    {property.contact_email && (
+                    {property.landlord.email && (
                       <a
-                        href={`mailto:${property.contact_email}`}
+                        href={`mailto:${property.landlord.email}`}
                         className="flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                       >
                         <Mail className="w-5 h-5 text-blue-600" />
-                        <span className="text-gray-700">{property.contact_email}</span>
+                        <span className="text-gray-700">{property.landlord.email}</span>
                       </a>
                     )}
-                    {property.contact_phone && (
+                    {property.landlord.phone && (
                       <a
-                        href={`tel:${property.contact_phone}`}
+                        href={`tel:${property.landlord.phone}`}
                         className="flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                       >
                         <Phone className="w-5 h-5 text-green-600" />
-                        <span className="text-gray-700">{property.contact_phone}</span>
+                        <span className="text-gray-700">{property.landlord.phone}</span>
                       </a>
                     )}
+                  </div> */}
+
+<div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-6">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                        <MessageCircle className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                      Unlock Landlord Contact Details
+                    </h4>
+                    <p className="text-sm text-gray-600 text-center mb-4">
+                      To view the landlord's contact information (name, email, and phone), please pay a support fee to the company.
+                    </p>
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      Pay Support Fee to View Details
+                    </Button>
+                    <p className="text-xs text-gray-500 text-center mt-3">
+                      Secure payment • Instant access
+                    </p>
                   </div>
+                  
 
                 
 
                   <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-sm">
+                    {/* <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Property ID</span>
                       <span className="font-mono text-gray-900">{property.id.slice(0, 8)}...</span>
-                    </div>
+                    </div> */}
                     {property.createdAt && (
                       <div className="flex items-center justify-between text-sm mt-2">
                         <span className="text-gray-600">Listed</span>
@@ -361,8 +371,7 @@ export default function PropertyDetailPage() {
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
+        </div>
     </div>
   )
 }

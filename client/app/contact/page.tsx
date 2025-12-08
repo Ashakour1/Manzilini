@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Mail, Phone, MapPin, Send, Clock, MessageSquare, Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
 import { useState } from "react"
@@ -72,9 +70,7 @@ export default function Contact() {
   ]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         {/* Hero Section */}
         <section className="pt-16 ">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -308,8 +304,6 @@ export default function Contact() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

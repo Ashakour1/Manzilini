@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowRight, Filter, Search } from "lucide-react"
+import Link from "next/link"
 import Image from "next/image"
 import {
   Select,
@@ -35,29 +36,124 @@ const heroStats = [
 
 const nairobiVillages = [
   {
-    name: "Kilimani",
-    properties: 18,
+    name: "Avington",
+    properties: 15,
     image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60"
   },
   {
-    name: "Lavington",
+    name: "Ruaka",
     properties: 12,
     image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=60"
   },
   {
-    name: "Karen",
-    properties: 9,
+    name: "Muthaiga",
+    properties: 18,
     image: "https://images.unsplash.com/photo-1486304873000-235643847519?auto=format&fit=crop&w=400&q=60"
   },
   {
+    name: "Kikuyu",
+    properties: 14,
+    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kamukunji",
+    properties: 11,
+    image: "https://images.unsplash.com/photo-1459535653751-d571815e906b?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Loresho",
+    properties: 16,
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kayole",
+    properties: 13,
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=60"
+  },
+  {
     name: "Westlands",
-    properties: 21,
+    properties: 25,
+    image: "https://images.unsplash.com/photo-1486304873000-235643847519?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Karen",
+    properties: 20,
     image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=60"
   },
   {
     name: "Runda",
-    properties: 7,
+    properties: 17,
     image: "https://images.unsplash.com/photo-1459535653751-d571815e906b?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kileleshwa",
+    properties: 19,
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kitisuru",
+    properties: 14,
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Syokimau",
+    properties: 12,
+    image: "https://images.unsplash.com/photo-1486304873000-235643847519?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Dagoretti North",
+    properties: 15,
+    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kasarani",
+    properties: 16,
+    image: "https://images.unsplash.com/photo-1459535653751-d571815e906b?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Kilimani",
+    properties: 22,
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Gigiri",
+    properties: 18,
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Mathare",
+    properties: 11,
+    image: "https://images.unsplash.com/photo-1486304873000-235643847519?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Lang'ata",
+    properties: 13,
+    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Hurlingham",
+    properties: 16,
+    image: "https://images.unsplash.com/photo-1459535653751-d571815e906b?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Embakasi",
+    properties: 14,
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Makadara",
+    properties: 12,
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Nyari",
+    properties: 15,
+    image: "https://images.unsplash.com/photo-1486304873000-235643847519?auto=format&fit=crop&w=400&q=60"
+  },
+  {
+    name: "Starehe",
+    properties: 13,
+    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=60"
   },
 ]
 
@@ -85,13 +181,13 @@ export default function Hero() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-12">
             <div className="mx-auto max-w-3xl text-center text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
-                Let us guide your home
+                Your Dream Home Awaits You
               </p>
               <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-                Enjoy The Finest Homes
+                Discover Premium Properties
               </h1>
               <p className="mt-4 text-lg text-white/80">
-                From as low as $10 per day with limited time offer discounts. Find homes matched to your lifestyle with filters tailored for you.
+                Find your perfect home with our extensive collection of premium properties. Expertly curated listings tailored to match your unique lifestyle and preferences.
               </p>
               <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
@@ -211,27 +307,30 @@ export default function Hero() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">Nairobi villages</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Premium Locations</p>
               <h2 className="mt-3 text-3xl font-semibold text-foreground">
-                Find properties in these neighborhoods
+                Explore Top Neighborhoods
               </h2>
               <p className="mt-2 text-base text-muted-foreground">
-                Discover the best addresses across Nairobi suburbia curated for different lifestyles.
+                Browse through our handpicked selection of premium neighborhoods, each offering unique lifestyle opportunities and exceptional properties.
               </p>
             </div>
-            <Button variant="ghost" className="gap-2 text-sm">
-              View all villages
-              <ArrowRight className="h-4 w-4" />
+            <Button variant="ghost" className="gap-2 text-sm" asChild>
+              <Link href="/cities">
+                View all locations
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {nairobiVillages.map((village) => (
-              <div
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {nairobiVillages.slice(0, 6).map((village) => (
+              <Link
                 key={village.name}
-                className="flex items-center gap-4 rounded-3xl border border-border/60 bg-card/70 p-4 shadow-sm transition hover:-translate-y-1 hover:border-primary/70"
+                href={`/properties?village=${village.name.toLowerCase().replace(/\s+/g, "-")}`}
+                className="flex items-center gap-4 rounded-3xl border border-border/60 bg-card/70 p-4 shadow-sm transition hover:-translate-y-1 hover:border-primary/70 hover:shadow-md"
               >
-                <div className="relative h-16 w-16 overflow-hidden rounded-2xl">
+                <div className="relative h-16 w-16 overflow-hidden rounded-2xl flex-shrink-0">
                   <Image
                     src={village.image}
                     alt={village.name}
@@ -240,13 +339,13 @@ export default function Hero() {
                     className="object-cover"
                   />
                 </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">{village.name}</p>
+                <div className="min-w-0">
+                  <p className="text-base font-semibold text-foreground truncate">{village.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {village.properties} properties
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

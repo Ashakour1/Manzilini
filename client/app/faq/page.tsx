@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 
@@ -52,9 +50,7 @@ export default function FAQ() {
   const [expanded, setExpanded] = useState(null)
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <section className="py-20 md:py-28 bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Frequently Asked Questions</h1>
@@ -90,8 +86,6 @@ export default function FAQ() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }

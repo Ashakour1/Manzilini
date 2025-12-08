@@ -59,12 +59,24 @@ export const loginUser = asyncHandler(async (req, res) => {
         throw new Error('Invalid password');
     }
 
+    const token = generateToken(user.id);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    res.cookie('manzilini', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+
     res.status(200).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user.id),
+        token: token,
     });
 });
 

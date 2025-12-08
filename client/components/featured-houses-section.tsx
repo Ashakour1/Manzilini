@@ -1,44 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Bath, Bed, MapPin, Maximize2 } from "lucide-react"
-
-const featuredHouses = [
-  {
-    id: "kilimani-duplex",
-    title: "Kilimani Garden Duplex",
-    location: "Kilimani, Nairobi",
-    price: 2750,
-    beds: 4,
-    baths: 3,
-    size: 2400,
-    tag: "New Listing",
-    image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&h=800&fit=crop",
-  },
-  {
-    id: "riverside-villa",
-    title: "Riverside Contemporary Villa",
-    location: "Riverside Drive, Nairobi",
-    price: 4200,
-    beds: 5,
-    baths: 4,
-    size: 3200,
-    tag: "Furnished",
-    image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1200&h=800&fit=crop",
-  },
-  {
-    id: "westlands-loft",
-    title: "Skyline Loft Residence",
-    location: "Westlands, Nairobi",
-    price: 2100,
-    beds: 3,
-    baths: 2,
-    size: 1850,
-    tag: "Price Drop",
-    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&h=800&fit=crop",
-  },
-]
+import { fetchProperties } from "@/services/properties.service"
 
 const highlights = [
   "Handpicked luxury homes in Nairobi's top neighborhoods",
@@ -46,13 +12,73 @@ const highlights = [
   "Flexible payment plans with transparent terms",
 ]
 
-// const stats = [
-//   { label: "Luxury Homes", value: "120+" },
-//   { label: "Verified Landlords", value: "60+" },
-//   { label: "Average Tour Rating", value: "4.9/5" },
-// ]
+interface Property {
+  id: string
+  title: string
+  description: string
+  price: number
+  status?: string
+  property_type?: string
+  address?: string
+  city?: string
+  country?: string
+  bedrooms?: number
+  bathrooms?: number
+  size?: number
+  is_featured?: boolean
+  images?: { url: string }[]
+}
 
 export default function FeaturedHousesSection() {
+  const [featuredProperties, setFeaturedProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadFeaturedProperties = async () => {
+      try {
+        const allProperties = await fetchProperties()
+        // Filter and get only featured properties, limit to 4
+        const featured = (allProperties || [])
+          .filter((p: Property) => p.is_featured)
+          .slice(0, 4)
+        setFeaturedProperties(featured)
+      } catch (error) {
+        console.error("Failed to load featured properties:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFeaturedProperties()
+  }, [])
+
+  const getImageUrl = (property: Property) => {
+    const imagePath = property.images?.[0]?.url || property.images?.[0]?.path
+    if (!imagePath) return "/placeholder.svg"
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath
+    }
+    if (imagePath.startsWith("/uploads")) {
+      return `http://localhost:4000${imagePath}`
+    }
+    return `http://localhost:4000/uploads/${imagePath}`
+  }
+
+  const formatAddress = (property: Property) => {
+    if (property.address) {
+      return `${property.address}, ${property.city || ''}, ${property.country || ''}`.trim().replace(/^,\s*|,\s*$/g, '')
+    }
+    return `${property.city || ''}, ${property.country || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || 'Location not available'
+  }
+
+  const formatPrice = (price: number, currency: string = "USD") => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price)
+  }
   return (
     <section className="py-20 md:py-24 bg-muted/40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,57 +123,77 @@ export default function FeaturedHousesSection() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {featuredHouses.map((house) => (
-              <div
-                key={house.id}
-                className="group rounded-3xl border border-border bg-background overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
-              >
-                <div className="relative h-56 w-full overflow-hidden">
-                  <Image
-                    src={house.image}
-                    alt={house.title}
-                    fill
-                    sizes="(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 100vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary">
-                    {house.tag}
-                  </div>
-                </div>
-                <div className="p-5 space-y-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Featured Listing</p>
-                    <h3 className="text-xl font-semibold text-foreground mt-1">{house.title}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      {house.location}
+            {loading ? (
+              <div className="col-span-2 text-center py-12">
+                <p className="text-muted-foreground">Loading featured properties...</p>
+              </div>
+            ) : featuredProperties.length === 0 ? (
+              <div className="col-span-2 text-center py-12">
+                <p className="text-muted-foreground">No featured properties available at the moment.</p>
+              </div>
+            ) : (
+              featuredProperties.map((property) => (
+                <div
+                  key={property.id}
+                  className="group rounded-3xl border border-border bg-background overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative h-56 w-full overflow-hidden">
+                    <Image
+                      src={getImageUrl(property)}
+                      alt={property.title}
+                      fill
+                      sizes="(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 100vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary">
+                      Featured
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold text-foreground">${house.price.toLocaleString()}</span>
-                    <span className="text-sm text-muted-foreground">/month</span>
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Featured Listing</p>
+                      <h3 className="text-xl font-semibold text-foreground mt-1">{property.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        {formatAddress(property)}
+                      </div>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-semibold text-foreground">
+                        {formatPrice(property.price, property.currency || "USD")}
+                      </span>
+                      {property.payment_frequency && (
+                        <span className="text-sm text-muted-foreground">/{property.payment_frequency.toLowerCase()}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {property.bedrooms !== null && property.bedrooms !== undefined && (
+                        <span className="flex items-center gap-1.5">
+                          <Bed className="h-4 w-4 text-primary" /> {property.bedrooms} Beds
+                        </span>
+                      )}
+                      {property.bathrooms !== null && property.bathrooms !== undefined && (
+                        <span className="flex items-center gap-1.5">
+                          <Bath className="h-4 w-4 text-primary" /> {property.bathrooms} Baths
+                        </span>
+                      )}
+                      {property.size !== null && property.size !== undefined && (
+                        <span className="flex items-center gap-1.5">
+                          <Maximize2 className="h-4 w-4 text-primary" /> {property.size} sqft
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      href={`/properties/${property.id}`}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      View listing
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <Bed className="h-4 w-4 text-primary" /> {house.beds} Beds
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Bath className="h-4 w-4 text-primary" /> {house.baths} Baths
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Maximize2 className="h-4 w-4 text-primary" /> {house.size} sqft
-                    </span>
-                  </div>
-                  <Link
-                    href="/properties"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    View listing
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

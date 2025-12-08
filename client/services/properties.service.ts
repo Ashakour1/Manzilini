@@ -1,4 +1,4 @@
-const API_URL = "https://manzilline-production-fcab.up.railway.app/api";
+const API_URL = "http://localhost:4000/api/v1";
 
 export const fetchProperties = async () => {
     const response = await fetch(`${API_URL}/properties`);
@@ -18,6 +18,16 @@ export const fetchPropertyById = async (id: string | number) => {
             return null;
         }
         throw new Error('Failed to fetch property');
+    }
+
+    return response.json();
+}
+
+export const fetchPropertyTypes = async () => {
+    const response = await fetch(`${API_URL}/properties/types`);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch property types');
     }
 
     return response.json();

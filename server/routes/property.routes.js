@@ -1,17 +1,20 @@
 import express from 'express';
-import { getProperties, getPropertyById, createProperty, updateProperty, deleteProperty } from '../controllers/property.controller.js';
+import { getProperties, getPropertyById, createProperty, updateProperty, deleteProperty, getPropertyTypes } from '../controllers/property.controller.js';
 import { upload } from '../config/multer.js';
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
+
+router.get('/types', getPropertyTypes);
 
 router.get('/', getProperties);
 
 router.get('/:id', getPropertyById);
 
-router.post("/", upload.array("images", 10), createProperty);
+router.post("/",AuthMiddleware, upload.array("images", 10), createProperty);
 
-router.put('/:id', updateProperty);
+router.put('/:id',AuthMiddleware, updateProperty);
 
-router.delete('/:id', deleteProperty);
+router.delete('/:id',AuthMiddleware, deleteProperty);
 
 export default router;

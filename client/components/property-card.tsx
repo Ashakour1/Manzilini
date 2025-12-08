@@ -13,8 +13,8 @@ export default function PropertyCard({ property, onClick }: PropertyCardProps) {
   // Format address from property data
   const address = property.address || `${property.city || ''}, ${property.country || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || property.location || '';
 
-  // Check if property is featured (you can add a featured field to your schema later)
-  const isFeatured = property.featured || false;
+  // Check if property is featured
+  const isFeatured = property.is_featured || property.featured || false;
 
   // Handle image URL - support both relative paths and full URLs
   const getImageUrl = () => {

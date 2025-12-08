@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import PropertyCard from "@/components/property-card"
 import PropertyModal from "@/components/property-modal"
 import { fetchProperties } from "@/services/properties.service"
@@ -163,9 +161,8 @@ export default function PropertiesPage() {
     filters.priceRange[1] < Math.max(...properties.map((p) => p.price || 0), 1000000)
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
+      <div className="w-full">
         {/* Header */}
         <div className="bg-card pt-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -360,11 +357,10 @@ export default function PropertiesPage() {
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
+      </div>
       {selectedProperty && (
         <PropertyModal property={selectedProperty} onClose={() => setSelectedProperty(null)} />
       )}
-    </div>
+    </>
   )
 }

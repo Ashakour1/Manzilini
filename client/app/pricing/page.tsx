@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
 
@@ -59,9 +57,7 @@ export default function PricingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <div className="bg-card pt-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-start">
             <h1 className="text-4xl font-bold text-foreground mb-2">Simple, Transparent Pricing</h1>
@@ -133,8 +129,7 @@ export default function PricingPage() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+      
+    </>
   )
 }

@@ -5,14 +5,39 @@ import prisma from '../db/prisma.js';
 export const getProperties = asyncHandler(async (req, res) => {
     try {
         const properties = await prisma.property.findMany({
-            orderBy: {
-                createdAt: 'desc'
-            },
+            orderBy: [
+                { is_featured: 'desc' },
+                { createdAt: 'desc' }
+            ],
             include : {
-                images: true
+                images: true,
+                landlord: true
             }
         });
         res.status(200).json(properties);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+export const getPropertyTypes = asyncHandler(async (req, res) => {
+    try {
+        // Group properties by type and count them
+        const propertyTypes = await prisma.property.groupBy({
+            by: ['property_type'],
+            _count: {
+                property_type: true
+            }
+        });
+
+        // Transform the result to include type and count
+        const result = propertyTypes.map(item => ({
+            type: item.property_type,
+            count: item._count.property_type
+        }));
+
+        res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -25,7 +50,8 @@ export const getPropertyById = asyncHandler(async (req, res) => {
         const property = await prisma.property.findUnique({
             where: { id },
             include : {
-                images: true
+                images: true,
+                landlord: true
             }
         });
         res.status(200).json(property);
@@ -37,50 +63,20 @@ export const getPropertyById = asyncHandler(async (req, res) => {
 
 
 export const createProperty = asyncHandler(async (req, res) => {
-    // title String
-    // description String
-    // property_type propertyType @default(APARTMENT)
-    // status Status @default(FOR_RENT)
-    // price Float
-    // currency Currency @default(USD)
-    // payment_frequency PaymentFrequency @default(MONTHLY)
-    // deposit_amount Float?
-  
-    // // location
-    // country String
-    // city String
-    // address String
-    // zip_code String
-    // latitude Float
-    // longitude Float
-  
-    // // property feature
-    // bedrooms Int?
-    // bathrooms Int?
-    // garages Int?
-    // size Float?
-    // is_furnished Boolean? @default(false)
-    // floor Int?
-    // total_floors Int?
-    // balcony Boolean? @default(false)
-    // amenities String[]
-  
-  
-    // //  media
-  
-  
-    // // relations
-    // landlord User @relation(fields: [landlord_id], references: [id])
-    // landlord_id String
-    // contact_name String?
-    // contact_email String?
-    // contact_phone String?
-    // contact_method ContactMethod @default(EMAIL)
     try {
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, landlord_id, contact_name, contact_email, contact_phone, contact_method } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id } = req.body || {};
 
-        if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities || !landlord_id || !contact_name || !contact_email || !contact_phone || !contact_method) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities || !landlord_id) {
+            return res.status(400).json({ message: 'All required fields must be provided' });
+        }
+
+        // Validate that landlord exists
+        const landlord = await prisma.landlord.findUnique({
+            where: { id: landlord_id }
+        });
+
+        if (!landlord) {
+            return res.status(400).json({ message: 'Landlord not found' });
         }
 
         // Convert uploaded files to publicly accessible URLs served by this API
@@ -113,11 +109,8 @@ export const createProperty = asyncHandler(async (req, res) => {
             total_floors : parseInt(total_floors, 10),
             balcony : balcony === 'true' || balcony === true,
             amenities: Array.isArray(amenities) ? amenities : JSON.parse(amenities),
+            is_featured : is_featured === 'true' || is_featured === true,
             landlord_id,
-            contact_name,
-            contact_email,
-            contact_phone,
-            contact_method,
         };
 
         if (imageUrls.length) {
@@ -128,7 +121,10 @@ export const createProperty = asyncHandler(async (req, res) => {
 
         const property = await prisma.property.create({
             data: propertyData,
-            include: { images: true },
+            include: { 
+                images: true,
+                landlord: true
+            },
         });
 
 
@@ -143,20 +139,63 @@ export const createProperty = asyncHandler(async (req, res) => {
 export const updateProperty = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, landlord_id, contact_name, contact_email, contact_phone, contact_method } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id } = req.body || {};
 
-        // if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities || !landlord_id || !contact_name || !contact_email || !contact_phone || !contact_method) {
-        //     return res.status(400).json({ message: 'All fields are required' });
-        // }
+        // Get current property to check existing landlord
+        const currentProperty = await prisma.property.findUnique({
+            where: { id },
+            include: { landlord: true }
+        });
+
+        if (!currentProperty) {
+            return res.status(404).json({ message: 'Property not found' });
+        }
+
+        // If landlord_id is being updated, validate that landlord exists
+        if (landlord_id) {
+            const landlord = await prisma.landlord.findUnique({
+                where: { id: landlord_id }
+            });
+
+            if (!landlord) {
+                return res.status(400).json({ message: 'Landlord not found' });
+            }
+        }
+
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (property_type !== undefined) updateData.property_type = property_type;
+        if (status !== undefined) updateData.status = status;
+        if (price !== undefined) updateData.price = parseFloat(price);
+        if (currency !== undefined) updateData.currency = currency;
+        if (payment_frequency !== undefined) updateData.payment_frequency = payment_frequency;
+        if (deposit_amount !== undefined) updateData.deposit_amount = parseFloat(deposit_amount);
+        if (country !== undefined) updateData.country = country;
+        if (city !== undefined) updateData.city = city;
+        if (address !== undefined) updateData.address = address;
+        if (zip_code !== undefined) updateData.zip_code = zip_code;
+        if (latitude !== undefined) updateData.latitude = parseFloat(latitude);
+        if (longitude !== undefined) updateData.longitude = parseFloat(longitude);
+        if (bedrooms !== undefined) updateData.bedrooms = parseInt(bedrooms, 10);
+        if (bathrooms !== undefined) updateData.bathrooms = parseInt(bathrooms, 10);
+        if (garages !== undefined) updateData.garages = parseInt(garages, 10);
+        if (size !== undefined) updateData.size = parseFloat(size);
+        if (is_furnished !== undefined) updateData.is_furnished = is_furnished === 'true' || is_furnished === true;
+        if (floor !== undefined) updateData.floor = parseInt(floor, 10);
+        if (total_floors !== undefined) updateData.total_floors = parseInt(total_floors, 10);
+        if (balcony !== undefined) updateData.balcony = balcony === 'true' || balcony === true;
+        if (amenities !== undefined) updateData.amenities = Array.isArray(amenities) ? amenities : JSON.parse(amenities);
+        if (is_featured !== undefined) updateData.is_featured = is_featured === 'true' || is_featured === true;
+        if (landlord_id !== undefined) updateData.landlord_id = landlord_id;
 
         const property = await prisma.property.update({
             where: { id },
-            data: { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, landlord_id, contact_name, contact_email, contact_phone, contact_method },
+            data: updateData,
+            include: {
+                landlord: true
+            }
         });
-
-        if (!property) {
-            return res.status(400).json({ message: 'Property not found' });
-        }
 
         res.status(200).json(property);
     } catch (error) {

@@ -1,124 +1,88 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
-
 }
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
-
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  name String
-  image String?
-  role Role @default(USER)
-  password String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  properties Property[]
+  id                    String                @id @default(uuid())
+  email                 String                @unique
+  name                  String
+  image                 String?
+  role                  Role                  @default(USER)
+  password              String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
   property_applications PropertyApplication[]
 }
 
+model Landlord {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  phone        String?
+  company_name String?
+  address      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  properties   Property[]
+}
 
 model Property {
-  id String @id @default(uuid())
-  title String
-  description String
-  property_type propertyType @default(APARTMENT)
-  status Status @default(FOR_RENT)
-  price Float
-  currency Currency @default(USD)
-  payment_frequency PaymentFrequency @default(MONTHLY)
-  deposit_amount Float?
-
-  // location
-  country String
-  city String
-  address String
-  zip_code String
-  latitude Float
-  longitude Float
-
-  // property feature
-  bedrooms Int?
-  bathrooms Int?
-  garages Int?
-  size Float?
-  is_furnished Boolean? @default(false)
-  floor Int?
-  total_floors Int?
-  balcony Boolean? @default(false)
-  amenities String[]  
+  id                    String                @id @default(uuid())
+  title                 String
+  description           String
+  property_type         propertyType          @default(APARTMENT)
+  status                Status                @default(FOR_RENT)
+  price                 Float
+  currency              Currency              @default(USD)
+  payment_frequency     PaymentFrequency      @default(MONTHLY)
+  deposit_amount        Float?
+  country               String
+  city                  String
+  address               String
+  zip_code              String
+  latitude              Float
+  longitude             Float
+  bedrooms              Int?
+  bathrooms             Int?
+  garages               Int?
+  size                  Float?
+  is_furnished          Boolean?              @default(false)
+  floor                 Int?
+  total_floors          Int?
+  balcony               Boolean?              @default(false)
+  amenities             String[]
+  is_featured           Boolean?              @default(false)
+  landlord_id           String?
+  landlord              Landlord? @relation(fields: [landlord_id], references: [id])
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
   property_applications PropertyApplication[]
-
-  //  media
-
-
-  // relations
-  landlord User @relation(fields: [landlord_id], references: [id])
-  landlord_id String
-  contact_name String?
-  contact_email String?
-  contact_phone String?
-
-  contact_method ContactMethod @default(EMAIL)
-
-
-
-
-  // timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-
-  images PropertyImages[]
-
-
+  images                PropertyImages[]
 }
-
-
-// model PropertyMedia {
-//   id String @id @default(uuid())
-//   propertyId String
-//   property Property @relation(fields: [propertyId], references: [id])
-//   url String
-//   type MediaType
-// }
-
-
-// enum MediaType {
-//   IMAGE
-//   VIDEO
-// }
 
 model PropertyImages {
-  id        String   @id @default(cuid())
-  property  Property @relation(fields: [propertyId], references: [id])
-  propertyId String
-  url       String
-
-  createdAt DateTime @default(now())
-}
-// request to rent a property by a tenant to a landlord (landlord will approve or reject the request)
-model PropertyApplication {
   id         String   @id @default(cuid())
   propertyId String
+  url        String
+  createdAt  DateTime @default(now())
   property   Property @relation(fields: [propertyId], references: [id])
+}
+
+model PropertyApplication {
+  id         String            @id @default(cuid())
+  propertyId String
   tenantId   String
-  tenant     User     @relation(fields: [tenantId], references: [id])
   message    String?
-  status     ApplicationStatus    @default(PENDING)
-  createdAt  DateTime  @default(now())
+  status     ApplicationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+  property   Property          @relation(fields: [propertyId], references: [id])
+  tenant     User              @relation(fields: [tenantId], references: [id])
 }
 
 enum ApplicationStatus {
@@ -133,6 +97,7 @@ enum Role {
   SUPER_ADMIN
   PROPERTY_OWNER
 }
+
 enum propertyType {
   APARTMENT
   HOUSE
@@ -141,13 +106,11 @@ enum propertyType {
   LAND
 }
 
-
 enum Status {
   FOR_SALE
   FOR_RENT
   SOLD
   RENTED
-  
 }
 
 enum Currency {
@@ -168,7 +131,6 @@ enum PaymentFrequency {
   WEEKLY
   DAILY
 }
-
 
 enum ContactMethod {
   EMAIL

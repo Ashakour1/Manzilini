@@ -1,7 +1,5 @@
 "use client"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import { CheckCircle, Users, Lightbulb, Globe, Home, Shield, TrendingUp } from "lucide-react"
 import Image from "next/image"
 
@@ -37,9 +35,7 @@ export default function About() {
   ]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1 w-full">
+    <>
         <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
@@ -119,8 +115,6 @@ export default function About() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   )
 }
