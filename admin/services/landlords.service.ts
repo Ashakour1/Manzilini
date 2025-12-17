@@ -1,6 +1,6 @@
-import { DEVELOPMENT_API_URL } from "../lib/api";
+import { API_URL } from "../lib/api";
 
-const LANDLORD_API_URL = `${DEVELOPMENT_API_URL}/landlords`;
+const LANDLORD_API_URL = `${API_URL}/landlords`;
 
 // Register a new landlord
 export const registerLandlord = async (landlordData = {}) => {
@@ -35,7 +35,7 @@ export const getLandlords = async () => {
 };
 
 // Get landlord by ID
-export const getLandlordById = async (id) => {
+export const getLandlordById = async (id: string) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}`, {
     credentials: "include",
   });
@@ -48,7 +48,7 @@ export const getLandlordById = async (id) => {
 };
 
 // Update landlord
-export const updateLandlord = async (id, updates = {}) => {
+export const updateLandlord = async (id: string, updates = {}) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}`, {
     method: "PUT",
     headers: {
@@ -67,7 +67,7 @@ export const updateLandlord = async (id, updates = {}) => {
 };
 
 // Delete landlord
-export const deleteLandlord = async (id) => {
+export const deleteLandlord = async (id: string) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}`, {
     method: "DELETE",
     credentials: "include",

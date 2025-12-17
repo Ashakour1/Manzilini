@@ -1,6 +1,6 @@
-import { DEVELOPMENT_API_URL } from "../lib/api";
+import { API_URL } from "../lib/api";
 
-const PROPERTY_API_URL = `${DEVELOPMENT_API_URL}/properties`;
+const PROPERTY_API_URL = `${API_URL}/properties`;
 
 
 // Create a new property with optional images (FormData)
@@ -17,7 +17,7 @@ export const registerProperty = async (propertyData = {}) => {
       formData.append(key, JSON.stringify(value));
       return;
     }
-    formData.append(key, value);
+    formData.append(key, value as string | Blob);
   });
 
   const response = await fetch(PROPERTY_API_URL, {
@@ -45,7 +45,7 @@ export const getProperties = async () => {
   return response.json();
 };
 
-export const getPropertyById = async (id) => {
+export const getPropertyById = async (id: string) => {
   const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
     credentials: "include",
   });
@@ -57,7 +57,7 @@ export const getPropertyById = async (id) => {
   return response.json();
 };
 
-export const updateProperty = async (id, updates = {}) => {
+export const updateProperty = async (id: string, updates = {}) => {
   const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
     method: "PUT",
     headers: {
@@ -74,7 +74,7 @@ export const updateProperty = async (id, updates = {}) => {
   return response.json();
 };
 
-export const deleteProperty = async (id) => {
+export const deleteProperty = async (id: string) => {
   const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
     method: "DELETE",
     credentials: "include",

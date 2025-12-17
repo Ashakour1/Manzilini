@@ -1,6 +1,6 @@
-import { DEVELOPMENT_API_URL } from "../lib/api";
+import { API_URL   } from "../lib/api";
 
-const USERS_API_URL = `${DEVELOPMENT_API_URL}/users`;
+const USERS_API_URL = `${API_URL}/users`;
 
 // Get all users
 export const getUsers = async () => {

@@ -1,7 +1,7 @@
-import { DEVELOPMENT_API_URL } from "@/lib/api";
+import { API_URL } from "@/lib/api";
 
 const Login = async (email: string, password: string) => {
-  const response = await fetch(`${DEVELOPMENT_API_URL}/auth/login`, {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
