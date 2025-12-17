@@ -3,21 +3,37 @@ import prisma from '../db/prisma.js';
 
 
 export const getProperties = asyncHandler(async (req, res) => {
-    try {
-        const properties = await prisma.property.findMany({
-            orderBy: [
-                { is_featured: 'desc' },
-                { createdAt: 'desc' }
-            ],
-            include : {
-                images: true,
-                landlord: true
-            }
-        });
-        res.status(200).json(properties);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+
+    const { city,property_type  } = req.query;
+
+    
+    const whereClause = {
+        city: city || undefined,
+        property_type: property_type || undefined,
     }
+
+
+
+
+
+    const properties = await prisma.property.findMany({
+        where: whereClause,
+        orderBy: [
+            { is_featured: 'desc' },
+            { createdAt: 'desc' }
+        ],
+        include: {
+            images: true,
+            landlord: true
+        }
+    });
+
+
+    return res.status(200).json(properties);
+
+
+    
+  
 });
 
 
@@ -35,6 +51,28 @@ export const getPropertyTypes = asyncHandler(async (req, res) => {
         const result = propertyTypes.map(item => ({
             type: item.property_type,
             count: item._count.property_type
+        }));
+
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+export const getPropertyCountsByCity = asyncHandler(async (req, res) => {
+    try {
+        // Group properties by city and count them
+        const cityCounts = await prisma.property.groupBy({
+            by: ['city'],
+            _count: {
+                city: true
+            }
+        });
+
+        // Transform the result to include city and count
+        const result = cityCounts.map(item => ({
+            city: item.city,
+            count: item._count.city
         }));
 
         res.status(200).json(result);

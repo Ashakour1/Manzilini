@@ -14,7 +14,8 @@ export default function Header() {
     { href: "/pricing", label: "Pricing" },
     { href: "/testimonials", label: "Testimonials" },
     { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
+    { href: "/partnerships", label: "Partnerships" },
+    // { href: "/contact", label: "Contact" },
   ]
 
   return (
@@ -23,10 +24,10 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            {/* <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Home className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold text-primary">Manzilline</h1>
+            </div> */}
+            <h1 className="text-2xl font-bold text-primary">Manzilini</h1>
           </Link>
 
           {/* Desktop Navigation */}
@@ -53,7 +54,7 @@ export default function Header() {
             <Button size="sm" asChild className="bg-primary hover:bg-primary/90 shadow-md">
               <Link href="/properties" className="flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                Post Property
+                List Property
               </Link>
             </Button>
           </div>
@@ -92,7 +93,7 @@ export default function Header() {
                 <Button size="sm" asChild className="w-full bg-primary hover:bg-primary/90 shadow-md">
                   <Link href="/properties" className="flex items-center gap-2 justify-center">
                     <Upload className="w-4 h-4" />
-                    Post Property
+                    List Property
                   </Link>
                 </Button>
               </div>

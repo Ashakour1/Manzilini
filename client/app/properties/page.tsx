@@ -7,6 +7,7 @@ import { fetchProperties } from "@/services/properties.service"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { X, Filter } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 interface Property {
   id: string
@@ -41,7 +42,19 @@ export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
+  const searchParams = useSearchParams()
 
+
+  const city = searchParams.get("city")
+  const property_type = searchParams.get("property_type")
+
+
+  // const price = searchParams.get("price")
+
+
+  
+
+  
   const [filters, setFilters] = useState<Filters>({
     type: "all",
     city: "all",
@@ -58,7 +71,7 @@ export default function PropertiesPage() {
 
   useEffect(() => {
     setLoading(true)
-    fetchProperties()
+    fetchProperties( city || "", property_type || "" )
       .then((data) => {
         setProperties(data)
         setFilteredProperties(data)

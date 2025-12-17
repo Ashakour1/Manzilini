@@ -47,6 +47,7 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
 
 
 export const getPropertyApplications = asyncHandler(async (req, res) => {
+    
     const { propertyId } = req.params;
     if (!propertyId) {
         res.status(400);

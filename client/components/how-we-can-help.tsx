@@ -64,7 +64,7 @@ export default function HelpSection() {
     <section className="py-20 md:py-28">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-start mb-14">
-          <h2 className="text-3xl md:text-3xl font-bold text-foreground">See How Manzilline Can Help</h2>
+          <h2 className="text-3xl md:text-3xl font-bold text-foreground">See How Manzilini Can Help</h2>
           <p className="mt-3 text-muted-foreground">Aliquam lacinia diam quis lacus euismod</p>
         </div>
 

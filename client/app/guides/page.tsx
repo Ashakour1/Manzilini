@@ -91,7 +91,7 @@ export default function GuidesPage() {
               {guides.map((guide) => (
                 <div
                   key={guide.id}
-                  className="bg-card border border-border rounded-lg overflow-hidden group hover:shadow-lg transition"
+                  className="bg-card border border-border rounded-lg overflow-hidden group hover:border-primary/50 transition-all duration-300"
                 >
                   <img
                     src={guide.image || "/placeholder.svg"}

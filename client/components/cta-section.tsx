@@ -23,7 +23,7 @@ export default function CTASection() {
           </h2>
           
           <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who found their dream home with Manzilline. Start your property search today.
+            Join thousands of satisfied customers who found their dream home with Manzilini. Start your property search today.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -58,7 +58,7 @@ export default function CTASection() {
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
-              <span className="text-sm md:text-base">info@manzilline.com</span>
+              <span className="text-sm md:text-base">info@manzilini.com</span>
             </div>
           </div>
         </div>

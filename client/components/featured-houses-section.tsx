@@ -13,6 +13,8 @@ const highlights = [
 ]
 
 interface Property {
+  currency: string
+  payment_frequency: any
   id: string
   title: string
   description: string
@@ -36,7 +38,7 @@ export default function FeaturedHousesSection() {
   useEffect(() => {
     const loadFeaturedProperties = async () => {
       try {
-        const allProperties = await fetchProperties()
+        const allProperties = await fetchProperties("", "")
         // Filter and get only featured properties, limit to 4
         const featured = (allProperties || [])
           .filter((p: Property) => p.is_featured)
@@ -53,7 +55,7 @@ export default function FeaturedHousesSection() {
   }, [])
 
   const getImageUrl = (property: Property) => {
-    const imagePath = property.images?.[0]?.url || property.images?.[0]?.path
+    const imagePath = property.images?.[0]?.url
     if (!imagePath) return "/placeholder.svg"
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath
@@ -87,7 +89,8 @@ export default function FeaturedHousesSection() {
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Curated Collection
             </div>
-            <div className="space-y-4">
+           <div className="flex justify-between items-center">
+           <div className="space-y-4 max-w-3xl">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
                 Featured Houses Ready For A Private Tour
               </h2>
@@ -95,23 +98,9 @@ export default function FeaturedHousesSection() {
                 Discover the most sought-after residences with natural light, contemporary finishes, and seamless smart-home integrations.
               </p>
             </div>
-            <ul className="space-y-3">
-              {highlights.map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            {/* <div className="grid grid-cols-3 gap-4 pt-2">
-              {stats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-border bg-background p-4 shadow-sm">
-                  <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mt-1">{stat.label}</p>
-                </div>
-              ))}
-            </div> */}
-            <div className="pt-4">
+           
+        
+            <div>
               <Link
                 href="/properties?featured=true"
                 className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
@@ -120,6 +109,7 @@ export default function FeaturedHousesSection() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
+           </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
@@ -135,7 +125,7 @@ export default function FeaturedHousesSection() {
               featuredProperties.map((property) => (
                 <div
                   key={property.id}
-                  className="group rounded-3xl border border-border bg-background overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                  className="group rounded-3xl border border-border bg-background overflow-hidden hover:border-primary/50 transition-all duration-300"
                 >
                   <div className="relative h-56 w-full overflow-hidden">
                     <Image

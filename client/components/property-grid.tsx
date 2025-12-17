@@ -32,7 +32,7 @@ export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
   useEffect(() => {
     setLoading(true);
     
-    fetchProperties().then((data) => {
+    fetchProperties("", "").then((data) => {
       // Sort properties: featured first, then by creation date
       const sorted = (data || []).sort((a: Property, b: Property) => {
         const aFeatured = a.is_featured || false;
@@ -56,7 +56,7 @@ export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
         <div className="space-y-2">
           <h2 className="text-3xl font-bold text-gray-900">Latest Properties</h2>
           <p className="text-sm text-gray-500">
-            Aliquam lacinia diam quis lacus euismod.
+            Discover the latest properties available for rent in Nairobi.
           </p>
         </div>
       </div>

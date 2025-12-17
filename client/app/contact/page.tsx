@@ -42,9 +42,9 @@ export default function Contact() {
     {
       icon: Mail,
       title: "Email Us",
-      primary: "info@manzilline.com",
-      secondary: "support@manzilline.com",
-      action: "mailto:info@manzilline.com",
+      primary: "info@manzilini.com",
+      secondary: "support@manzilini.com",
+      action: "mailto:info@manzilini.com",
     },
     {
       icon: Phone,
@@ -94,7 +94,7 @@ export default function Contact() {
                   <Link
                     key={index}
                     href={info.action}
-                    className="group p-6 rounded-xl border border-border bg-card hover:shadow-lg hover:border-primary transition-all duration-300 text-center"
+                    className="group p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-all duration-300 text-center"
                   >
                     <div className="w-14 h-14 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mx-auto mb-4 transition-colors">
                       <Icon className="w-7 h-7 text-primary" />
@@ -109,7 +109,7 @@ export default function Contact() {
 
             <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
               {/* Contact Form */}
-              <div className="bg-card p-8 rounded-xl border border-border shadow-sm">
+              <div className="bg-card p-8 rounded-xl border border-border">
                 <div className="flex items-center gap-2 mb-6">
                   <Clock className="w-5 h-5 text-primary" />
                   <p className="text-sm text-muted-foreground">We typically respond within 24 hours</p>

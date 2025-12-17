@@ -67,7 +67,7 @@ export default function ApartmentTypesSection() {
           </div>
           <Link
             href="/properties"
-            className="mt-4 md:mt-0 flex items-center gap-2 text-foreground hover:text-primary transition-colors font-medium"
+            className="mt-4 md:mt-0 flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
           >
             All Types
             <ArrowUpRight className="w-4 h-4" />
@@ -91,7 +91,7 @@ export default function ApartmentTypesSection() {
                     <Link
                       key={type.type}
                       href={`/properties?type=${type.type.toLowerCase()}`}
-                      className="group flex-shrink-0 w-64 bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all duration-300"
+                      className="group flex-shrink-0 w-64 bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300"
                     >
                       <div className="relative h-48 w-full overflow-hidden">
                         <Image

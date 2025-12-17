@@ -126,7 +126,7 @@ export default function CitiesSection() {
             <Link
               key={index}
               href={`/properties?city=${city.name.toLowerCase()}`}
-              className="group relative rounded-2xl overflow-hidden bg-card border border-border hover:shadow-lg transition-all duration-300"
+              className="group relative rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300"
             >
               <div className="relative h-64 w-full overflow-hidden">
                 <Image
