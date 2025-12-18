@@ -63,7 +63,7 @@ export default function Home() {
 
       console.log("data", data)
 
-      router.push('/dashboard');
+      router.replace("/dashboard");
       
       
       // Assuming the response contains token, name, and email
