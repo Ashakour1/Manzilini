@@ -72,82 +72,82 @@ export function DashboardContent() {
 
   // Dashboard requests can be slow (large lists). Don't block the whole UI:
   // render immediately and load each widget in parallel with placeholders.
-  // useEffect(() => {
-  //   if (!isHydrated) return
+  useEffect(() => {
+    if (!isHydrated) return
 
-  //   if (!isLoggedIn) {
-  //     router.replace("/")
-  //     return
-  //   }
+    if (!isLoggedIn) {
+      router.replace("/")
+      return
+    }
 
-  //   let cancelled = false
-  //   setIsLoading(false) // stop full-screen loading once auth is ready
-  //   setError(null)
+    let cancelled = false
+    setIsLoading(false) // stop full-screen loading once auth is ready
+    setError(null)
 
-  //   const safe = <T,>(setter: (v: T) => void, value: T) => {
-  //     if (cancelled) return
-  //     setter(value)
-  //   }
+    const safe = <T,>(setter: (v: T) => void, value: T) => {
+      if (cancelled) return
+      setter(value)
+    }
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getDashboardStats()
-  //       safe(setStats, v)
-  //     } catch (err) {
-  //       console.error("Error loading dashboard stats:", err)
-  //       if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load dashboard stats")
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getDashboardStats()
+        safe(setStats, v)
+      } catch (err) {
+        console.error("Error loading dashboard stats:", err)
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load dashboard stats")
+      }
+    })()
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getRevenueData()
-  //       safe(setRevenueData, v)
-  //     } catch (err) {
-  //       console.error("Error loading revenue data:", err)
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getRevenueData()
+        safe(setRevenueData, v)
+      } catch (err) {
+        console.error("Error loading revenue data:", err)
+      }
+    })()
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getOccupancyData()
-  //       safe(setOccupancyData, v)
-  //     } catch (err) {
-  //       console.error("Error loading occupancy data:", err)
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getOccupancyData()
+        safe(setOccupancyData, v)
+      } catch (err) {
+        console.error("Error loading occupancy data:", err)
+      }
+    })()
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getPropertyTypes()
-  //       safe(setPropertyTypes, v)
-  //     } catch (err) {
-  //       console.error("Error loading property types:", err)
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getPropertyTypes()
+        safe(setPropertyTypes, v)
+      } catch (err) {
+        console.error("Error loading property types:", err)
+      }
+    })()
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getPaymentStatus()
-  //       safe(setPaymentStatus, v)
-  //     } catch (err) {
-  //       console.error("Error loading payment status:", err)
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getPaymentStatus()
+        safe(setPaymentStatus, v)
+      } catch (err) {
+        console.error("Error loading payment status:", err)
+      }
+    })()
 
-  //   ;(async () => {
-  //     try {
-  //       const v = await getRecentActivity()
-  //       safe(setRecentActivity, v)
-  //     } catch (err) {
-  //       console.error("Error loading recent activity:", err)
-  //     }
-  //   })()
+    ;(async () => {
+      try {
+        const v = await getRecentActivity()
+        safe(setRecentActivity, v)
+      } catch (err) {
+        console.error("Error loading recent activity:", err)
+      }
+    })()
 
-  //   return () => {
-  //     cancelled = true
-  //   }
-  // }, [isHydrated, isLoggedIn, router])
+    return () => {
+      cancelled = true
+    }
+  }, [isHydrated, isLoggedIn, router])
 
   const headlineStats = useMemo(() => {
     if (!stats) return []

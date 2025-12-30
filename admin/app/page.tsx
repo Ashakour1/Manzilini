@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Building2, Eye, EyeOff, Fingerprint, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react"
 
@@ -43,7 +43,6 @@ export default function Home() {
 
   const { login } = useAuthStore();
 
-
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +65,13 @@ export default function Home() {
       
       
       // // Assuming the response contains token, name, and email
-      // login(data);
+      login({
+        token: data.token,
+        name: data.name,
+        email: data.email,
+      });
+
+      // login(data.token, data.name, data.email);
 
 
      
