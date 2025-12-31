@@ -95,81 +95,81 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2a6f97]/5 blur-3xl" />
       </div>
 
-      <section className="relative mx-auto grid min-h-screen max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.2fr_1fr] lg:gap-16 lg:px-8 xl:px-12">
-        <div className="space-y-8 lg:space-y-10">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#2a6f97]/20 bg-[#2a6f97]/10 px-4 py-1.5 text-sm font-medium text-[#2a6f97]">
-              <ShieldCheck className="h-4 w-4" />
+      <section className="relative mx-auto grid min-h-screen max-w-5xl grid-cols-1 items-center gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:gap-8 lg:px-8">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#2a6f97]/20 bg-[#2a6f97]/10 px-3 py-1 text-xs font-medium text-[#2a6f97]">
+              <ShieldCheck className="h-3.5 w-3.5" />
               Secure Admin Portal
             </div>
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl lg:text-5xl xl:text-6xl">
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
               Sign in to manage landlords, tenants, and properties
             </h1>
-            <p className="max-w-2xl text-base text-gray-600 sm:text-lg">
+            <p className="max-w-xl text-sm text-gray-600">
               Your secure gateway to payments, maintenance, and communications across your management company. Log in
               with your work email to keep every team in sync.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:gap-6">
+          <div className="grid gap-3 sm:grid-cols-2">
             {perks.map((perk) => (
               <div
                 key={perk.title}
-                className="group rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#2a6f97]/40 hover:shadow-lg"
+                className="group rounded-lg border border-gray-200 80 backdrop-blur-sm p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a6f97]/40 hover:shadow-md"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2a6f97]/10 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
-                  <perk.icon className="h-6 w-6" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2a6f97]/10 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
+                  <perk.icon className="h-5 w-5" />
                 </div>
-                <p className="mt-4 text-base font-semibold text-gray-900">{perk.title}</p>
-                <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">{perk.desc}</p>
+                <p className="mt-3 text-sm font-semibold text-gray-900">{perk.title}</p>
+                <p className="mt-1 text-xs text-gray-600 leading-relaxed">{perk.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <Card className=" shadow-none ">
-          <CardHeader className="space-y-3 pb-6">
+        <Card className="border border-gray-200 shadow-none">
+          <CardHeader className="space-y-2 pb-4">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-2xl font-bold text-gray-900 sm:text-3xl">Log in</CardTitle>
-              <Badge variant="outline" className="border-[#2a6f97]/30 bg-[#2a6f97]/10 text-[#2a6f97] font-medium">
+              <CardTitle className="text-xl font-bold text-gray-900">Log in</CardTitle>
+              <Badge variant="outline" className="border-[#2a6f97]/30 bg-[#2a6f97]/10 text-[#2a6f97] text-xs font-medium">
                 Admin
               </Badge>
             </div>
-            <CardDescription className="text-gray-600">Sign in with your company credentials to continue.</CardDescription>
+            <CardDescription className="text-sm text-gray-600">Sign in with your company credentials to continue.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <form className="space-y-5" onSubmit={HandleSubmit}>
+          <CardContent className="space-y-4">
+            <form className="space-y-4" onSubmit={HandleSubmit}>
               {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle className="text-red-800">Login Failed</AlertTitle>
-                  <AlertDescription className="text-red-700">
+                <Alert variant="destructive" className="border-red-200 bg-red-50 py-2">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <AlertTitle className="text-sm text-red-800">Login Failed</AlertTitle>
+                  <AlertDescription className="text-xs text-red-700">
                     {error}
                   </AlertDescription>
                 </Alert>
               )}
               <Button 
                 variant="outline" 
-                className="w-full justify-center gap-2 h-11 border-gray-300 hover:bg-gray-50" 
+                className="w-full justify-center gap-2 h-9 border-gray-300 hover:bg-gray-50 text-sm" 
                 type="button"
               >
-                <Fingerprint className="h-4 w-4" />
+                <Fingerprint className="h-3.5 w-3.5" />
                 Sign in with fingerprint
               </Button>
 
-              <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-gray-500">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-gray-500">
                 <div className="h-px flex-1 bg-gray-300" />
-                <span>or with email</span>
+                <span className="text-[10px]">or with email</span>
                 <div className="h-px flex-1 bg-gray-300" />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
                 <InputGroup 
-                  className="h-12 rounded-lg bg-white border-gray-300 focus-within:border-[#2a6f97] focus-within:ring-2 focus-within:ring-[#2a6f97]/20 transition-all"
+                  className="h-9 rounded-lg bg-white border-gray-300 focus-within:border-[#2a6f97] focus-within:ring-1 focus-within:ring-[#2a6f97]/20 transition-all"
                 >
                   <InputGroupAddon>
-                    <Mail className="h-4 w-4 text-gray-400" />
+                    <Mail className="h-3.5 w-3.5 text-gray-400" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id="email"
@@ -180,17 +180,17 @@ export default function Home() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="placeholder:text-gray-400"
+                    className="placeholder:text-gray-400 text-sm"
                   />
                 </InputGroup>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-medium text-gray-700">Password</Label>
                 <InputGroup 
-                  className="h-12 rounded-lg bg-white border-gray-300 focus-within:border-[#2a6f97] focus-within:ring-2 focus-within:ring-[#2a6f97]/20 transition-all"
+                  className="h-9 rounded-lg bg-white border-gray-300 focus-within:border-[#2a6f97] focus-within:ring-1 focus-within:ring-[#2a6f97]/20 transition-all"
                 >
                   <InputGroupAddon>
-                    <Lock className="h-4 w-4 text-gray-400" />
+                    <Lock className="h-3.5 w-3.5 text-gray-400" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id="password"
@@ -201,7 +201,7 @@ export default function Home() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="placeholder:text-gray-400"
+                    className="placeholder:text-gray-400 text-sm"
                   />
                   <InputGroupAddon align="inline-end">
                     <InputGroupButton
@@ -209,33 +209,33 @@ export default function Home() {
                       variant="ghost"
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 h-7"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      <span className="ml-1.5 text-xs">{showPassword ? "Hide" : "Show"}</span>
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      <span className="ml-1 text-[10px]">{showPassword ? "Hide" : "Show"}</span>
                     </InputGroupButton>
                   </InputGroupAddon>
                 </InputGroup>
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] text-gray-500">
                   At least 8 characters. SSO/MFA enforced for sensitive actions.
                 </p>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                  <Checkbox id="remember" name="remember" />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                  <Checkbox id="remember" name="remember" className="h-3.5 w-3.5" />
                   <span>Keep me signed in</span>
                 </label>
-                <Button variant="link" className="h-auto px-0 text-sm text-[#2a6f97] hover:text-[#1f5a7a]" asChild>
+                <Button variant="link" className="h-auto px-0 text-xs text-[#2a6f97] hover:text-[#1f5a7a]" asChild>
                   <Link href="/reset-password">Forgot password?</Link>
                 </Button>
               </div>
               <Button 
-                className="w-full h-11 bg-[#2a6f97] hover:bg-[#1f5a7a] text-white font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                className="w-full h-9 bg-[#2a6f97] hover:bg-[#1f5a7a] text-white text-sm font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
                 type="submit"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Continue"}
-                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {!isLoading && <ArrowRight className="ml-2 h-3.5 w-3.5" />}
               </Button>
             </form>
           </CardContent>
