@@ -64,18 +64,18 @@ export function DocumentsPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto bg-background p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Documents</h1>
-          <p className="text-muted-foreground">Store and manage important documents</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Documents</h1>
+          <p className="text-xs text-muted-foreground">Store and manage important documents</p>
         </div>
         <Button asChild className="bg-blue-600 hover:bg-blue-700">
           <Link href="/documents/new">Upload Document</Link>
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         {documents.map((doc) => (
           <Card key={doc.id} className="border-border shadow-sm">
             <CardContent className="pt-6">

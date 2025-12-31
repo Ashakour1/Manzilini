@@ -173,11 +173,11 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-background p-6">
+    <main className="min-h-screen bg-background p-3 sm:p-4 lg:p-5">
       <div className="mx-auto max-w-4xl">
         <Button
           variant="ghost"
-          className="mb-6"
+          className="mb-4"
           onClick={() => router.push("/field-agents")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -196,13 +196,13 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="space-y-6 rounded-3xl border border-border/80 bg-transparent p-6">
+          <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Basic Information</h2>
-              <p className="text-sm text-muted-foreground">Field agent contact details</p>
+              <h2 className="text-base font-semibold text-foreground">Basic Information</h2>
+              <p className="text-xs text-muted-foreground">Field agent contact details</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
@@ -238,10 +238,10 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
             </div>
           </section>
 
-          <section className="space-y-6 rounded-3xl border border-border/80 bg-transparent p-6">
+          <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Profile Image</h2>
-              <p className="text-sm text-muted-foreground">Upload a profile picture for the field agent</p>
+              <h2 className="text-base font-semibold text-foreground">Profile Image</h2>
+              <p className="text-xs text-muted-foreground">Upload a profile picture for the field agent</p>
             </div>
 
             <div className="space-y-4">
@@ -284,10 +284,10 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
             </div>
           </section>
 
-          <section className="space-y-6 rounded-3xl border border-border/80 bg-transparent p-6">
+          <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Document Image</h2>
-              <p className="text-sm text-muted-foreground">Upload a document image (ID, license, etc.)</p>
+              <h2 className="text-base font-semibold text-foreground">Document Image</h2>
+              <p className="text-xs text-muted-foreground">Upload a document image (ID, license, etc.)</p>
             </div>
 
             <div className="space-y-4">

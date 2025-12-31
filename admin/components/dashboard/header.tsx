@@ -50,29 +50,29 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200 bg-white">
-      <div className="flex h-16 items-center justify-between px-6">
+      <div className="flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-lg font-semibold text-gray-900">
             {getPageTitle()}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-9 w-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             title="Help"
           >
-            <HelpCircle className="h-5 w-5" />
+            <HelpCircle className="h-4 w-4" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="relative h-9 w-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="relative h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             title="Notifications"
           >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />
           </Button>
         </div>
       </div>

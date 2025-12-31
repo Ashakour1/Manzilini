@@ -192,11 +192,11 @@ export function LandlordsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Landlords</h1>
-          <p className="text-sm text-muted-foreground">Manage property landlords</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Landlords</h1>
+          <p className="text-xs text-muted-foreground">Manage property landlords</p>
         </div>
         <Button onClick={() => router.push("/landlords/new")}>
           <Plus className="mr-2 h-4 w-4" />
@@ -205,7 +205,7 @@ export function LandlordsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         <Card className="border-border/50 shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-muted-foreground">Total Landlords</CardTitle>
@@ -214,7 +214,7 @@ export function LandlordsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
             <p className="mt-1 text-xs text-muted-foreground">Registered landlords</p>
           </CardContent>
         </Card>
@@ -226,7 +226,7 @@ export function LandlordsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.withProperties}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.withProperties}</div>
             <p className="mt-1 text-xs text-muted-foreground">Active landlords</p>
           </CardContent>
         </Card>
@@ -238,7 +238,7 @@ export function LandlordsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalProperties}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.totalProperties}</div>
             <p className="mt-1 text-xs text-muted-foreground">Managed properties</p>
           </CardContent>
         </Card>

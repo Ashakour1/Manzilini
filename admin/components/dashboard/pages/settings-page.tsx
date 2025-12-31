@@ -6,13 +6,13 @@ import { Bell, Lock, User, BarChart3 } from "lucide-react"
 
 export function SettingsPage() {
   return (
-    <main className="flex-1 overflow-y-auto bg-background p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and preferences</p>
+    <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
+      <div className="mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Settings</h1>
+        <p className="text-xs text-muted-foreground">Manage your account and preferences</p>
       </div>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-4">
         {/* Account Settings */}
         <Card className="border-border shadow-sm">
           <CardHeader>

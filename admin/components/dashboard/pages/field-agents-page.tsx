@@ -166,11 +166,11 @@ export function FieldAgentsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Field Agents</h1>
-          <p className="text-sm text-muted-foreground">Manage field agents and their territories</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Field Agents</h1>
+          <p className="text-xs text-muted-foreground">Manage field agents and their territories</p>
         </div>
         <Button onClick={() => router.push("/field-agents/new")}>
           <Plus className="mr-2 h-4 w-4" />
@@ -179,7 +179,7 @@ export function FieldAgentsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card className="border-border/50 shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-muted-foreground">Total Agents</CardTitle>
@@ -188,7 +188,7 @@ export function FieldAgentsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
             <p className="mt-1 text-xs text-muted-foreground">Registered field agents</p>
           </CardContent>
         </Card>
@@ -200,7 +200,7 @@ export function FieldAgentsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.withImage}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.withImage}</div>
             <p className="mt-1 text-xs text-muted-foreground">Agents with profile images</p>
           </CardContent>
         </Card>

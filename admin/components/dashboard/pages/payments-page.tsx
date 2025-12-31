@@ -75,14 +75,14 @@ export function PaymentsPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto bg-background p-8">
-      <section className="mb-8">
+    <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
+      <section className="mb-4">
         <Card className="border-border/80 shadow-sm">
-          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Payments</p>
-              <h1 className="text-3xl font-semibold text-foreground">Collections, simplified</h1>
-              <p className="text-muted-foreground max-w-xl">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1.5">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Payments</p>
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Collections, simplified</h1>
+              <p className="text-xs text-muted-foreground max-w-xl">
                 Track rent status, keep an eye on collection health, and nudge tenants before balances turn red.
               </p>
               <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">

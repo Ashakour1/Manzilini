@@ -248,8 +248,8 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
   }
 
   return (
-    <main className="flex-1 bg-transparent p-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <main className="flex-1 bg-transparent p-3 sm:p-4 lg:p-5">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -271,15 +271,15 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
-          <section className="space-y-6 rounded-3xl border border-border/80 bg-transparent p-6 shadow-none backdrop-blur-none">
+          <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4 shadow-none backdrop-blur-none">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Overview</h2>
               <p className="text-sm text-muted-foreground">
                 {isEdit ? "Adjust the core listing information." : "Basic details about the listing."}
               </p>
             </div>
-            <div className="grid gap-6">
-              <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Input
@@ -316,7 +316,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                   rows={4}
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select value={form.status} onValueChange={(value) => handleInputChange("status", value)}>
@@ -378,7 +378,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                   </Select>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="deposit_amount">Deposit amount</Label>
                   <Input
@@ -424,7 +424,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
               <h2 className="text-lg font-semibold text-foreground">Location</h2>
               <p className="text-sm text-muted-foreground">Exact address and coordinates.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
                 <Input
@@ -446,7 +446,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                 />
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
+            <div className="grid gap-3 md:grid-cols-[2fr,1fr]">
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Input
@@ -468,7 +468,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                 />
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="latitude">Latitude</Label>
                 <Input
@@ -611,7 +611,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
               <h2 className="text-lg font-semibold text-foreground">Landlord</h2>
               <p className="text-sm text-muted-foreground">Select the landlord for this property. Contact information will be fetched from the landlord's details.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-1">
+            <div className="grid gap-3 md:grid-cols-1">
               <div className="space-y-2">
                 <Label htmlFor="landlord_id">Landlord *</Label>
                 <Select 
@@ -652,7 +652,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                   <p className="text-sm text-muted-foreground">Provide up to 10 images. You can choose any slots.</p>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {images.map((file, index) => (
                   <div key={index} className="space-y-2 rounded-xl border border-dashed border-border/80 bg-transparent p-4">
                     <Label htmlFor={`image-${index}`}>Image {index + 1}</Label>

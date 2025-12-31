@@ -171,11 +171,11 @@ export function MaintenancePage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto p-8">
-      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-5">
+      <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold text-foreground">Maintenance</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Maintenance</h1>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-2 w-2 rounded-full bg-amber-500" />
             Keep units safe and responsive
           </div>

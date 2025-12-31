@@ -290,12 +290,12 @@ export function PropertiesPage() {
   const someSelected = paginatedProperties.some((p) => selectedProperties.has(p.id))
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+    <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-5">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-foreground">Properties</h1>
-          <p className="text-sm text-muted-foreground">Manage your property portfolio</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Properties</h1>
+          <p className="text-xs text-muted-foreground">Manage your property portfolio</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {selectedProperties.size > 0 && (

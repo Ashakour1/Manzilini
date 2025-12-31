@@ -311,12 +311,12 @@ export function UsersPage() {
   const hasActiveFilters = searchTerm || roleFilter !== "all"
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="mt-1 text-sm text-gray-600">Manage system users, roles, and permissions</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="mt-1 text-xs text-gray-600">Manage system users, roles, and permissions</p>
         </div>
         <Button 
           onClick={() => setCreateDialogOpen(true)} 
@@ -328,7 +328,7 @@ export function UsersPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Total Users</CardTitle>
@@ -874,6 +874,8 @@ export function UsersPage() {
                   <SelectItem value="ADMIN">Admin</SelectItem>
                   <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                   <SelectItem value="PROPERTY_OWNER">Property Owner</SelectItem>
+                  <SelectItem value="AGENT">Agent</SelectItem>
+
                 </SelectContent>
               </Select>
             </div>

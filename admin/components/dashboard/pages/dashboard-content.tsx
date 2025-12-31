@@ -245,11 +245,11 @@ export function DashboardContent() {
   if (!isAdmin) {
     return (
       <main className="flex-1 overflow-y-auto bg-white">
-        <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        <div className="space-y-4 p-3 sm:p-4 lg:p-5">
           {/* Header */}
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">My Property Applications</h1>
-            <p className="text-sm text-gray-600">View and manage your property applications</p>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900">My Property Applications</h1>
+            <p className="text-xs text-gray-600">View and manage your property applications</p>
           </div>
 
           {applicationsLoading ? (
@@ -359,11 +359,11 @@ export function DashboardContent() {
   // Render full dashboard for admin users
   return (
     <main className="flex-1 overflow-y-auto bg-white">
-      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+      <div className="space-y-4 p-3 sm:p-4 lg:p-5">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-600">Welcome back, {userName}. Here's your overview.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
+          <p className="text-xs text-gray-600">Welcome back, {userName}. Here's your overview.</p>
         </div>
 
         {error ? (
@@ -373,37 +373,37 @@ export function DashboardContent() {
         ) : null}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(headlineStats.length ? headlineStats : headlineStatsFallback).map((stat: any) => (
             <Card 
               key={stat.label} 
               className="group border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5"
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-gray-600">{stat.label}</p>
                     {headlineStats.length ? (
                       <>
-                        <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                        <div className="flex items-center gap-1.5 text-xs">
+                        <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+                        <div className="flex items-center gap-1.5 text-[10px]">
                           {stat.isPositive ? (
-                            <ArrowUpRight className="h-3.5 w-3.5 text-[#2a6f97]" />
+                            <ArrowUpRight className="h-3 w-3 text-[#2a6f97]" />
                           ) : (
-                            <ArrowDownRight className="h-3.5 w-3.5 text-gray-600" />
+                            <ArrowDownRight className="h-3 w-3 text-gray-600" />
                           )}
                           <span className="text-gray-600">{stat.change} from last month</span>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="h-7 w-28 animate-pulse rounded-md bg-gray-200" />
-                        <div className="h-4 w-40 animate-pulse rounded-md bg-gray-100" />
+                        <div className="h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+                        <div className="h-3 w-32 animate-pulse rounded-md bg-gray-100" />
                       </>
                     )}
                   </div>
-                  <div className="rounded-lg bg-[#2a6f97]/10 p-3 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
-                    <stat.icon className="h-5 w-5" />
+                  <div className="rounded-lg bg-[#2a6f97]/10 p-2 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
+                    <stat.icon className="h-4 w-4" />
                   </div>
                 </div>
               </CardContent>
@@ -412,15 +412,15 @@ export function DashboardContent() {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
           {/* Revenue Chart */}
           <Card className="border border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Revenue & Expenses</CardTitle>
-              <CardDescription className="text-gray-600">Monthly financial overview</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-gray-900">Revenue & Expenses</CardTitle>
+              <CardDescription className="text-xs text-gray-600">Monthly financial overview</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
@@ -469,12 +469,12 @@ export function DashboardContent() {
 
           {/* Property Types Pie Chart */}
           <Card className="border border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Property Distribution</CardTitle>
-              <CardDescription className="text-gray-600">Portfolio composition</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-gray-900">Property Distribution</CardTitle>
+              <CardDescription className="text-xs text-gray-600">Portfolio composition</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={propertyTypes as any}
@@ -512,15 +512,15 @@ export function DashboardContent() {
         </div>
 
         {/* Occupancy & Payments */}
-        <div className="grid gap-6 lg:grid-cols-[1.5fr,1fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.5fr,1fr]">
           {/* Occupancy Chart */}
           <Card className="border border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Occupancy Rate</CardTitle>
-              <CardDescription className="text-gray-600">Monthly occupancy trends</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-gray-900">Occupancy Rate</CardTitle>
+              <CardDescription className="text-xs text-gray-600">Monthly occupancy trends</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={occupancyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
@@ -558,12 +558,12 @@ export function DashboardContent() {
 
           {/* Payment Status */}
           <Card className="border border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Payment Status</CardTitle>
-              <CardDescription className="text-gray-600">Current payment overview</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-gray-900">Payment Status</CardTitle>
+              <CardDescription className="text-xs text-gray-600">Current payment overview</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {paymentStatus.map((item) => (
                   <div key={item.status} className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -588,12 +588,12 @@ export function DashboardContent() {
 
         {/* Recent Activity */}
         <Card className="border border-gray-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
-            <CardDescription className="text-gray-600">Latest transactions and updates</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-900">Recent Activity</CardTitle>
+            <CardDescription className="text-xs text-gray-600">Latest transactions and updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {recentActivity.map((activity) => (
                 <div 
                   key={activity.id} 

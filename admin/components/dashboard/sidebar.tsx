@@ -141,12 +141,12 @@ export function DashboardSidebar() {
   const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => (
     <>
       {/* Brand Header */}
-      <div className="px-6 pt-6 pb-8">
-        <h2 className="text-xl font-semibold text-[#2a6f97]">Manzilini</h2>
+      <div className="px-4 pt-4 pb-4">
+        <h2 className="text-lg font-semibold text-[#2a6f97]">Manzilini</h2>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 space-y-1 overflow-y-auto px-4">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2">
         {filteredMenuItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           
@@ -155,37 +155,37 @@ export function DashboardSidebar() {
               key={item.id}
               href={item.href}
               onClick={onLinkClick}
-              className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+              className={`group relative flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition-colors ${
                 active
                   ? "bg-blue-50 text-[#2a6f97] font-medium"
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
               <item.icon 
-                className={`h-5 w-5 flex-shrink-0 ${
+                className={`h-4 w-4 flex-shrink-0 ${
                   active ? "text-[#2a6f97]" : "text-gray-500 group-hover:text-gray-700"
                 }`} 
               />
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1 truncate">{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
       {/* User Profile Section */}
-      <div className="border-t border-gray-200 px-4 py-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 border border-gray-200">
+      <div className="border-t border-gray-200 px-2 py-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8 border border-gray-200">
             <AvatarImage src={avatarSrc} alt={user?.name || "User"} />
-            <AvatarFallback className="bg-[#2a6f97] text-white text-sm font-semibold">
+            <AvatarFallback className="bg-[#2a6f97] text-white text-xs font-semibold">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p className="text-xs font-semibold text-gray-900 truncate">
               {user?.name || "User"}
             </p>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-[10px] text-gray-500 truncate">
               {user?.role || "Admin"}
             </p>
           </div>
@@ -194,10 +194,10 @@ export function DashboardSidebar() {
           variant="ghost"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          className="w-full justify-start gap-2 rounded-lg px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
         >
-          <LogOut className="h-5 w-5 text-gray-500" />
-          <span className="flex-1 text-left">{isLoggingOut ? "Logging out..." : "Log out"}</span>
+          <LogOut className="h-4 w-4 text-gray-500" />
+          <span className="flex-1 text-left truncate">{isLoggingOut ? "Logging out..." : "Log out"}</span>
         </Button>
       </div>
     </>
@@ -216,7 +216,7 @@ export function DashboardSidebar() {
           <Menu className="h-5 w-5 text-gray-700" />
         </Button>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <SheetContent side="left" className="w-72 p-0 bg-white">
+          <SheetContent side="left" className="w-64 p-0 bg-white">
             <div className="flex h-full flex-col">
               <SidebarContent onLinkClick={() => setIsMobileMenuOpen(false)} />
             </div>
@@ -228,7 +228,7 @@ export function DashboardSidebar() {
 
   // Desktop sidebar
   return (
-    <aside className="relative hidden lg:flex h-screen w-64 flex-col overflow-hidden border-r border-gray-200 bg-white">
+    <aside className="relative hidden lg:flex h-screen w-48 flex-col overflow-hidden border-r border-gray-200 bg-white">
       <SidebarContent />
     </aside>
   )

@@ -23,11 +23,11 @@ const propertyPerformance = [
 
 export function ReportsPage() {
   return (
-    <main className="flex-1 overflow-y-auto bg-background p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Reports</h1>
-          <p className="text-muted-foreground">View detailed analytics and performance reports</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Reports</h1>
+          <p className="text-xs text-muted-foreground">View detailed analytics and performance reports</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
           <Download className="h-4 w-4" />
@@ -35,14 +35,14 @@ export function ReportsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <Card className="border-border shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-8 w-8 text-[#2a6f97]" />
               <div>
                 <p className="text-muted-foreground text-sm font-medium">YTD Revenue</p>
-                <p className="text-3xl font-bold text-foreground">$345,000</p>
+                <p className="text-2xl font-bold text-foreground">$345,000</p>
                 <p className="text-xs text-green-600 mt-1">+12% from last year</p>
               </div>
             </div>
@@ -52,7 +52,7 @@ export function ReportsPage() {
           <CardContent className="pt-6">
             <div>
               <p className="text-muted-foreground text-sm font-medium">Avg Occupancy</p>
-              <p className="text-3xl font-bold text-foreground">87%</p>
+              <p className="text-2xl font-bold text-foreground">87%</p>
               <p className="text-xs text-green-600 mt-1">Above target (85%)</p>
             </div>
           </CardContent>
@@ -61,14 +61,14 @@ export function ReportsPage() {
           <CardContent className="pt-6">
             <div>
               <p className="text-muted-foreground text-sm font-medium">Collection Rate</p>
-              <p className="text-3xl font-bold text-foreground">94%</p>
+              <p className="text-2xl font-bold text-foreground">94%</p>
               <p className="text-xs text-green-600 mt-1">Industry avg: 90%</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle>Revenue Trends</CardTitle>
