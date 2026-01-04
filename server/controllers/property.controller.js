@@ -5,6 +5,8 @@ import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 export const getProperties = asyncHandler(async (req, res) => {
 
+    
+
     const { city,property_type  } = req.query;
 
     

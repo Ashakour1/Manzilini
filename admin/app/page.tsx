@@ -44,16 +44,21 @@ export default function Home() {
     password: "",
   });
 
-  const { login, isLoggedIn, isHydrated } = useAuthStore();
+  const { login, isLoggedIn, isHydrated, user } = useAuthStore();
 
   const router = useRouter();
 
-  // Redirect logged-in users to dashboard
+  // Redirect logged-in users to appropriate dashboard based on role
   useEffect(() => {
-    if (isHydrated && isLoggedIn) {
-      router.replace("/dashboard");
+    if (isHydrated && isLoggedIn && user) {
+      const role = user.role?.toUpperCase();
+      if (role === "AGENT") {
+        router.replace("/agent/dashboard");
+      } else {
+        router.replace("/dashboard");
+      }
     }
-  }, [isHydrated, isLoggedIn, router]);
+  }, [isHydrated, isLoggedIn, user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,8 +89,13 @@ export default function Home() {
         role: data.role,
       });
 
-      // Redirect to dashboard
-      router.push("/dashboard")
+      // Redirect based on user role
+      const role = data.role?.toUpperCase();
+      if (role === "AGENT") {
+        router.push("/agent/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       console.error("Login failed:", error);
       setError(error instanceof Error ? error.message : "Failed to login. Please try again.");
