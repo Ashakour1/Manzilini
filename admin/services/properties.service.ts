@@ -33,6 +33,18 @@ export const registerProperty = async (propertyData = {}) => {
   return response.json();
 };
 
+
+export const getPropertiesForUser = async () => {
+  const response = await fetch(`${PROPERTY_API_URL}/specific`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch properties");
+  }
+  return response.json();
+};
+
 export const getProperties = async () => {
   const response = await fetch(PROPERTY_API_URL, {
     headers: getAuthHeaders(),

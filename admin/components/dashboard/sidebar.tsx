@@ -23,6 +23,7 @@ import { useAuthStore } from "@/store/authStore"
 import { API_URL } from "@/lib/api"
 import { useMemo, useState, useEffect } from "react"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import Image from "next/image"
 
 const menuItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
@@ -142,7 +143,7 @@ export function DashboardSidebar() {
     <>
       {/* Brand Header */}
       <div className="px-4 pt-4 pb-4">
-        <h2 className="text-lg font-semibold text-[#2a6f97]">Manzilini</h2>
+       <Image src="/logo.png" alt="Manzilini" width={100} height={100} />
       </div>
 
       {/* Navigation Menu */}

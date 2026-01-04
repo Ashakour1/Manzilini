@@ -17,7 +17,8 @@ model User {
   password              String
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
-  property_applications PropertyApplication[]
+  // property_applications PropertyApplication[]
+  properties Property[]
 
   // link to agent profile
   agentId String?
@@ -70,6 +71,12 @@ model Property {
   property_applications PropertyApplication[]
   images                PropertyImages[]
   payments              Payment[]
+
+  // creator 
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+
 }
 
 model PropertyImages {
@@ -88,7 +95,7 @@ model PropertyApplication {
   status     ApplicationStatus @default(PENDING)
   createdAt  DateTime          @default(now())
   property   Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  tenant     User              @relation(fields: [tenantId], references: [id])
+  // tenant     User              @relation(fields: [tenantId], references: [id])
   payments   Payment[]
 }
 

@@ -32,7 +32,7 @@ import {
   CheckCircle,
   Star,
 } from "lucide-react"
-import { getProperties } from "@/services/properties.service"
+import { getProperties, getPropertiesForUser } from "@/services/properties.service"
 import { deleteProperty } from "@/services/properties.service"
 
 type Property = {
@@ -76,7 +76,7 @@ export function PropertiesPage() {
       setIsLoading(true)
       setError(null)
       try {
-        const data = await getProperties()
+        const data = await getPropertiesForUser()
         setProperties(data || [])
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load properties")

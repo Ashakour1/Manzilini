@@ -3,6 +3,48 @@ import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 
+
+// get all properties for a user
+export const getPropertiesForUser = asyncHandler(async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                image: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+
+        if(user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+            const allProperties = await prisma.property.findMany({
+                include: {
+                    images: true,
+                    landlord: true
+                }
+            });
+            return res.status(200).json(allProperties);
+        }else{
+            const properties = await prisma.property.findMany({
+                where: { userId },
+            });
+            return res.status(200).json(properties);
+        }
+
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+// get all properties
 export const getProperties = asyncHandler(async (req, res) => {
 
     
