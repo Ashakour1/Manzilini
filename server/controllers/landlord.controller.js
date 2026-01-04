@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
+import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 // Register a new landlord
 export const registerLandlord = asyncHandler(async (req, res) => {
@@ -19,14 +20,19 @@ export const registerLandlord = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'Landlord with this email already exists' });
         }
 
-        const landlord = await prisma.landlord.create({
-            data: {
-                name,
-                email,
-                phone,
-                company_name,
-                address,
-            }
+        // Generate unique ID and create landlord in a single transaction
+        // This ensures counter only increments on successful creation
+        const landlord = await generateUniqueIdAndCreate('Landlord', async (tx, uniqueId) => {
+            return await tx.landlord.create({
+                data: {
+                    id: uniqueId,
+                    name,
+                    email,
+                    phone,
+                    company_name,
+                    address,
+                }
+            });
         });
 
         res.status(201).json(landlord);

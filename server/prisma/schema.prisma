@@ -9,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id                    String                @id @default(uuid())
+  id                    String                @id
   email                 String                @unique
   name                  String
   image                 String?
@@ -18,10 +18,14 @@ model User {
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
   property_applications PropertyApplication[]
+
+  // link to agent profile
+  agentId String?
+  agent   FieldAgent? @relation(fields: [agentId], references: [id])
 }
 
 model Landlord {
-  id           String     @id @default(uuid())
+  id           String     @id
   name         String
   email        String     @unique
   phone        String?
@@ -34,7 +38,7 @@ model Landlord {
 }
 
 model Property {
-  id                    String                @id @default(uuid())
+  id                    String                @id
   title                 String
   description           String
   property_type         propertyType          @default(APARTMENT)
@@ -60,7 +64,7 @@ model Property {
   amenities             String[]
   is_featured           Boolean?              @default(false)
   landlord_id           String?
-  landlord              Landlord? @relation(fields: [landlord_id], references: [id], onDelete: Restrict)
+  landlord              Landlord?             @relation(fields: [landlord_id], references: [id], onDelete: Restrict)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
   property_applications PropertyApplication[]
@@ -88,20 +92,44 @@ model PropertyApplication {
   payments   Payment[]
 }
 
-
 model Payment {
-  id         String            @id @default(cuid())
+  id            String        @id @default(cuid())
   applicationId String
-  propertyId String
-  amount Float
-  status PaymentStatus @default(PENDING)
-  
-  paymentDate DateTime? @default(now())
-  createdAt DateTime @default(now())
+  propertyId    String
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+
+  paymentDate DateTime?           @default(now())
+  createdAt   DateTime            @default(now())
   application PropertyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property    Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
+model FieldAgent {
+  id             String   @id
+  name           String
+  email          String   @unique
+  phone          String?
+  image          String?
+  document_image String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // reverse relation: User can link to this agent
+  users User[]
+}
+
+model IdCounter {
+  key       String   @id
+  tableName String
+  yearMonth String
+  value     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tableName, yearMonth])
+  @@map("id_counters")
+}
 
 enum PaymentStatus {
   PENDING
@@ -163,15 +191,4 @@ enum ContactMethod {
   WHATSAPP
   TELEGRAM
   SMS
-}
-
-model FieldAgent {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  phone         String?
-  image         String?
-  document_image String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }

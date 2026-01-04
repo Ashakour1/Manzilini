@@ -30,7 +30,8 @@ import {
   MoreVertical,
   Building2,
 } from "lucide-react"
-import { getUsers, deleteUser, createUser, updateUser } from "@/services/users.service"
+import { getUsers, deleteUser, updateUser } from "@/services/users.service"
+import { getFieldAgents } from "@/services/field-agents.service"
 import { useToast } from "@/components/ui/use-toast"
 import {
   DropdownMenu,
@@ -49,6 +50,14 @@ type User = {
   image?: string
   createdAt?: string
   updatedAt?: string
+  agentId?: string | null
+  agent?: {
+    id: string
+    name: string
+    email: string
+    phone?: string
+    image?: string
+  } | null
   _count?: {
     property_applications: number
     properties?: number
@@ -72,7 +81,6 @@ export function UsersPage() {
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
   const [currentPage, setCurrentPage] = useState(1)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
@@ -80,12 +88,24 @@ export function UsersPage() {
     email: "",
     password: "",
     role: "USER",
+    agentId: "" as string | null,
   })
+  const [fieldAgents, setFieldAgents] = useState<Array<{ id: string; name: string; email: string }>>([])
   const itemsPerPage = 10
 
   useEffect(() => {
     loadUsers()
+    loadFieldAgents()
   }, [])
+
+  const loadFieldAgents = async () => {
+    try {
+      const agents = await getFieldAgents()
+      setFieldAgents(agents || [])
+    } catch (err) {
+      console.error("Failed to load field agents:", err)
+    }
+  }
 
   const loadUsers = async () => {
     setIsLoading(true)
@@ -204,39 +224,6 @@ export function UsersPage() {
     }
   }
 
-  const handleCreate = async () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      await createUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-      })
-      await loadUsers()
-      setCreateDialogOpen(false)
-      setFormData({ name: "", email: "", password: "", role: "USER" })
-      toast({
-        title: "Success",
-        description: "User created successfully",
-      })
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create user",
-        variant: "destructive",
-      })
-    }
-  }
-
   const handleEdit = async () => {
     if (!editingUser || !formData.name || !formData.email) {
       toast({
@@ -252,12 +239,13 @@ export function UsersPage() {
         name: formData.name,
         email: formData.email,
         role: formData.role,
+        agentId: formData.agentId || null,
         ...(formData.password && { password: formData.password }),
       })
       await loadUsers()
       setEditDialogOpen(false)
       setEditingUser(null)
-      setFormData({ name: "", email: "", password: "", role: "USER" })
+      setFormData({ name: "", email: "", password: "", role: "USER", agentId: "" })
       toast({
         title: "Success",
         description: "User updated successfully",
@@ -278,6 +266,7 @@ export function UsersPage() {
       email: user.email,
       password: "",
       role: user.role,
+      agentId: user.agentId || "",
     })
     setEditDialogOpen(true)
   }
@@ -321,7 +310,7 @@ export function UsersPage() {
           <p className="mt-1 text-xs text-gray-600">Manage system users, roles, and permissions</p>
         </div>
         <Button 
-          onClick={() => setCreateDialogOpen(true)} 
+          onClick={() => router.push("/users/new")} 
           className="w-full sm:w-auto bg-[#2a6f97] hover:bg-[#1f5a7a] text-white shadow-md hover:shadow-lg transition-all"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -524,7 +513,7 @@ export function UsersPage() {
                         </button>
                       </TableHead>
                       <TableHead className="font-semibold text-gray-700">Applications</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Properties Created</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Field Agent</TableHead>
                       <TableHead>
                         <button
                           className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
@@ -576,12 +565,17 @@ export function UsersPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-3.5 w-3.5 text-gray-400" />
-                            <Badge variant="outline" className="font-medium">
-                              {user._count?.properties || 0}
-                            </Badge>
-                          </div>
+                          {user.agent ? (
+                            <div className="flex items-center gap-2">
+                              <Users className="h-3.5 w-3.5 text-gray-400" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">{user.agent.name}</span>
+                                <span className="text-xs text-gray-500">{user.agent.email}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">No agent assigned</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-gray-600">
                           {user.createdAt
@@ -655,6 +649,14 @@ export function UsersPage() {
                                 {user._count?.property_applications || 0} applications
                               </Badge>
                             </div>
+                            {user.agent && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <Users className="h-3 w-3 text-gray-400" />
+                                <span className="text-xs text-gray-600">
+                                  Agent: {user.agent.name}
+                                </span>
+                              </div>
+                            )}
                             <p className="text-xs text-gray-500 mt-2">
                               Created: {user.createdAt
                                 ? new Date(user.createdAt).toLocaleDateString('en-US', {
@@ -764,73 +766,6 @@ export function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Create User Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Create New User</DialogTitle>
-            <DialogDescription>Add a new user to the system with appropriate permissions</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="create-name" className="text-sm font-medium">Full Name</Label>
-              <Input
-                id="create-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="John Doe"
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-email" className="text-sm font-medium">Email Address</Label>
-              <Input
-                id="create-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@example.com"
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-password" className="text-sm font-medium">Password</Label>
-              <Input
-                id="create-password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
-                className="h-11"
-              />
-              <p className="text-xs text-gray-500">Minimum 8 characters required</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-role" className="text-sm font-medium">Role</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                  <SelectItem value="PROPERTY_OWNER">Property Owner</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} className="bg-[#2a6f97] hover:bg-[#1f5a7a] text-white">
-              Create User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -886,9 +821,41 @@ export function UsersPage() {
                   <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                   <SelectItem value="PROPERTY_OWNER">Property Owner</SelectItem>
                   <SelectItem value="AGENT">Agent</SelectItem>
-
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-agent" className="text-sm font-medium">
+                Field Agent <span className="text-gray-500 font-normal">(optional)</span>
+              </Label>
+              <Select 
+                value={formData.agentId || "none"} 
+                onValueChange={(value) => {
+                  const selectedAgentId = value === "none" ? "" : value
+                  const selectedAgent = fieldAgents.find(a => a.id === selectedAgentId)
+                  setFormData({ 
+                    ...formData, 
+                    agentId: selectedAgentId,
+                    name: selectedAgent ? selectedAgent.name : formData.name,
+                    email: selectedAgent ? selectedAgent.email : formData.email
+                  })
+                }}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select a field agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Agent</SelectItem>
+                  {fieldAgents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name} ({agent.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.agentId && (
+                <p className="text-xs text-gray-500">Name and email will be auto-filled from the selected agent</p>
+              )}
             </div>
           </div>
           <DialogFooter>

@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Home, MessageCircle, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -27,7 +28,7 @@ export default function Header() {
             {/* <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Home className="w-5 h-5 text-primary-foreground" />
             </div> */}
-            <h1 className="text-2xl font-bold text-primary">Manzilini</h1>
+           <Image src="/logo.png" alt="Manzilini" width={150} height={200} />
           </Link>
 
           {/* Desktop Navigation */}

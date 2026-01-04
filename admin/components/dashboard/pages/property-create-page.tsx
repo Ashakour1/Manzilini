@@ -293,7 +293,6 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                     value={form.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     placeholder="Modern 2BR apartment"
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -362,7 +361,6 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                     value={form.price}
                     onChange={(e) => handleInputChange("price", e.target.value)}
                     placeholder="2500"
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -394,7 +392,6 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                     value={form.deposit_amount}
                     onChange={(e) => handleInputChange("deposit_amount", e.target.value)}
                     placeholder="500"
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -406,7 +403,6 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                     value={form.bedrooms}
                     onChange={(e) => handleInputChange("bedrooms", e.target.value)}
                     placeholder="2"
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -418,7 +414,6 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                     value={form.bathrooms}
                     onChange={(e) => handleInputChange("bathrooms", e.target.value)}
                     placeholder="2"
-                    required
                   />
                 </div>
               </div>

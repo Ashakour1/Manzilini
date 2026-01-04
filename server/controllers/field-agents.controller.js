@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
+import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 // Create a new field agent
 export const createFieldAgent = asyncHandler(async (req, res) => {
@@ -35,14 +36,19 @@ export const createFieldAgent = asyncHandler(async (req, res) => {
             }
         }
 
-        const fieldAgent = await prisma.fieldAgent.create({
-            data: {
-                name,
-                email,
-                phone,
-                image: imageUrl,
-                document_image: documentImageUrl,
-            }
+        // Generate unique ID and create field agent in a single transaction
+        // This ensures counter only increments on successful creation
+        const fieldAgent = await generateUniqueIdAndCreate('FieldAgent', async (tx, uniqueId) => {
+            return await tx.fieldAgent.create({
+                data: {
+                    id: uniqueId,
+                    name,
+                    email,
+                    phone,
+                    image: imageUrl,
+                    document_image: documentImageUrl,
+                }
+            });
         });
 
         res.status(201).json(fieldAgent);

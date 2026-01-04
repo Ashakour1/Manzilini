@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
+import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 
 export const getProperties = asyncHandler(async (req, res) => {
@@ -157,23 +158,25 @@ export const createProperty = asyncHandler(async (req, res) => {
             propertyData.landlord_id = landlord_id;
         }
 
-        // Set the user who created this property (from auth middleware)
-        if (req.user && req.user.id) {
-            propertyData.user_id = req.user.id;
-        }
-
         if (imageUrls.length) {
             propertyData.images = {
                 create: imageUrls.map((url) => ({ url })),
             };
         }
 
-        const property = await prisma.property.create({
-            data: propertyData,
-            include: { 
-                images: true,
-                landlord: true
-            },
+        // Generate unique ID and create property in a single transaction
+        // This ensures counter only increments on successful creation
+        const property = await generateUniqueIdAndCreate('Property', async (tx, uniqueId) => {
+            return await tx.property.create({
+                data: {
+                    ...propertyData,
+                    id: uniqueId,
+                },
+                include: { 
+                    images: true,
+                    landlord: true
+                },
+            });
         });
 
 

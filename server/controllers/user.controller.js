@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcrypt';
 import prisma from '../db/prisma.js';
+import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 // Get all users
 export const getUsers = asyncHandler(async (req, res) => {
@@ -17,6 +18,16 @@ export const getUsers = asyncHandler(async (req, res) => {
                 image: true,
                 createdAt: true,
                 updatedAt: true,
+                agentId: true,
+                agent: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        image: true
+                    }
+                },
                 _count: {
                     select: {
                         property_applications: true
@@ -45,6 +56,16 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
                 image: true,
                 createdAt: true,
                 updatedAt: true,
+                agentId: true,
+                agent: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        image: true
+                    }
+                }
             }
         });
 
@@ -72,6 +93,16 @@ export const getUserById = asyncHandler(async (req, res) => {
                 image: true,
                 createdAt: true,
                 updatedAt: true,
+                agentId: true,
+                agent: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        image: true
+                    }
+                },
                 property_applications: {
                     include: {
                         property: {
@@ -99,7 +130,7 @@ export const getUserById = asyncHandler(async (req, res) => {
 // Create user
 export const createUser = asyncHandler(async (req, res) => {
     try {
-        const { name, email, password, role } = req.body || {};
+        const { name, email, password, role, agentId } = req.body || {};
 
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'Name, email, and password are required' });
@@ -114,24 +145,51 @@ export const createUser = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // If agentId is provided, verify the agent exists
+        if (agentId) {
+            const agent = await prisma.fieldAgent.findUnique({
+                where: { id: agentId }
+            });
 
-        const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: role || 'USER',
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                image: true,
-                createdAt: true,
-                updatedAt: true,
+            if (!agent) {
+                return res.status(400).json({ message: 'Field agent not found' });
             }
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Generate unique ID and create user in a single transaction
+        // This ensures counter only increments on successful creation
+        const user = await generateUniqueIdAndCreate('User', async (tx, uniqueId) => {
+            return await tx.user.create({
+                data: {
+                    id: uniqueId,
+                    name,
+                    email,
+                    password: hashedPassword,
+                    role: role || 'USER',
+                    agentId: agentId || null,
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    image: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    agentId: true,
+                    agent: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                            image: true
+                        }
+                    }
+                }
+            });
         });
 
         res.status(201).json(user);
@@ -144,7 +202,7 @@ export const createUser = asyncHandler(async (req, res) => {
 export const updateUser = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, role, password } = req.body || {};
+        const { name, email, role, password, agentId } = req.body || {};
 
         // Check if user exists
         const existingUser = await prisma.user.findUnique({
@@ -166,12 +224,28 @@ export const updateUser = asyncHandler(async (req, res) => {
             }
         }
 
+        // If agentId is provided, verify the agent exists
+        if (agentId !== undefined) {
+            if (agentId) {
+                const agent = await prisma.fieldAgent.findUnique({
+                    where: { id: agentId }
+                });
+
+                if (!agent) {
+                    return res.status(400).json({ message: 'Field agent not found' });
+                }
+            }
+        }
+
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (email !== undefined) updateData.email = email;
         if (role !== undefined) updateData.role = role;
         if (password !== undefined) {
             updateData.password = await bcrypt.hash(password, 10);
+        }
+        if (agentId !== undefined) {
+            updateData.agentId = agentId || null;
         }
 
         const user = await prisma.user.update({
@@ -185,6 +259,16 @@ export const updateUser = asyncHandler(async (req, res) => {
                 image: true,
                 createdAt: true,
                 updatedAt: true,
+                agentId: true,
+                agent: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        image: true
+                    }
+                }
             }
         });
 
