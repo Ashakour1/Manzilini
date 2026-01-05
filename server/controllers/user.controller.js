@@ -28,11 +28,8 @@ export const getUsers = asyncHandler(async (req, res) => {
                         image: true
                     }
                 },
-                _count: {
-                    select: {
-                        property_applications: true
-                    }
-                }
+                
+                
             }
         });
         res.status(200).json(users);

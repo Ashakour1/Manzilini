@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, Home, MessageCircle, Upload } from "lucide-react"
+import { Menu, X, Home, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
@@ -53,9 +53,8 @@ export default function Header() {
               </Link>
             </Button>
             <Button size="sm" asChild className="bg-primary hover:bg-primary/90 shadow-md">
-              <Link href="/landlords/register" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                List Property
+              <Link href="/landlords/register">
+                Access as landlord
               </Link>
             </Button>
           </div>
@@ -92,9 +91,8 @@ export default function Header() {
                   </Link>
                 </Button>
                 <Button size="sm" asChild className="w-full bg-primary hover:bg-primary/90 shadow-md">
-                  <Link href="/landlords/register" className="flex items-center gap-2 justify-center">
-                    <Upload className="w-4 h-4" />
-                    List Property
+                  <Link href="/landlords/register" className="flex items-center justify-center">
+                    Access as landlord
                   </Link>
                 </Button>
               </div>
