@@ -99,17 +99,6 @@ export const getUserById = asyncHandler(async (req, res) => {
                         phone: true,
                         image: true
                     }
-                },
-                property_applications: {
-                    include: {
-                        property: {
-                            select: {
-                                id: true,
-                                title: true,
-                                status: true
-                            }
-                        }
-                    }
                 }
             }
         });
