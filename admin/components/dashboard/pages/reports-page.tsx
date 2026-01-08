@@ -8,6 +8,8 @@ import { TrendingUp, Download, Users, Building2, FileText, DollarSign, UserCheck
 import { getReports, type ReportsData } from "@/services/reports.service"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "lucide-react"
 
 const COLORS = ['#2a6f97', '#60a5fa', '#93c5fd', '#dbeafe', '#3b82f6', '#1e40af'];
 
@@ -15,12 +17,35 @@ export function ReportsPage() {
   const [reports, setReports] = useState<ReportsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+
+  // Generate month options (last 12 months + current month)
+  const generateMonthOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    
+    // Add "All Time" option
+    options.push({ value: "", label: "All Time" });
+    
+    // Add last 12 months
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+      options.push({ value: `${year}-${month}`, label: monthName });
+    }
+    
+    return options;
+  };
+
+  const monthOptions = generateMonthOptions();
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
-        const data = await getReports();
+        const data = await getReports(selectedMonth || undefined);
         setReports(data);
         setError(null);
       } catch (err) {
@@ -32,7 +57,7 @@ export function ReportsPage() {
     };
 
     fetchReports();
-  }, []);
+  }, [selectedMonth]);
 
   if (isLoading) {
     return (
@@ -82,15 +107,32 @@ export function ReportsPage() {
 
   return (
     <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Reports & Analytics</h1>
           <p className="text-xs text-muted-foreground">Comprehensive statistics and user performance metrics</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
-          <Download className="h-4 w-4" />
-          Export Report
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+        </div>
       </div>
 
       {/* Overall Statistics Cards */}
@@ -249,7 +291,11 @@ export function ReportsPage() {
       <Card className="border-border shadow-sm">
         <CardHeader>
           <CardTitle>Users</CardTitle>
-          <CardDescription>List of all users in the system</CardDescription>
+          <CardDescription>
+            {selectedMonth 
+              ? `List of all users and their properties created in ${monthOptions.find(opt => opt.value === selectedMonth)?.label || selectedMonth}`
+              : "List of all users in the system with their property counts"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -258,13 +304,14 @@ export function ReportsPage() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Properties Created</TableHead>
                   <TableHead>Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {!users || users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -293,6 +340,12 @@ export function ReportsPage() {
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
                           {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-medium">
+                          <Building2 className="mr-1 h-3 w-3 inline" />
+                          {user.propertiesCount || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">

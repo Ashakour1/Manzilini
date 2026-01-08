@@ -9,6 +9,7 @@ export interface UserStatistics {
   role: string;
   image?: string;
   createdAt: string;
+  propertiesCount: number;
 }
 
 export interface OverallStatistics {
@@ -37,8 +38,9 @@ export interface ReportsData {
 }
 
 // Get all reports
-export const getReports = async (): Promise<ReportsData> => {
-  const response = await fetch(REPORTS_API_URL, {
+export const getReports = async (month?: string): Promise<ReportsData> => {
+  const url = month ? `${REPORTS_API_URL}?month=${month}` : REPORTS_API_URL;
+  const response = await fetch(url, {
     headers: getAuthHeaders(),
   });
 
