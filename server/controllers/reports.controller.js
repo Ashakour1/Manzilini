@@ -88,14 +88,6 @@ export const getReports = asyncHandler(async (req, res) => {
 
                 return {
                     ...user,
-                    propertyApplicationsCount: user._count.property_applications,
-                    propertyApplications: applications.map(app => ({
-                        id: app.id,
-                        propertyTitle: app.property?.title,
-                        propertyStatus: app.property?.status,
-                        applicationStatus: app.status,
-                        createdAt: app.createdAt
-                    })),
                     totalApplicationValue,
                     applicationsByStatus: {
                         pending: applications.filter(a => a.status === 'PENDING').length,
