@@ -16,15 +16,15 @@ export function ReportsPage() {
   const [reports, setReports] = useState<ReportsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   // Generate month options (last 12 months + current month)
   const generateMonthOptions = () => {
     const options = [];
     const currentDate = new Date();
     
-    // Add "All Time" option
-    options.push({ value: "", label: "All Time" });
+    // Add "All Time" option (using "all" instead of empty string)
+    options.push({ value: "all", label: "All Time" });
     
     // Add last 12 months
     for (let i = 0; i < 12; i++) {
@@ -44,7 +44,9 @@ export function ReportsPage() {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
-        const data = await getReports(selectedMonth || undefined);
+        // Only pass month to API if it's not "all"
+        const monthParam = selectedMonth === "all" ? undefined : selectedMonth;
+        const data = await getReports(monthParam);
         setReports(data);
         setError(null);
       } catch (err) {
@@ -291,7 +293,7 @@ export function ReportsPage() {
         <CardHeader>
           <CardTitle>Users</CardTitle>
           <CardDescription>
-            {selectedMonth 
+            {selectedMonth && selectedMonth !== "all"
               ? `List of all users and their properties created in ${monthOptions.find(opt => opt.value === selectedMonth)?.label || selectedMonth}`
               : "List of all users in the system with their property counts"}
           </CardDescription>
