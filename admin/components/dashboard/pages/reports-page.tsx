@@ -57,7 +57,7 @@ export function ReportsPage() {
     );
   }
 
-  const { overall, properties, applications, payments, users } = reports;
+  const { overall, properties, payments, users } = reports;
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -69,13 +69,13 @@ export function ReportsPage() {
   };
 
   // Calculate occupancy rate (rented properties / total properties)
-  const rentedCount = properties.byStatus.find(p => p.status === 'RENTED')?.count || 0;
+  const rentedCount = properties?.byStatus?.find(p => p.status === 'RENTED')?.count || 0;
   const occupancyRate = overall.totalProperties > 0 
     ? Math.round((rentedCount / overall.totalProperties) * 100) 
     : 0;
 
   // Calculate collection rate (completed payments / total payments)
-  const completedPayments = payments.byStatus.find(p => p.status === 'COMPLETED')?.count || 0;
+  const completedPayments = payments?.byStatus?.find(p => p.status === 'COMPLETED')?.count || 0;
   const collectionRate = overall.totalPayments > 0
     ? Math.round((completedPayments / overall.totalPayments) * 100)
     : 0;
@@ -94,7 +94,7 @@ export function ReportsPage() {
       </div>
 
       {/* Overall Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <Card className="border-border shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -139,20 +139,6 @@ export function ReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <FileText className="h-6 w-6 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs font-medium">Applications</p>
-                <p className="text-xl font-bold text-foreground">{overall.totalApplications}</p>
-                <p className="text-xs text-green-600 mt-1">+{overall.recentActivity.applicationsSubmitted} this month</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Secondary Stats */}
@@ -202,7 +188,7 @@ export function ReportsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={properties.byStatus}
+                  data={properties?.byStatus || []}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -211,7 +197,7 @@ export function ReportsPage() {
                   fill="#8884d8"
                   dataKey="count"
                 >
-                  {properties.byStatus.map((entry, index) => (
+                  {(properties?.byStatus || []).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -229,7 +215,7 @@ export function ReportsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={properties.byType}>
+              <BarChart data={properties?.byType || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="type" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
@@ -242,41 +228,12 @@ export function ReportsPage() {
 
         <Card className="border-border shadow-sm">
           <CardHeader>
-            <CardTitle>Applications by Status</CardTitle>
-            <CardDescription>Distribution of property applications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={applications.byStatus}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(entry: any) => `${entry.status}: ${entry.count}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {applications.byStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border shadow-sm">
-          <CardHeader>
             <CardTitle>Payments by Status</CardTitle>
             <CardDescription>Distribution of payment statuses</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={payments.byStatus}>
+              <BarChart data={payments?.byStatus || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="status" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
@@ -291,8 +248,8 @@ export function ReportsPage() {
       {/* User Statistics Table */}
       <Card className="border-border shadow-sm">
         <CardHeader>
-          <CardTitle>User Statistics</CardTitle>
-          <CardDescription>Detailed statistics for each user including property applications</CardDescription>
+          <CardTitle>Users</CardTitle>
+          <CardDescription>List of all users in the system</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -301,18 +258,13 @@ export function ReportsPage() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Applications</TableHead>
-                  <TableHead>Pending</TableHead>
-                  <TableHead>Approved</TableHead>
-                  <TableHead>Rejected</TableHead>
-                  <TableHead>Total Value</TableHead>
                   <TableHead>Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length === 0 ? (
+                {!users || users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -343,27 +295,6 @@ export function ReportsPage() {
                           {user.role}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {user.statistics.propertyApplicationsCount}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-yellow-600 font-medium">
-                          {user.statistics.applicationsByStatus.pending}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-green-600 font-medium">
-                          {user.statistics.applicationsByStatus.approved}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-red-600 font-medium">
-                          {user.statistics.applicationsByStatus.rejected}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(user.statistics.totalApplicationValue)}
-                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
@@ -376,22 +307,6 @@ export function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* Note about tracking */}
-      <Card className="border-border shadow-sm mt-4">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground mb-1">Note on Statistics</p>
-              <p className="text-xs text-muted-foreground">
-                Currently, the system tracks property applications per user. To track which users created landlords and properties, 
-                the database schema would need to include <code className="bg-muted px-1 rounded">createdBy</code> or <code className="bg-muted px-1 rounded">userId</code> fields 
-                on the Property and Landlord models.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </main>
   )
 }

@@ -9,18 +9,15 @@ export const getReports = asyncHandler(async (req, res) => {
             totalUsers,
             totalLandlords,
             totalProperties,
-            totalApplications,
             totalPayments,
             totalFieldAgents,
             propertiesByStatus,
             propertiesByType,
-            applicationsByStatus,
             paymentsByStatus
         ] = await Promise.all([
             prisma.user.count(),
             prisma.landlord.count(),
             prisma.property.count(),
-            prisma.propertyApplication.count(),
             prisma.payment.count(),
             prisma.fieldAgent.count(),
             prisma.property.groupBy({
@@ -31,17 +28,13 @@ export const getReports = asyncHandler(async (req, res) => {
                 by: ['property_type'],
                 _count: true
             }),
-            // prisma.propertyApplication.groupBy({
-            //     by: ['status'],
-            //     _count: true
-            // }),
             prisma.payment.groupBy({
                 by: ['status'],
                 _count: true
             })
         ]);
 
-        // Get all users with their statistics
+        // Get all users
         const users = await prisma.user.findMany({
             select: {
                 id: true,
@@ -49,54 +42,12 @@ export const getReports = asyncHandler(async (req, res) => {
                 email: true,
                 role: true,
                 image: true,
-                createdAt: true,
-                // _count: {
-                //     select: {
-                //         property_applications: true
-                //     }
-                // }
+                createdAt: true
             },
             orderBy: {
                 createdAt: 'desc'
             }
         });
-
-        // Get user statistics with property applications details
-        const usersWithStats = await Promise.all(
-            users.map(async (user) => {
-                // Get property applications for this user
-                const applications = await prisma.propertyApplication.findMany({
-                    where: {
-                        tenantId: user.id
-                    },
-                    include: {
-                        property: {
-                            select: {
-                                id: true,
-                                title: true,
-                                status: true,
-                                price: true
-                            }
-                        }
-                    }
-                });
-
-                // Calculate total application value
-                const totalApplicationValue = applications.reduce((sum, app) => {
-                    return sum + (app.property?.price || 0);
-                }, 0);
-
-                return {
-                    ...user,
-                    totalApplicationValue,
-                    applicationsByStatus: {
-                        pending: applications.filter(a => a.status === 'PENDING').length,
-                        approved: applications.filter(a => a.status === 'APPROVED').length,
-                        rejected: applications.filter(a => a.status === 'REJECTED').length
-                    }
-                };
-            })
-        );
 
         // Calculate revenue statistics
         const completedPayments = await prisma.payment.findMany({
@@ -130,66 +81,43 @@ export const getReports = asyncHandler(async (req, res) => {
             }
         });
 
-        const recentApplications = await prisma.propertyApplication.count({
-            where: {
-                createdAt: {
-                    gte: thirtyDaysAgo
-                }
-            }
-        });
-
         // Response structure
         const reports = {
             overall: {
                 totalUsers,
                 totalLandlords,
                 totalProperties,
-                totalApplications,
                 totalPayments,
                 totalFieldAgents,
                 totalRevenue,
                 recentActivity: {
                     propertiesCreated: recentProperties,
-                    landlordsCreated: recentLandlords,
-                    applicationsSubmitted: recentApplications
+                    landlordsCreated: recentLandlords
                 }
             },
             properties: {
-                byStatus: propertiesByStatus.map(item => ({
+                byStatus: (propertiesByStatus || []).map(item => ({
                     status: item.status,
                     count: item._count
                 })),
-                byType: propertiesByType.map(item => ({
+                byType: (propertiesByType || []).map(item => ({
                     type: item.property_type,
                     count: item._count
                 }))
             },
-            applications: {
-                byStatus: applicationsByStatus.map(item => ({
-                    status: item.status,
-                    count: item._count
-                }))
-            },
             payments: {
-                byStatus: paymentsByStatus.map(item => ({
+                byStatus: (paymentsByStatus || []).map(item => ({
                     status: item.status,
                     count: item._count
                 }))
             },
-            users: usersWithStats.map(user => ({
+            users: users.map(user => ({
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 image: user.image,
-                createdAt: user.createdAt,
-                statistics: {
-                    // propertyApplicationsCount: user.propertyApplicationsCount,
-                    totalApplicationValue: user.totalApplicationValue,
-                    applicationsByStatus: user.applicationsByStatus,
-                    // Note: Landlords and properties created count would require schema changes
-                    // to track createdBy field on Property and Landlord models
-                }
+                createdAt: user.createdAt
             }))
         };
 

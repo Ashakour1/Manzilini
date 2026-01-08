@@ -9,29 +9,18 @@ export interface UserStatistics {
   role: string;
   image?: string;
   createdAt: string;
-  statistics: {
-    propertyApplicationsCount: number;
-    totalApplicationValue: number;
-    applicationsByStatus: {
-      pending: number;
-      approved: number;
-      rejected: number;
-    };
-  };
 }
 
 export interface OverallStatistics {
   totalUsers: number;
   totalLandlords: number;
   totalProperties: number;
-  totalApplications: number;
   totalPayments: number;
   totalFieldAgents: number;
   totalRevenue: number;
   recentActivity: {
     propertiesCreated: number;
     landlordsCreated: number;
-    applicationsSubmitted: number;
   };
 }
 
@@ -40,9 +29,6 @@ export interface ReportsData {
   properties: {
     byStatus: Array<{ status: string; count: number }>;
     byType: Array<{ type: string; count: number }>;
-  };
-  applications: {
-    byStatus: Array<{ status: string; count: number }>;
   };
   payments: {
     byStatus: Array<{ status: string; count: number }>;
