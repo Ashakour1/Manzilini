@@ -31,10 +31,10 @@ export const getReports = asyncHandler(async (req, res) => {
                 by: ['property_type'],
                 _count: true
             }),
-            prisma.propertyApplication.groupBy({
-                by: ['status'],
-                _count: true
-            }),
+            // prisma.propertyApplication.groupBy({
+            //     by: ['status'],
+            //     _count: true
+            // }),
             prisma.payment.groupBy({
                 by: ['status'],
                 _count: true
@@ -50,11 +50,11 @@ export const getReports = asyncHandler(async (req, res) => {
                 role: true,
                 image: true,
                 createdAt: true,
-                _count: {
-                    select: {
-                        property_applications: true
-                    }
-                }
+                // _count: {
+                //     select: {
+                //         property_applications: true
+                //     }
+                // }
             },
             orderBy: {
                 createdAt: 'desc'
