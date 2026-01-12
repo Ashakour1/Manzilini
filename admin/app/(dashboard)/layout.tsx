@@ -8,7 +8,7 @@ import { DashboardHeader } from "@/components/dashboard/header"
 import { useAuthStore } from "@/store/authStore"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { isLoggedIn, isHydrated } = useAuthStore();
+  const { isLoggedIn, isHydrated, user } = useAuthStore();
   const router = useRouter();
 
   // Redirect unauthenticated users to login

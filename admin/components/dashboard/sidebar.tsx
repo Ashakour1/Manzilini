@@ -107,14 +107,14 @@ export function DashboardSidebar() {
       )
     }
     
-    const userRole = user.role.toUpperCase()
+    // const userRole = user.role.toUpperCase()
     
-    if (userRole === "AGENT") {
-      // AGENT role only sees Properties and Landlords
-      return menuItems.filter(item => 
-        item.id === "properties" || item.id === "landlords"
-      )
-    }
+    // if (userRole === "AGENT") {
+    //   // AGENT role only sees Properties and Landlords
+    //   return menuItems.filter(item => 
+    //     item.id === "properties" || item.id === "landlords"
+    //   )
+    // }
     
     // All other roles see all menu items
     return menuItems

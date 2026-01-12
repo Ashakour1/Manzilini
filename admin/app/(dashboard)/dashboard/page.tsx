@@ -6,18 +6,19 @@ import { useAuthStore } from "@/store/authStore"
 import { DashboardContent } from "@/components/dashboard/pages/dashboard-content"
 
 export default function DashboardPage() {
-  const { user, isHydrated } = useAuthStore()
+  const { user, isHydrated, logout } = useAuthStore()
   const router = useRouter()
 
-  // Redirect agents to their own dashboard
+  // Block agents from accessing admin dashboard
   useEffect(() => {
     if (isHydrated && user) {
       const role = user.role?.toUpperCase()
       if (role === "AGENT") {
-        router.replace("/agent/dashboard")
+        logout()
+        router.replace("/")
       }
     }
-  }, [isHydrated, user, router])
+  }, [isHydrated, user, router, logout])
 
   // Don't render if user is an agent (will redirect)
   if (isHydrated && user?.role?.toUpperCase() === "AGENT") {

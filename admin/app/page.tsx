@@ -44,21 +44,23 @@ export default function Home() {
     password: "",
   });
 
-  const { login, isLoggedIn, isHydrated, user } = useAuthStore();
+  const { login, logout, isLoggedIn, isHydrated, user } = useAuthStore();
 
   const router = useRouter();
 
-  // Redirect logged-in users to appropriate dashboard based on role
+  // Redirect logged-in users to dashboard (agents are blocked)
   useEffect(() => {
     if (isHydrated && isLoggedIn && user) {
       const role = user.role?.toUpperCase();
+      // Block agents - log them out if they somehow have a session
       if (role === "AGENT") {
-        router.replace("/agent/dashboard");
-      } else {
-        router.replace("/dashboard");
+        logout();
+        setError("Agents are not authorized to access the admin system.");
+        return;
       }
+      router.replace("/dashboard");
     }
-  }, [isHydrated, isLoggedIn, user, router]);
+  }, [isHydrated, isLoggedIn, user, router, logout]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -81,6 +83,14 @@ export default function Home() {
     try {
       const data = await Login(formData.email, formData.password);
       
+      // Block agents from accessing admin system
+      const role = data.role?.toUpperCase();
+      if (role === "AGENT") {
+        setError("Agents are not authorized to access the admin system. Please contact your administrator.");
+        setIsLoading(false);
+        return;
+      }
+      
       // Store user data
       login({
         token: data.token,
@@ -89,13 +99,8 @@ export default function Home() {
         role: data.role,
       });
 
-      // Redirect based on user role
-      const role = data.role?.toUpperCase();
-      if (role === "AGENT") {
-        router.push("/agent/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
+      // Redirect to dashboard
+      router.push("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       setError(error instanceof Error ? error.message : "Failed to login. Please try again.");

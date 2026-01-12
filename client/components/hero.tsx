@@ -255,7 +255,7 @@ export default function Hero() {
     <>
       <section className="relative isolate overflow-hidden bg-background py-24">
         <Image
-          src="/hero.png"
+          src="/hero.jpg"
           alt="Luxury modern home"
           fill
           priority

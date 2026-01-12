@@ -78,11 +78,11 @@ export default function LandlordRegisterPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="max-w-2xl mx-auto px-6 py-18">
         {/* Logo */}
         <div className="mb-8">
           <Link href="/">
-            <Image src="/logo.png" alt="Manzilini" width={150} height={200} />
+            <Image src="/icon-logo.png" alt="Manzilini" width={100} height={100} />
           </Link>
         </div>
 
