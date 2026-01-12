@@ -36,7 +36,7 @@ export default function WhyChooseUsSection() {
           <div className="relative rounded-2xl overflow-hidden bg-card border border-border">
             <div className="relative h-[500px] w-full">
               <Image
-                src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop"
+                src="/aerial_2.jpg"
                 alt="Modern house"
                 fill
                 className="object-cover"

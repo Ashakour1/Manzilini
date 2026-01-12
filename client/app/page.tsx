@@ -26,7 +26,7 @@ export default function Home() {
       <ApartmentTypesSection />
       <CTASection />
 
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
     
       <LandlordCTASection />
       {/* <ServicesSection /> */}
