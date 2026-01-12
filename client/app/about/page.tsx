@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, Users, Lightbulb, Globe, Home, Shield, TrendingUp, Target, Heart, Award, ArrowRight, Wrench, Sparkles, Bug, Truck, Paintbrush, Settings, Key } from "lucide-react"
+import { CheckCircle, Users, Lightbulb, Globe, Shield, Target, Heart, Award, ArrowRight, Wrench, Sparkles, Bug, Truck, Paintbrush, Settings, Key } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -62,13 +62,6 @@ export default function About() {
     },
   ]
 
-  const stats = [
-    { icon: Home, value: "10,000+", label: "Properties Listed" },
-    { icon: Users, value: "50,000+", label: "Active Users" },
-    { icon: Shield, value: "98%", label: "Satisfaction Rate" },
-    { icon: TrendingUp, value: "25+", label: "Cities Covered" },
-  ]
-
   const commitments = [
     {
       icon: Shield,
@@ -109,24 +102,6 @@ export default function About() {
                 manual processes. Through our mobile and web-based applications, we enable tenants to explore verified property 
                 listings remotely while allowing landlords to efficiently advertise and manage their properties.
               </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="py-12 md:py-16 bg-card border-y border-border">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon
-                return (
-                  <div key={index} className="text-center">
-                    <Icon className="w-8 h-8 text-primary mx-auto mb-3" />
-                    <p className="text-3xl md:text-4xl font-bold text-foreground mb-2">{stat.value}</p>
-                    <p className="text-muted-foreground">{stat.label}</p>
-                  </div>
-                )
-              })}
             </div>
           </div>
         </section>
