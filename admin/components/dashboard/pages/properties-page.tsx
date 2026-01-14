@@ -31,9 +31,12 @@ import {
   X,
   CheckCircle,
   Star,
+  Globe,
+  EyeOff,
 } from "lucide-react"
 import { getProperties, getPropertiesForUser } from "@/services/properties.service"
-import { deleteProperty } from "@/services/properties.service"
+import { deleteProperty, publishProperty } from "@/services/properties.service"
+import { useToast } from "@/components/ui/use-toast"
 
 type Property = {
   id: string
@@ -47,6 +50,7 @@ type Property = {
   currency: string
   payment_frequency?: string
   is_featured?: boolean
+  is_published?: boolean
   createdAt?: string
   images?: { url: string }[]
 }
@@ -56,12 +60,14 @@ type SortDirection = "asc" | "desc"
 
 export function PropertiesPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null)
+  const [publishingId, setPublishingId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("All")
   const [statusFilter, setStatusFilter] = useState("All")
@@ -226,6 +232,30 @@ export function PropertiesPage() {
       setSelectedProperties(new Set())
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete properties")
+    }
+  }
+
+  const handlePublish = async (id: string, currentStatus: boolean) => {
+    setPublishingId(id)
+    try {
+      await publishProperty(id, !currentStatus)
+      setProperties((prev) =>
+        prev.map((prop) => (prop.id === id ? { ...prop, is_published: !currentStatus } : prop))
+      )
+      toast({
+        title: "Success",
+        description: !currentStatus ? "Property published successfully" : "Property unpublished successfully",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update publication status"
+      setError(errorMessage)
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setPublishingId(null)
     }
   }
 
@@ -559,6 +589,7 @@ export function PropertiesPage() {
                       </Button>
                     </TableHead>
                     <TableHead>Featured</TableHead>
+                    <TableHead>Published</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -622,6 +653,19 @@ export function PropertiesPage() {
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {property.is_published ? (
+                          <Badge className="bg-green-50 text-green-700 border border-green-100 dark:bg-green-950 dark:text-green-300">
+                            <Globe className="mr-1 h-3 w-3" />
+                            Published
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            <EyeOff className="mr-1 h-3 w-3" />
+                            Unpublished
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button
@@ -641,6 +685,22 @@ export function PropertiesPage() {
                             title="Edit"
                           >
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            disabled={publishingId === property.id}
+                            onClick={() => handlePublish(property.id, property.is_published || false)}
+                            title={property.is_published ? "Unpublish" : "Publish"}
+                          >
+                            {publishingId === property.id ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : property.is_published ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Globe className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="ghost"

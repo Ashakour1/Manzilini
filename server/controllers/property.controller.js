@@ -39,7 +39,60 @@ export const getPropertiesForUser = asyncHandler(async (req, res) => {
                 }
             });
             return res.status(200).json(allProperties);
-        }else{
+        } else if(user.role === 'AGENT') {
+            // For agents, get properties from all users assigned to this agent
+            const agentUser = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { agentId: true }
+            });
+
+            if (!agentUser || !agentUser.agentId) {
+                // Agent user doesn't have an agentId, return empty array
+                return res.status(200).json([]);
+            }
+
+            // Find all users assigned to this agent
+            const assignedUsers = await prisma.user.findMany({
+                where: { agentId: agentUser.agentId },
+                select: { id: true }
+            });
+
+            const assignedUserIds = assignedUsers.map(u => u.id);
+
+            // Get properties created by users assigned to this agent
+            const properties = await prisma.property.findMany({
+                where: { 
+                    userId: { in: assignedUserIds }
+                },
+                include: {
+                    images: true,
+                    landlord: true,
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            role: true,
+                            image: true,
+                            agentId: true,
+                            agent: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: [
+                    { is_featured: 'desc' },
+                    { createdAt: 'desc' }
+                ]
+            });
+            return res.status(200).json(properties);
+        } else {
+            // For regular users, return only their own properties
             const properties = await prisma.property.findMany({
                 where: { userId },
                 include: {
@@ -187,7 +240,7 @@ export const getPropertyById = asyncHandler(async (req, res) => {
 
 export const createProperty = asyncHandler(async (req, res) => {
     try {
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
 
         if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities) {
             return res.status(400).json({ message: 'All required fields must be provided' });
@@ -201,11 +254,18 @@ export const createProperty = asyncHandler(async (req, res) => {
 
         // Validate that user exists
         const user = await prisma.user.findUnique({
-            where: { id: userId }
+            where: { id: userId },
+            select: { id: true, role: true }
         });
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Set is_published: false for agents, otherwise use provided value or default to true
+        let publishedValue = is_published !== undefined ? (is_published === 'true' || is_published === true) : true;
+        if (user.role === 'AGENT') {
+            publishedValue = false;
         }
 
         // Validate that landlord exists if landlord_id is provided
@@ -250,6 +310,7 @@ export const createProperty = asyncHandler(async (req, res) => {
             balcony : balcony === 'true' || balcony === true,
             amenities: Array.isArray(amenities) ? amenities : JSON.parse(amenities),
             is_featured : is_featured === 'true' || is_featured === true,
+            is_published: publishedValue,
         };
 
         // Only include landlord_id if provided
@@ -302,7 +363,7 @@ export const createProperty = asyncHandler(async (req, res) => {
 export const updateProperty = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
 
         // Get current property to check existing landlord
         const currentProperty = await prisma.property.findUnique({
@@ -350,6 +411,7 @@ export const updateProperty = asyncHandler(async (req, res) => {
         if (balcony !== undefined) updateData.balcony = balcony === 'true' || balcony === true;
         if (amenities !== undefined) updateData.amenities = Array.isArray(amenities) ? amenities : JSON.parse(amenities);
         if (is_featured !== undefined) updateData.is_featured = is_featured === 'true' || is_featured === true;
+        if (is_published !== undefined) updateData.is_published = is_published === 'true' || is_published === true;
         if (landlord_id !== undefined) {
             // Allow null or empty string to remove landlord association
             updateData.landlord_id = (landlord_id === '' || landlord_id === null) ? null : landlord_id;

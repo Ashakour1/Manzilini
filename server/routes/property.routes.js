@@ -12,6 +12,9 @@ router.get('/', getProperties);
 
 router.get('/specific', AuthMiddleware, getPropertiesForUser);
 
+// Agent-specific endpoint for properties
+router.get('/agent', AuthMiddleware, getPropertiesForUser);
+
 router.get('/:id', getPropertyById);
 
 router.post("/",AuthMiddleware, upload.array("images", 10), createProperty);

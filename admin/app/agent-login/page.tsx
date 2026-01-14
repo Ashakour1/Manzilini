@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Building2, Eye, EyeOff, Fingerprint, Lock, Mail, ShieldCheck, Sparkles, AlertCircle } from "lucide-react"
+import { ArrowRight, Eye, EyeOff, Fingerprint, Lock, Mail, ShieldCheck, AlertCircle, MapPin } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,26 +15,7 @@ import Login from "@/services/auth.service"
 import { useAuthStore } from "@/store/authStore"
 import { useRouter } from "next/navigation"
 
-const perks = [
-  {
-    icon: ShieldCheck,
-    title: "Enterprise-grade security",
-    desc: "Encryption, device checks, and smart session lockouts baked in.",
-  },
-  {
-    icon: Building2,
-    title: "Operations overview",
-    desc: "See rent, maintenance, and balances by landlord and tenant the moment you land.",
-  },
-  {
-    icon: Sparkles,
-    title: "One-click workflows",
-    desc: "Approve payments, dispatch vendors, and notify landlords and tenants instantly.",
-  },
-]
-
-
-export default function Home() {
+export default function AgentLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -48,17 +29,17 @@ export default function Home() {
 
   const router = useRouter();
 
-  // Redirect logged-in users to dashboard (agents are redirected to agent login)
+  // Redirect logged-in agents to agent dashboard, block non-agents
   useEffect(() => {
     if (isHydrated && isLoggedIn && user) {
       const role = user.role?.toUpperCase();
-      // Redirect agents to agent login page
       if (role === "AGENT") {
+        router.replace("/agent/dashboard");
+      } else {
+        // Non-agents should use admin login
         logout();
-        router.replace("/agent-login");
-        return;
+        setError("Please use the admin login page for non-agent accounts.");
       }
-      router.replace("/dashboard");
     }
   }, [isHydrated, isLoggedIn, user, router, logout]);
 
@@ -74,7 +55,6 @@ export default function Home() {
     }
   }
 
-
   const HandleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null)
@@ -83,10 +63,10 @@ export default function Home() {
     try {
       const data = await Login(formData.email, formData.password);
       
-      // Redirect agents to agent login page
+      // Only allow agents to login here
       const role = data.role?.toUpperCase();
-      if (role === "AGENT") {
-        setError("This login page is for administrators only. Please use the agent login page.");
+      if (role !== "AGENT") {
+        setError("This login page is for field agents only. Please use the admin login page.");
         setIsLoading(false);
         return;
       }
@@ -99,8 +79,8 @@ export default function Home() {
         role: data.role,
       });
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to agent dashboard
+      router.push("/agent/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       setError(error instanceof Error ? error.message : "Failed to login. Please try again.");
@@ -126,43 +106,44 @@ export default function Home() {
         <div className="space-y-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#2a6f97]/20 bg-[#2a6f97]/10 px-3 py-1 text-xs font-medium text-[#2a6f97]">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Secure Admin Portal
+              <MapPin className="h-3.5 w-3.5" />
+              Field Agent Portal
             </div>
             <h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
-              Sign in to manage landlords, tenants, and properties
+              Sign in to manage your properties and clients
             </h1>
             <p className="max-w-xl text-sm text-gray-600">
-              Your secure gateway to payments, maintenance, and communications across your management company. Log in
-              with your work email to keep every team in sync.
+              Access your field agent dashboard to manage properties, landlords, tenants, and track your activities.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            {perks.map((perk) => (
-              <div
-                key={perk.title}
-                className="group rounded-lg border border-gray-200 80 backdrop-blur-sm p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a6f97]/40 hover:shadow-md"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2a6f97]/10 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
-                  <perk.icon className="h-5 w-5" />
-                </div>
-                <p className="mt-3 text-sm font-semibold text-gray-900">{perk.title}</p>
-                <p className="mt-1 text-xs text-gray-600 leading-relaxed">{perk.desc}</p>
+            <div className="group rounded-lg border border-gray-200 backdrop-blur-sm p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a6f97]/40 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2a6f97]/10 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
+                <MapPin className="h-5 w-5" />
               </div>
-            ))}
+              <p className="mt-3 text-sm font-semibold text-gray-900">Property Management</p>
+              <p className="mt-1 text-xs text-gray-600 leading-relaxed">View and manage properties assigned to you</p>
+            </div>
+            <div className="group rounded-lg border border-gray-200 backdrop-blur-sm p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a6f97]/40 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2a6f97]/10 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-gray-900">Client Relations</p>
+              <p className="mt-1 text-xs text-gray-600 leading-relaxed">Manage landlords and tenants you work with</p>
+            </div>
           </div>
         </div>
 
         <Card className="border border-gray-200 shadow-none">
           <CardHeader className="space-y-2 pb-4">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-xl font-bold text-gray-900">Log in</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-900">Agent Login</CardTitle>
               <Badge variant="outline" className="border-[#2a6f97]/30 bg-[#2a6f97]/10 text-[#2a6f97] text-xs font-medium">
-                Admin
+                Agent
               </Badge>
             </div>
-            <CardDescription className="text-sm text-gray-600">Sign in with your company credentials to continue.</CardDescription>
+            <CardDescription className="text-sm text-gray-600">Sign in with your agent credentials to continue.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form className="space-y-4" onSubmit={HandleSubmit}>
@@ -202,7 +183,7 @@ export default function Home() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@company.com"
+                    placeholder="agent@company.com"
                     autoComplete="email"
                     required
                     value={formData.email}
@@ -266,7 +247,7 @@ export default function Home() {
               </Button>
               <div className="text-center">
                 <Button variant="link" className="h-auto px-0 text-xs text-gray-500 hover:text-[#2a6f97]" asChild>
-                  <Link href="/agent-login">Field Agent Login</Link>
+                  <Link href="/">Admin Login</Link>
                 </Button>
               </div>
             </form>

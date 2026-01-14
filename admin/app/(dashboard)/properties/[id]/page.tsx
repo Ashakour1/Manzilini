@@ -17,11 +17,17 @@ import {
   Phone,
   User,
   Sparkles,
+  Globe,
+  EyeOff,
+  Calendar,
+  Building2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { getPropertyById } from "@/services/properties.service"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { getPropertyById, publishProperty } from "@/services/properties.service"
+import { useToast } from "@/components/ui/use-toast"
 
 type Property = {
   id: string
@@ -57,17 +63,29 @@ type Property = {
     company_name?: string
     address?: string
   }
+  user?: {
+    id: string
+    name: string
+    email: string
+    role?: string
+    image?: string
+  }
+  is_published?: boolean
+  createdAt?: string
+  updatedAt?: string
   images?: { url: string }[]
 }
 
 export default function PropertyDetailsPage() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const propertyId = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined
 
   const [property, setProperty] = useState<Property | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isPublishing, setIsPublishing] = useState(false)
 
   useEffect(() => {
     if (!propertyId) return
@@ -87,6 +105,27 @@ export default function PropertyDetailsPage() {
 
     load()
   }, [propertyId])
+
+  const handlePublish = async () => {
+    if (!property) return
+    setIsPublishing(true)
+    try {
+      const updatedProperty = await publishProperty(property.id, !property.is_published)
+      setProperty({ ...property, is_published: updatedProperty.is_published })
+      toast({
+        title: "Success",
+        description: updatedProperty.is_published ? "Property published successfully" : "Property unpublished successfully",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to update publication status",
+        variant: "destructive",
+      })
+    } finally {
+      setIsPublishing(false)
+    }
+  }
 
   const formatPrice = (price: number | string, currency: string, frequency?: string) => {
     const amount = Number(price) || 0
@@ -154,10 +193,35 @@ export default function PropertyDetailsPage() {
             <div className="h-6 w-px bg-border" />
             <h1 className="text-2xl font-semibold text-foreground">Property Details</h1>
           </div>
-          <Button onClick={() => router.push(`/properties/${propertyId}/edit`)} className="gap-2">
-            <Edit className="h-4 w-4" />
-            Edit Property
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={property.is_published ? "outline" : "default"}
+              onClick={handlePublish}
+              disabled={isPublishing}
+              className="gap-2"
+            >
+              {isPublishing ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {property.is_published ? "Unpublishing..." : "Publishing..."}
+                </>
+              ) : property.is_published ? (
+                <>
+                  <EyeOff className="h-4 w-4" />
+                  Unpublish
+                </>
+              ) : (
+                <>
+                  <Globe className="h-4 w-4" />
+                  Publish
+                </>
+              )}
+            </Button>
+            <Button onClick={() => router.push(`/properties/${propertyId}/edit`)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Edit Property
+            </Button>
+          </div>
         </div>
 
         {/* Hero Section */}
@@ -169,6 +233,17 @@ export default function PropertyDetailsPage() {
             <Badge variant={getStatusVariant(property.status)} className="uppercase font-medium">
               {property.status}
             </Badge>
+            {property.is_published ? (
+              <Badge className="bg-green-50 text-green-700 border border-green-100 dark:bg-green-950 dark:text-green-300">
+                <Globe className="mr-1 h-3 w-3" />
+                Published
+              </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <EyeOff className="mr-1 h-3 w-3" />
+                Unpublished
+              </Badge>
+            )}
           </div>
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="flex-1 space-y-2">
@@ -373,14 +448,119 @@ export default function PropertyDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="sticky top-8 space-y-6">
+              {/* Property Creator Information */}
+              {property.user && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Property Creator
+                    </CardTitle>
+                    <CardDescription>User who created this property</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Name</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{property.user.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <a
+                          href={`mailto:${property.user.email}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {property.user.email}
+                        </a>
+                      </div>
+                    </div>
+                    {property.user.role && (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
+                        <Badge variant="outline" className="mt-1">
+                          {property.user.role}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Property Actions & Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Property Actions
+                  </CardTitle>
+                  <CardDescription>Publication status and timestamps</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Publication Status</p>
+                    <div className="mt-1">
+                      {property.is_published ? (
+                        <Badge className="bg-green-50 text-green-700 border border-green-100 dark:bg-green-950 dark:text-green-300">
+                          <Globe className="mr-1 h-3 w-3" />
+                          Published
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <EyeOff className="mr-1 h-3 w-3" />
+                          Unpublished
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {property.createdAt && (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Created</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">
+                          {new Date(property.createdAt).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {property.updatedAt && (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last Updated</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">
+                          {new Date(property.updatedAt).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Contact Information */}
               {property.landlord && (
-                <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
-                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Landlord Information
-                  </h3>
-                  <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Landlord Information
+                    </CardTitle>
+                    <CardDescription>Property landlord details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     {property.landlord.name && (
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Name</p>
@@ -427,8 +607,8 @@ export default function PropertyDetailsPage() {
                         <p className="mt-1 text-sm font-medium text-foreground">{property.landlord.address}</p>
                       </div>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>

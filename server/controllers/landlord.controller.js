@@ -64,6 +64,82 @@ export const getLandlords = asyncHandler(async (req, res) => {
     }
 });
 
+// Get landlords for agents (only landlords with properties assigned to agent's users)
+export const getLandlordsForAgent = asyncHandler(async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                role: true,
+                agentId: true
+            }
+        });
+
+        if (!user || user.role !== 'AGENT') {
+            return res.status(403).json({ message: 'Access denied. Agent role required.' });
+        }
+
+        if (!user.agentId) {
+            // Agent user doesn't have an agentId, return empty array
+            return res.status(200).json([]);
+        }
+
+        // Find all users assigned to this agent
+        const assignedUsers = await prisma.user.findMany({
+            where: { agentId: user.agentId },
+            select: { id: true }
+        });
+
+        const assignedUserIds = assignedUsers.map(u => u.id);
+
+        // Get properties created by users assigned to this agent
+        const agentProperties = await prisma.property.findMany({
+            where: { 
+                userId: { in: assignedUserIds }
+            },
+            select: {
+                landlord_id: true
+            }
+        });
+
+        // Get unique landlord IDs from properties
+        const landlordIds = [...new Set(agentProperties.map(p => p.landlord_id).filter(Boolean))];
+
+        if (landlordIds.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        // Get landlords who have properties assigned to this agent
+        const landlords = await prisma.landlord.findMany({
+            where: {
+                id: { in: landlordIds }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            include: {
+                properties: {
+                    where: {
+                        userId: { in: assignedUserIds }
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        status: true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json(landlords);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Get landlord by ID
 export const getLandlordById = asyncHandler(async (req, res) => {
     try {

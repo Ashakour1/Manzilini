@@ -5,7 +5,8 @@ import {
     getLandlordById, 
     updateLandlord, 
     deleteLandlord,
-    verifyLandlord
+    verifyLandlord,
+    getLandlordsForAgent
 } from '../controllers/landlord.controller.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
@@ -16,6 +17,8 @@ router.post('/register', registerLandlord);
 // Admin route for landlord registration (auth required)
 router.post('/', AuthMiddleware, registerLandlord);
 router.get('/', getLandlords);
+// Agent-specific endpoint for landlords
+router.get('/agent', AuthMiddleware, getLandlordsForAgent);
 router.get('/:id', getLandlordById);
 router.put('/:id', AuthMiddleware, updateLandlord);
 router.patch('/:id/verify', AuthMiddleware, verifyLandlord);

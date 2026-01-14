@@ -45,6 +45,18 @@ export const getPropertiesForUser = async () => {
   return response.json();
 };
 
+// Agent-specific function to get properties for agents
+export const getPropertiesForAgent = async () => {
+  const response = await fetch(`${PROPERTY_API_URL}/agent`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch agent properties");
+  }
+  return response.json();
+};
+
 export const getProperties = async () => {
   const response = await fetch(PROPERTY_API_URL, {
     headers: getAuthHeaders(),
@@ -98,10 +110,28 @@ export const deleteProperty = async (id: string) => {
   return response.json();
 };
 
+// Publish/Unpublish property
+export const publishProperty = async (id: string, isPublished: boolean) => {
+  const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify({ is_published: isPublished }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update property publication status");
+  }
+
+  return response.json();
+};
+
 export default {
   registerProperty,
   getProperties,
   getPropertyById,
   updateProperty,
   deleteProperty,
+  publishProperty,
 };

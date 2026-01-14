@@ -33,6 +33,18 @@ export const getLandlords = async () => {
   return response.json();
 };
 
+// Agent-specific function to get landlords for agents
+export const getLandlordsForAgent = async () => {
+  const response = await fetch(`${LANDLORD_API_URL}/agent`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch agent landlords");
+  }
+  return response.json();
+};
+
 // Get landlord by ID
 export const getLandlordById = async (id: string) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}`, {
