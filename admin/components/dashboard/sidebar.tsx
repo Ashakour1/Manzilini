@@ -15,7 +15,8 @@ import {
   LogOut, 
   Shield, 
   MapPin,
-  Menu
+  Menu,
+  Mail
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -36,6 +37,7 @@ const menuItems = [
   { id: "maintenance", icon: Wrench, label: "Maintenance", href: "/maintenance" },
   { id: "documents", icon: FileText, label: "Documents", href: "/documents" },
   { id: "reports", icon: BarChart3, label: "Reports", href: "/reports" },
+  { id: "email-logs", icon: Mail, label: "Email Logs", href: "/email-logs" },
   { id: "settings", icon: Settings, label: "Settings", href: "/settings" },
 ]
 

@@ -92,13 +92,22 @@ export const deleteLandlord = async (id: string) => {
 };
 
 // Verify/Unverify landlord
-export const verifyLandlord = async (id: string, isVerified: boolean) => {
+export const verifyLandlord = async (
+  id: string, 
+  isVerified: boolean, 
+  rejectionReason?: string,
+  password?: string
+) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}/verify`, {
     method: "PATCH",
     headers: getAuthHeaders({
       "Content-Type": "application/json",
     }),
-    body: JSON.stringify({ isVerified }),
+    body: JSON.stringify({ 
+      isVerified,
+      ...(rejectionReason !== undefined && { rejectionReason }),
+      ...(password && { password }),
+    }),
   });
 
   if (!response.ok) {
@@ -110,13 +119,20 @@ export const verifyLandlord = async (id: string, isVerified: boolean) => {
 };
 
 // Update landlord status (Active/Inactive)
-export const updateLandlordStatus = async (id: string, status: "ACTIVE" | "INACTIVE") => {
+export const updateLandlordStatus = async (
+  id: string, 
+  status: "ACTIVE" | "INACTIVE",
+  inactiveReason?: string
+) => {
   const response = await fetch(`${LANDLORD_API_URL}/${id}/status`, {
     method: "PATCH",
     headers: getAuthHeaders({
       "Content-Type": "application/json",
     }),
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ 
+      status,
+      ...(inactiveReason !== undefined && { inactiveReason }),
+    }),
   });
 
   if (!response.ok) {

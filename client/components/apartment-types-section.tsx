@@ -1,62 +1,51 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { fetchPropertyTypes } from "@/services/properties.service"
-import { StaticImport } from "next/dist/shared/lib/get-img-props"
 
 interface PropertyType {
   name: string
-  image: string | StaticImport
+  image: string
   type: string
   count: number
 }
 
-// Dummy images for property types (hardcoded, not from API)
-const propertyTypeImages: Record<string, string> = {
-  HOUSE: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop",
-  APARTMENT: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop",
-  OFFICE: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop",
-  STUDIO: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&h=300&fit=crop",
-  LAND: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop",
-}
-
-const propertyTypeLabels: Record<string, string> = {
-  HOUSE: "Houses",
-  APARTMENT: "Apartments",
-  OFFICE: "Office",
-  STUDIO: "Studio",
-  LAND: "Land",
-}
+// Static property types data
+const propertyTypes: PropertyType[] = [
+  {
+    type: "APARTMENT",
+    name: "Apartments",
+    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop",
+    count: 0,
+  },
+  {
+    type: "HOUSE",
+    name: "Houses",
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop",
+    count: 0,
+  },
+  {
+    type: "STUDIO",
+    name: "Studio",
+    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&h=300&fit=crop",
+    count: 0,
+  },
+  {
+    type: "OFFICE",
+    name: "Office",
+    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop",
+    count: 0,
+  },
+  {
+    type: "LAND",
+    name: "Land",
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop",
+    count: 0,
+  },
+]
 
 export default function ApartmentTypesSection() {
-  const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadPropertyTypes = async () => {
-      try {
-        // Fetch type and count from API
-        const data = await fetchPropertyTypes()
-        // Map the API response: type and count come from API, images are dummy data
-        const mappedTypes = (data || []).map((item: PropertyType) => ({
-          type: item.type, // From API
-          count: item.count, // From API
-          name: propertyTypeLabels[item.type] || item.type, // Mapped label
-          image: propertyTypeImages[item.type] || propertyTypeImages.LAND, // Dummy image
-        })).sort((a: PropertyType & { name: string; image: string }, b: PropertyType & { name: string; image: string }) => b.count - a.count)
-        setPropertyTypes(mappedTypes)
-      } catch (error) {
-        console.error("Failed to load property types:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadPropertyTypes()
-  }, [])
   return (
     <section className="py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,11 +64,7 @@ export default function ApartmentTypesSection() {
         </div>
 
         <div className="relative">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading property types...</p>
-            </div>
-          ) : propertyTypes.length === 0 ? (
+          {propertyTypes.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No property types available.</p>
             </div>
@@ -90,7 +75,7 @@ export default function ApartmentTypesSection() {
                   {propertyTypes.map((type) => (
                     <Link
                       key={type.type}
-                      href={`/properties?type=${type.type.toLowerCase()}`}
+                      href={`/properties?property_type=${type.type.toLowerCase()}`}
                       className="group flex-shrink-0 w-64 bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300"
                     >
                       <div className="relative h-48 w-full overflow-hidden">
@@ -105,7 +90,7 @@ export default function ApartmentTypesSection() {
                       <div className="p-5">
                         <h3 className="text-lg font-bold text-foreground mb-1">{type.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {type.count} {type.count === 1 ? "Property" : "Properties"}
+                          Explore {type.name.toLowerCase()}
                         </p>
                       </div>
                     </Link>

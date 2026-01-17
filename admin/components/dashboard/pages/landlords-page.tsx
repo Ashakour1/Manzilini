@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,6 +27,8 @@ import {
   CheckCircle2,
   UserCheck,
   UserX,
+  Clock,
+  Send,
 } from "lucide-react"
 import { getLandlords, deleteLandlord, verifyLandlord, updateLandlordStatus } from "@/services/landlords.service"
 import { useToast } from "@/components/ui/use-toast"
@@ -38,6 +42,10 @@ type Landlord = {
   address?: string
   isVerified?: boolean
   status?: "ACTIVE" | "INACTIVE"
+  rejectionReason?: string | null
+  inactiveReason?: string | null
+  is_sent_email?: boolean
+  is_sent_at?: string | null
   createdAt?: string
   properties?: { id: string; title: string; status: string }[]
 }
@@ -56,6 +64,10 @@ export function LandlordsPage() {
   const [landlordToDelete, setLandlordToDelete] = useState<string | null>(null)
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [statusLandlordId, setStatusLandlordId] = useState<string | null>(null)
+  const [statusLandlordCurrentStatus, setStatusLandlordCurrentStatus] = useState<"ACTIVE" | "INACTIVE" | undefined>(undefined)
+  const [inactiveReason, setInactiveReason] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
@@ -196,14 +208,50 @@ export function LandlordsPage() {
   }
 
   const handleToggleStatus = async (id: string, currentStatus: "ACTIVE" | "INACTIVE" | undefined) => {
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+    
+    // If setting to inactive, show dialog for reason
+    if (newStatus === "INACTIVE") {
+      setStatusLandlordId(id)
+      setStatusLandlordCurrentStatus(currentStatus)
+      setInactiveReason("")
+      setStatusDialogOpen(true)
+      return
+    }
+
+    // If reactivating, just update directly
     setUpdatingStatusId(id)
     try {
-      const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
       await updateLandlordStatus(id, newStatus)
       await loadLandlords()
       toast({
         title: "Success",
         description: `Landlord status updated to ${newStatus} successfully`,
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to update landlord status",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
+  const handleConfirmStatusChange = async () => {
+    if (!statusLandlordId) return
+
+    setUpdatingStatusId(statusLandlordId)
+    try {
+      await updateLandlordStatus(statusLandlordId, "INACTIVE", inactiveReason || undefined)
+      await loadLandlords()
+      setStatusDialogOpen(false)
+      setStatusLandlordId(null)
+      setInactiveReason("")
+      toast({
+        title: "Success",
+        description: "Landlord set to inactive. Email sent!",
       })
     } catch (err) {
       toast({
@@ -337,6 +385,7 @@ export function LandlordsPage() {
                         <TableHead className="h-12 font-semibold text-foreground">Verification</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Status</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Properties</TableHead>
+                        <TableHead className="h-12 font-semibold text-foreground">Email Status</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">
                           <button
                             className="flex items-center gap-2 transition-colors hover:text-[#2a6f97]"
@@ -409,6 +458,37 @@ export function LandlordsPage() {
                             <Badge variant="outline" className="font-medium">
                               {landlord.properties?.length || 0}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {landlord.is_sent_email ? (
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="default" className="w-fit gap-1.5 bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400">
+                                  <Send className="h-3 w-3" />
+                                  Sent
+                                </Badge>
+                                {landlord.is_sent_at && (
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {new Date(landlord.is_sent_at).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                    <span className="text-[10px]">
+                                      {new Date(landlord.is_sent_at).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <Badge variant="secondary" className="w-fit gap-1.5">
+                                <Mail className="h-3 w-3" />
+                                Not Sent
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="py-4">
                             <span className="text-sm text-muted-foreground">
@@ -553,6 +633,51 @@ export function LandlordsPage() {
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deletingId !== null}>
               {deletingId ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Inactive Status Dialog */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Landlord to Inactive</DialogTitle>
+            <DialogDescription>
+              Setting this landlord to inactive will send them an email notification and restrict their account access.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="inactiveReason">Inactive Reason (Optional)</Label>
+              <Textarea
+                id="inactiveReason"
+                value={inactiveReason}
+                onChange={(e) => setInactiveReason(e.target.value)}
+                placeholder="Enter the reason for setting the account to inactive..."
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                This reason will be included in the email sent to the landlord.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStatusDialogOpen(false)
+                setInactiveReason("")
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmStatusChange}
+              disabled={updatingStatusId !== null}
+            >
+              {updatingStatusId ? "Updating..." : "Set Inactive & Send Email"}
             </Button>
           </DialogFooter>
         </DialogContent>

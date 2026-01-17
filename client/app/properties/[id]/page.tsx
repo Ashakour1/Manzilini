@@ -17,7 +17,12 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     if (id) {
       fetchPropertyById(id).then((data) => {
-        setProperty(data)
+        // Check if property exists and is published
+        if (data && data.is_published === true) {
+          setProperty(data)
+        } else {
+          setProperty(null) // Set to null if not published
+        }
         setLoading(false)
       }).catch(() => {
         setLoading(false)
@@ -39,7 +44,7 @@ export default function PropertyDetailPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="text-2xl font-semibold text-gray-900">Property not found</h1>
-        <p className="text-gray-500 mt-2">The property you are looking for does not exist.</p>
+        <p className="text-gray-500 mt-2">The property you are looking for does not exist or is not available.</p>
       </div>
     )
   }

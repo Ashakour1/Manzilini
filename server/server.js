@@ -10,6 +10,8 @@ import landlordRoutes from './routes/landlord.routes.js';
 import userRoutes from './routes/user.routes.js';
 import fieldAgentsRoutes from './routes/field-agents.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
+import emailLogsRoutes from './routes/email-logs.routes.js';
+import emailRoutes from './routes/email.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,6 +58,8 @@ app.use('/api/v1/landlords', landlordRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/field-agents', fieldAgentsRoutes);
 app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/email-logs', emailLogsRoutes);
+app.use('/api/v1/email', emailRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

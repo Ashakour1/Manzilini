@@ -28,6 +28,7 @@ interface Property {
   bathrooms?: number
   size?: number
   is_featured?: boolean
+  is_published?: boolean
   images?: { url: string }[]
 }
 
@@ -39,9 +40,9 @@ export default function FeaturedHousesSection() {
     const loadFeaturedProperties = async () => {
       try {
         const allProperties = await fetchProperties("", "")
-        // Filter and get only featured properties, limit to 4
+        // Filter only published and featured properties, limit to 4
         const featured = (allProperties || [])
-          .filter((p: Property) => p.is_featured)
+          .filter((p: Property) => p.is_published === true && p.is_featured === true)
           .slice(0, 4)
         setFeaturedProperties(featured)
       } catch (error) {

@@ -23,6 +23,7 @@ interface Property {
   size?: number;
   image?: string;
   is_featured?: boolean;
+  is_published?: boolean;
 }
 
 export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
@@ -33,8 +34,9 @@ export default function PropertyGrid({ onSelectProperty }: PropertyGridProps) {
     setLoading(true);
     
     fetchProperties("", "").then((data) => {
-      // Sort properties: featured first, then by creation date
-      const sorted = (data || []).sort((a: Property, b: Property) => {
+      // Filter only published properties, then sort: featured first, then by creation date
+      const publishedProperties = (data || []).filter((p: Property) => p.is_published === true);
+      const sorted = publishedProperties.sort((a: Property, b: Property) => {
         const aFeatured = a.is_featured || false;
         const bFeatured = b.is_featured || false;
         if (aFeatured && !bFeatured) return -1;

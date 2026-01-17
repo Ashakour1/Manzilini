@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
+import { sendWelcomeEmail, sendLandlordApprovalEmail, sendLandlordInactiveEmail, sendLandlordRejectionEmail, sendLandlordActivationEmail } from '../services/email.service.js';
 
 // Register a new landlord
 export const registerLandlord = asyncHandler(async (req, res) => {
@@ -35,6 +36,22 @@ export const registerLandlord = asyncHandler(async (req, res) => {
                 }
             });
         });
+
+        // Send welcome email to the landlord
+        try {
+            await sendWelcomeEmail(landlord.email, landlord.name, landlord.id);
+            // Update email tracking fields on success
+            await prisma.landlord.update({
+                where: { id: landlord.id },
+                data: {
+                    is_sent_email: true,
+                    is_sent_at: new Date()
+                }
+            });
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't fail the registration if email fails
+        }
 
         res.status(201).json(landlord);
     } catch (error) {
@@ -170,8 +187,9 @@ export const getLandlordById = asyncHandler(async (req, res) => {
 export const updateLandlord = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, phone, company_name, address, isVerified, status } = req.body || {};
+        const { name, email, phone, company_name, address, isVerified, status, rejectionReason, inactiveReason } = req.body || {};
 
+        console.log(req.body);
         // Check if landlord exists
         const existingLandlord = await prisma.landlord.findUnique({
             where: { id }
@@ -206,11 +224,130 @@ export const updateLandlord = asyncHandler(async (req, res) => {
         if (address !== undefined) updateData.address = address;
         if (isVerified !== undefined) updateData.isVerified = isVerified;
         if (status !== undefined) updateData.status = status;
+        if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
+        if (inactiveReason !== undefined) updateData.inactiveReason = inactiveReason;
+
+        // Check if landlord is being approved for the first time
+        const isBeingApproved = isVerified !== undefined && 
+                               isVerified === true && 
+                               existingLandlord.isVerified === false;
+
+        // Check if landlord is being rejected (unverified)
+        const isBeingRejected = isVerified !== undefined && 
+                               isVerified === false && 
+                               existingLandlord.isVerified === true;
+
+        // Check if landlord is being set to inactive
+        const isBeingInactivated = status !== undefined && 
+                                  status === 'INACTIVE' && 
+                                  existingLandlord.status === 'ACTIVE';
+
+        // Check if landlord is being activated (status changes from INACTIVE to ACTIVE)
+        const isBeingActivated = status !== undefined && 
+                                status === 'ACTIVE' && 
+                                existingLandlord.status === 'INACTIVE';
+
+        // If being approved, also set status to ACTIVE
+        if (isBeingApproved && status === undefined) {
+            updateData.status = 'ACTIVE';
+        }
 
         const landlord = await prisma.landlord.update({
             where: { id },
             data: updateData
         });
+
+        // Send approval email when landlord is verified (approved) for the first time
+        if (isBeingApproved) {
+            const { password } = req.body || {};
+            try {
+                await sendLandlordApprovalEmail(
+                    landlord.email,
+                    landlord.name,
+                    password || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send approval email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
+
+        // Send activation email when landlord status changes from INACTIVE to ACTIVE
+        if (isBeingActivated) {
+            try {
+                await sendLandlordActivationEmail(
+                    landlord.email,
+                    landlord.name,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send activation email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
+
+        // Send rejection email when landlord is unverified (rejected)
+        if (isBeingRejected) {
+            try {
+                await sendLandlordRejectionEmail(
+                    landlord.email,
+                    landlord.name,
+                    rejectionReason || landlord.rejectionReason || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send rejection email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
+
+        // Send inactive email when landlord status changes to INACTIVE
+        if (isBeingInactivated) {
+            try {
+                await sendLandlordInactiveEmail(
+                    landlord.email,
+                    landlord.name,
+                    inactiveReason || landlord.inactiveReason || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send inactive email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
 
         res.status(200).json(landlord);
     } catch (error) {
@@ -222,7 +359,7 @@ export const updateLandlord = asyncHandler(async (req, res) => {
 export const verifyLandlord = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { isVerified } = req.body || {};
+        const { isVerified, password, rejectionReason } = req.body || {};
 
         // Check if landlord exists
         const existingLandlord = await prisma.landlord.findUnique({
@@ -237,10 +374,70 @@ export const verifyLandlord = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'isVerified must be a boolean value' });
         }
 
+        // Build update data
+        const updateData = { isVerified };
+        if (rejectionReason !== undefined) {
+            updateData.rejectionReason = rejectionReason;
+        }
+
+        // If being approved, also set status to ACTIVE
+        if (isVerified === true && !existingLandlord.isVerified) {
+            updateData.status = 'ACTIVE';
+        }
+
+        // Check if landlord is being rejected (unverified)
+        const isBeingRejected = isVerified === false && existingLandlord.isVerified === true;
+
         const landlord = await prisma.landlord.update({
             where: { id },
-            data: { isVerified }
+            data: updateData
         });
+
+        // Send approval email when landlord is verified (approved) for the first time
+        if (isVerified && !existingLandlord.isVerified) {
+            try {
+                await sendLandlordApprovalEmail(
+                    landlord.email,
+                    landlord.name,
+                    password || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send approval email:', emailError);
+                // Don't fail the verification if email fails
+            }
+        }
+
+        // Send rejection email when landlord is unverified (rejected)
+        if (isBeingRejected) {
+            try {
+                await sendLandlordRejectionEmail(
+                    landlord.email,
+                    landlord.name,
+                    rejectionReason || landlord.rejectionReason || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send rejection email:', emailError);
+                // Don't fail the verification if email fails
+            }
+        }
 
         res.status(200).json({
             ...landlord,
@@ -255,7 +452,7 @@ export const verifyLandlord = asyncHandler(async (req, res) => {
 export const updateLandlordStatus = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body || {};
+        const { status, inactiveReason } = req.body || {};
 
         // Check if landlord exists
         const existingLandlord = await prisma.landlord.findUnique({
@@ -270,10 +467,67 @@ export const updateLandlordStatus = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'Status must be ACTIVE or INACTIVE' });
         }
 
+        // Build update data
+        const updateData = { status };
+        if (inactiveReason !== undefined) {
+            updateData.inactiveReason = inactiveReason;
+        }
+
+        // Check if landlord is being set to inactive
+        const isBeingInactivated = status === 'INACTIVE' && existingLandlord.status === 'ACTIVE';
+
+        // Check if landlord is being activated (status changes from INACTIVE to ACTIVE)
+        const isBeingActivated = status === 'ACTIVE' && existingLandlord.status === 'INACTIVE';
+
         const landlord = await prisma.landlord.update({
             where: { id },
-            data: { status }
+            data: updateData
         });
+
+        // Send inactive email when landlord status changes to INACTIVE
+        if (isBeingInactivated) {
+            try {
+                await sendLandlordInactiveEmail(
+                    landlord.email,
+                    landlord.name,
+                    inactiveReason || landlord.inactiveReason || null,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send inactive email:', emailError);
+                // Don't fail the status update if email fails
+            }
+        }
+
+        // Send activation email when landlord status changes from INACTIVE to ACTIVE
+        if (isBeingActivated) {
+            try {
+                await sendLandlordActivationEmail(
+                    landlord.email,
+                    landlord.name,
+                    landlord.id
+                );
+                // Update email tracking fields on success
+                await prisma.landlord.update({
+                    where: { id: landlord.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+            } catch (emailError) {
+                console.error('Failed to send activation email:', emailError);
+                // Don't fail the status update if email fails
+            }
+        }
 
         res.status(200).json({
             ...landlord,

@@ -24,6 +24,7 @@ interface Property {
   size?: number
   image?: string
   is_furnished?: boolean
+  is_published?: boolean
 }
 
 interface Filters {
@@ -73,10 +74,12 @@ export default function PropertiesPage() {
     setLoading(true)
     fetchProperties( city || "", property_type || "" )
       .then((data) => {
-        setProperties(data)
-        setFilteredProperties(data)
+        // Filter only published properties
+        const publishedProperties = (data || []).filter((p: Property) => p.is_published === true)
+        setProperties(publishedProperties)
+        setFilteredProperties(publishedProperties)
         // Set max price from data
-        const maxPrice = Math.max(...data.map((p: Property) => p.price || 0), 1000000)
+        const maxPrice = Math.max(...publishedProperties.map((p: Property) => p.price || 0), 1000000)
         setFilters((prev) => ({ ...prev, priceRange: [0, maxPrice] }))
         setLoading(false)
       })

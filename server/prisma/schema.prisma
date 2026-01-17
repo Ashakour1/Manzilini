@@ -27,17 +27,22 @@ model User {
 }
 
 model Landlord {
-  id           String     @id
-  name         String
-  email        String     @unique
-  phone        String?
-  company_name String?
-  address      String?
-  isVerified   Boolean    @default(false)
-  status       LandlordStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  properties   Property[]
+  id              String          @id
+  name            String
+  email           String          @unique
+  phone           String?
+  company_name    String?
+  address         String?
+  isVerified      Boolean         @default(false)
+  status          LandlordStatus  @default(ACTIVE)
+  rejectionReason String?
+  inactiveReason  String?
+  is_sent_email   Boolean         @default(false)
+  is_sent_at      DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  properties      Property[]
+  emailLogs       EmailLog[]
 }
 
 model Property {
@@ -144,6 +149,29 @@ model IdCounter {
   @@map("id_counters")
 }
 
+model EmailLog {
+  id            String        @id @default(cuid())
+  recipientEmail String
+  recipientName String?
+  subject       String
+  message       String        @db.Text
+  emailType     EmailType
+  status        EmailStatus   @default(SENT)
+  errorMessage  String?       @db.Text
+  landlordId    String?
+  landlord      Landlord?     @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+  metadata      String?       @db.Text // JSON string for additional data
+  resendId      String?       // Resend API message ID
+  createdAt     DateTime      @default(now())
+
+  @@index([recipientEmail])
+  @@index([emailType])
+  @@index([status])
+  @@index([landlordId])
+  @@index([createdAt])
+  @@map("email_logs")
+}
+
 enum LandlordStatus {
   ACTIVE
   INACTIVE
@@ -213,4 +241,22 @@ enum ContactMethod {
 enum UserStatus {
   ACTIVE
   INACTIVE
+}
+
+enum EmailType {
+  WELCOME
+  PASSWORD_RESET
+  VERIFICATION
+  LANDLORD_APPROVAL
+  LANDLORD_REJECTION
+  LANDLORD_INACTIVE
+  LANDLORD_ACTIVATION
+  TENANT_REQUEST
+  NOTIFICATION
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+  PENDING
 }
