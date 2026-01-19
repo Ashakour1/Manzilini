@@ -552,6 +552,7 @@ export function PropertiesPage() {
                         aria-label="Select all properties"
                       />
                     </TableHead>
+                    <TableHead className="w-20">ID</TableHead>
                     <TableHead className="w-20">Image</TableHead>
                     <TableHead>
                       <Button
@@ -602,6 +603,9 @@ export function PropertiesPage() {
                           onCheckedChange={(checked) => handleSelectProperty(property.id, checked as boolean)}
                           aria-label={`Select ${property.title}`}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-mono text-xs text-muted-foreground">{property.id}</div>
                       </TableCell>
                       <TableCell>
                         {property.images && property.images.length > 0 ? (

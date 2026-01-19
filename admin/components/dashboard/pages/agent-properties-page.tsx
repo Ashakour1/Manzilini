@@ -332,6 +332,7 @@ export function AgentPropertiesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b border-border/50 bg-muted/30 hover:bg-muted/30">
+                      <TableHead className="h-12 font-semibold text-foreground">ID</TableHead>
                       <TableHead className="h-12 font-semibold text-foreground">
                         <button
                           className="flex items-center gap-2 transition-colors hover:text-[#2a6f97]"
@@ -372,6 +373,9 @@ export function AgentPropertiesPage() {
                         key={property.id}
                         className="border-b border-border/30 transition-colors hover:bg-muted/20"
                       >
+                        <TableCell className="py-4">
+                          <div className="font-mono text-xs text-muted-foreground">{property.id}</div>
+                        </TableCell>
                         <TableCell className="py-4">
                           <div className="flex items-center gap-3">
                             {property.images && property.images.length > 0 ? (
