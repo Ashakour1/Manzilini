@@ -84,7 +84,7 @@ export function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sortField, setSortField] = useState<SortField>("createdAt")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [currentPage, setCurrentPage] = useState(1)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -531,6 +531,9 @@ export function UsersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                      <TableHead className="font-semibold text-gray-700">
+                        User ID
+                      </TableHead>
                       <TableHead>
                         <button
                           className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
@@ -609,6 +612,11 @@ export function UsersPage() {
                   <TableBody>
                     {paginatedUsers.map((user) => (
                       <TableRow key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="max-w-[180px]">
+                          <span className="text-xs font-mono text-gray-500 break-all">
+                            {user.id}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9 border border-gray-200">
@@ -752,7 +760,10 @@ export function UsersPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">{user.name}</p>
+                            <p className="text-[11px] font-mono text-gray-500 break-all">
+                              ID: {user.id}
+                            </p>
+                            <p className="mt-0.5 font-semibold text-gray-900 truncate">{user.name}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Mail className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                               <p className="text-sm text-gray-600 truncate">{user.email}</p>

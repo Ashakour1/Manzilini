@@ -9,7 +9,7 @@ export const getUsers = asyncHandler(async (req, res) => {
     try {
         const users = await prisma.user.findMany({
             orderBy: {
-                createdAt: 'desc'
+                createdAt: 'asc'
             },
             select: {
                 id: true,
