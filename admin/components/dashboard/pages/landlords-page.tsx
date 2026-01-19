@@ -29,6 +29,7 @@ import {
   UserX,
   Clock,
   Send,
+  User,
 } from "lucide-react"
 import { getLandlords, deleteLandlord, verifyLandlord, updateLandlordStatus } from "@/services/landlords.service"
 import { useToast } from "@/components/ui/use-toast"
@@ -48,6 +49,13 @@ type Landlord = {
   is_sent_at?: string | null
   createdAt?: string
   properties?: { id: string; title: string; status: string }[]
+  creator?: {
+    id: string
+    name: string
+    email: string
+    role?: string
+    image?: string
+  } | null
 }
 
 type SortField = "name" | "email" | "createdAt"
@@ -362,6 +370,7 @@ export function LandlordsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b border-border/50 bg-muted/30 hover:bg-muted/30">
+                        <TableHead className="h-12 font-semibold text-foreground">ID</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">
                           <button
                             className="flex items-center gap-2 transition-colors hover:text-[#2a6f97]"
@@ -382,6 +391,7 @@ export function LandlordsPage() {
                         </TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Phone</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Company</TableHead>
+                        <TableHead className="h-12 font-semibold text-foreground">Creator</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Verification</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Status</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Properties</TableHead>
@@ -405,6 +415,9 @@ export function LandlordsPage() {
                           className="border-b border-border/30 transition-colors hover:bg-muted/20"
                         >
                           <TableCell className="py-4">
+                            <div className="font-mono text-xs text-muted-foreground">{landlord.id}</div>
+                          </TableCell>
+                          <TableCell className="py-4">
                             <div className="font-medium text-foreground">{landlord.name}</div>
                           </TableCell>
                           <TableCell className="py-4">
@@ -425,6 +438,24 @@ export function LandlordsPage() {
                           </TableCell>
                           <TableCell className="py-4">
                             <span className="text-sm">{landlord.company_name || <span className="text-muted-foreground">-</span>}</span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {landlord.creator ? (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-3.5 w-3.5 text-[#2a6f97]" />
+                                  <span className="text-sm font-medium text-foreground">{landlord.creator.name}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground pl-5">{landlord.creator.email}</div>
+                                {landlord.creator.role && (
+                                  <Badge variant="outline" className="ml-5 text-xs">
+                                    {landlord.creator.role}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="py-4">
                             <Badge 
