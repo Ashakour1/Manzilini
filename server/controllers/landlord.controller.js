@@ -21,6 +21,9 @@ export const registerLandlord = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'Landlord with this email already exists' });
         }
 
+        // Get creator user ID if authenticated
+        const createdBy = req.user?.id || null;
+
         // Generate unique ID and create landlord in a single transaction
         // This ensures counter only increments on successful creation
         const landlord = await generateUniqueIdAndCreate('Landlord', async (tx, uniqueId) => {
@@ -33,6 +36,7 @@ export const registerLandlord = asyncHandler(async (req, res) => {
                     company_name,
                     address,
                     status: 'ACTIVE', // Default status
+                    createdBy: createdBy,
                 }
             });
         });
@@ -72,6 +76,15 @@ export const getLandlords = asyncHandler(async (req, res) => {
                         id: true,
                         title: true,
                         status: true
+                    }
+                },
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        image: true
                     }
                 }
             }
@@ -148,6 +161,15 @@ export const getLandlordsForAgent = asyncHandler(async (req, res) => {
                         title: true,
                         status: true
                     }
+                },
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        image: true
+                    }
                 }
             }
         });
@@ -168,6 +190,15 @@ export const getLandlordById = asyncHandler(async (req, res) => {
                 properties: {
                     include: {
                         images: true
+                    }
+                },
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        image: true
                     }
                 }
             }

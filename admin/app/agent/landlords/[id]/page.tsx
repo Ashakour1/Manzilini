@@ -39,6 +39,13 @@ type Landlord = {
     status: string
     images?: { url: string }[]
   }[]
+  creator?: {
+    id: string
+    name: string
+    email: string
+    role?: string
+    image?: string
+  } | null
 }
 
 export default function AgentLandlordDetailsPage() {
@@ -260,6 +267,45 @@ export default function AgentLandlordDetailsPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Landlord Creator Information */}
+            {landlord.creator && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Landlord Creator
+                  </CardTitle>
+                  <CardDescription>User who created this landlord</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Name</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{landlord.creator.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={`mailto:${landlord.creator.email}`}
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        {landlord.creator.email}
+                      </a>
+                    </div>
+                  </div>
+                  {landlord.creator.role && (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
+                      <Badge variant="outline" className="mt-1">
+                        {landlord.creator.role}
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Quick Info */}
             <Card>
               <CardHeader>

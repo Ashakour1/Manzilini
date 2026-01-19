@@ -22,6 +22,7 @@ model User {
   updatedAt             DateTime              @updatedAt
   // property_applications PropertyApplication[]
   properties Property[]
+  createdLandlords      Landlord[]
 
   // link to agent profile
   agentId String?
@@ -45,6 +46,10 @@ model Landlord {
   updatedAt       DateTime        @updatedAt
   properties      Property[]
   emailLogs       EmailLog[]
+  
+  // creator
+  createdBy       String?
+  creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 }
 
 model Property {

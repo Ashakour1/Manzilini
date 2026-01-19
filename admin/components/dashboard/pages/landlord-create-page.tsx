@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Mail, Clock, Send, ExternalLink } from "lucide-react"
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Mail, Clock, Send, ExternalLink, User } from "lucide-react"
 import { SendEmailDialog } from "@/components/dashboard/send-email-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { getLandlordById, registerLandlord, updateLandlord, verifyLandlord, updateLandlordStatus } from "@/services/landlords.service"
 
@@ -58,6 +59,13 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
   const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false)
   const [isSentEmail, setIsSentEmail] = useState(false)
   const [isSentAt, setIsSentAt] = useState<string | null>(null)
+  const [creator, setCreator] = useState<{
+    id: string
+    name: string
+    email: string
+    role?: string
+    image?: string
+  } | null>(null)
 
   const isEdit = Boolean(effectiveLandlordId)
 
@@ -85,6 +93,7 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
       setExistingInactiveReason(landlord.inactiveReason || null)
       setIsSentEmail(landlord.is_sent_email || false)
       setIsSentAt(landlord.is_sent_at || null)
+      setCreator(landlord.creator || null)
     } catch (err) {
       toast({
         title: "Error",
@@ -490,6 +499,39 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
                         <p className="text-sm font-medium text-destructive">Inactive Reason:</p>
                         <p className="text-sm text-muted-foreground mt-1">{existingInactiveReason}</p>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Landlord Creator Information */}
+                {isEdit && creator && (
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Landlord Creator</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Name</p>
+                        <p className="mt-1 text-sm font-medium text-foreground">{creator.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <a
+                            href={`mailto:${creator.email}`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {creator.email}
+                          </a>
+                        </div>
+                      </div>
+                      {creator.role && (
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
+                          <Badge variant="outline" className="mt-1">
+                            {creator.role}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
