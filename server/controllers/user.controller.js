@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcrypt';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
+import { sendUserCredentialsEmail, sendUserActivationEmail, sendUserDeactivationEmail } from '../services/email.service.js';
 
 // Get all users
 export const getUsers = asyncHandler(async (req, res) => {
@@ -17,6 +18,8 @@ export const getUsers = asyncHandler(async (req, res) => {
                 role: true,
                 status: true,
                 image: true,
+                is_sent_email: true,
+                is_sent_at: true,
                 createdAt: true,
                 updatedAt: true,
                 agentId: true,
@@ -56,6 +59,8 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
                 role: true,
                 status: true,
                 image: true,
+                is_sent_email: true,
+                is_sent_at: true,
                 createdAt: true,
                 updatedAt: true,
                 agentId: true,
@@ -94,6 +99,8 @@ export const getUserById = asyncHandler(async (req, res) => {
                 role: true,
                 status: true,
                 image: true,
+                is_sent_email: true,
+                is_sent_at: true,
                 createdAt: true,
                 updatedAt: true,
                 agentId: true,
@@ -170,6 +177,8 @@ export const createUser = asyncHandler(async (req, res) => {
                     role: true,
                     status: true,
                     image: true,
+                    is_sent_email: true,
+                    is_sent_at: true,
                     createdAt: true,
                     updatedAt: true,
                     agentId: true,
@@ -185,6 +194,32 @@ export const createUser = asyncHandler(async (req, res) => {
                 }
             });
         });
+
+        // Send credentials email to the new user
+        // Don't fail user creation if email sending fails
+        try {
+            await sendUserCredentialsEmail(
+                email,
+                name,
+                password, // Plain password from request body
+                role || 'USER',
+                user.id
+            );
+            // Update email tracking fields on success
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    is_sent_email: true,
+                    is_sent_at: new Date()
+                }
+            });
+            // Update the user object to reflect the changes
+            user.is_sent_email = true;
+            user.is_sent_at = new Date();
+        } catch (emailError) {
+            console.error('Failed to send credentials email:', emailError);
+            // Continue even if email fails - user is already created
+        }
 
         res.status(201).json(user);
     } catch (error) {
@@ -236,6 +271,19 @@ export const updateUser = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'Status must be either ACTIVE or INACTIVE' });
         }
 
+        // Check if user is being activated (status changes from INACTIVE to ACTIVE)
+        const isBeingActivated = status !== undefined && 
+                                status === 'ACTIVE' && 
+                                existingUser.status === 'INACTIVE';
+
+        // Check if user is being deactivated (status changes from ACTIVE to INACTIVE)
+        const isBeingDeactivated = status !== undefined && 
+                                  status === 'INACTIVE' && 
+                                  existingUser.status === 'ACTIVE';
+
+        // Check if password is being updated
+        const isPasswordBeingUpdated = password !== undefined;
+
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (email !== undefined) updateData.email = email;
@@ -261,6 +309,8 @@ export const updateUser = asyncHandler(async (req, res) => {
                 createdAt: true,
                 updatedAt: true,
                 agentId: true,
+                is_sent_email: true,
+                is_sent_at: true,
                 agent: {
                     select: {
                         id: true,
@@ -272,6 +322,64 @@ export const updateUser = asyncHandler(async (req, res) => {
                 }
             }
         });
+
+        // Send credentials email when password is updated
+        if (isPasswordBeingUpdated) {
+            try {
+                await sendUserCredentialsEmail(
+                    user.email,
+                    user.name,
+                    password, // Plain password from request body
+                    user.role,
+                    user.id
+                );
+                // Update email tracking fields on success
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        is_sent_email: true,
+                        is_sent_at: new Date()
+                    }
+                });
+                // Update the user object to reflect the changes
+                user.is_sent_email = true;
+                user.is_sent_at = new Date();
+            } catch (emailError) {
+                console.error('Failed to send credentials email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
+
+        // Send activation email when user status changes from INACTIVE to ACTIVE
+        if (isBeingActivated) {
+            try {
+                await sendUserActivationEmail(
+                    user.email,
+                    user.name,
+                    user.role,
+                    user.id
+                );
+            } catch (emailError) {
+                console.error('Failed to send activation email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
+
+        // Send deactivation email when user status changes from ACTIVE to INACTIVE
+        if (isBeingDeactivated) {
+            try {
+                const { inactiveReason } = req.body || {};
+                await sendUserDeactivationEmail(
+                    user.email,
+                    user.name,
+                    inactiveReason || null,
+                    user.id
+                );
+            } catch (emailError) {
+                console.error('Failed to send deactivation email:', emailError);
+                // Don't fail the update if email fails
+            }
+        }
 
         res.status(200).json(user);
     } catch (error) {

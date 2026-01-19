@@ -16,6 +16,8 @@ model User {
   role                  Role                  @default(USER)
   status                UserStatus            @default(ACTIVE)
   password              String
+  is_sent_email         Boolean               @default(false)
+  is_sent_at            DateTime?
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
   // property_applications PropertyApplication[]
@@ -253,6 +255,9 @@ enum EmailType {
   LANDLORD_ACTIVATION
   TENANT_REQUEST
   NOTIFICATION
+  USER_CREDENTIALS
+  USER_ACTIVATION
+  USER_DEACTIVATION
 }
 
 enum EmailStatus {

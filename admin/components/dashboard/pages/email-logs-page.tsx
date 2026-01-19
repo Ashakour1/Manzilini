@@ -29,7 +29,7 @@ import { SendEmailDialog } from "@/components/dashboard/send-email-dialog"
 import { getEmailLogs, getEmailStats, type EmailLog, type EmailStats } from "@/services/email-logs.service"
 import { useToast } from "@/components/ui/use-toast"
 
-type EmailType = "WELCOME" | "PASSWORD_RESET" | "VERIFICATION" | "LANDLORD_APPROVAL" | "LANDLORD_REJECTION" | "LANDLORD_INACTIVE" | "TENANT_REQUEST" | "NOTIFICATION"
+type EmailType = "WELCOME" | "PASSWORD_RESET" | "VERIFICATION" | "LANDLORD_APPROVAL" | "LANDLORD_REJECTION" | "LANDLORD_INACTIVE" | "LANDLORD_ACTIVATION" | "TENANT_REQUEST" | "NOTIFICATION" | "USER_CREDENTIALS" | "USER_ACTIVATION" | "USER_DEACTIVATION"
 type EmailStatus = "SENT" | "FAILED" | "PENDING"
 
 const emailTypeLabels: Record<EmailType, string> = {
@@ -39,8 +39,12 @@ const emailTypeLabels: Record<EmailType, string> = {
   LANDLORD_APPROVAL: "Landlord Approval",
   LANDLORD_REJECTION: "Landlord Rejection",
   LANDLORD_INACTIVE: "Landlord Inactive",
+  LANDLORD_ACTIVATION: "Landlord Activation",
   TENANT_REQUEST: "Tenant Request",
   NOTIFICATION: "Notification",
+  USER_CREDENTIALS: "User Credentials",
+  USER_ACTIVATION: "User Activation",
+  USER_DEACTIVATION: "User Deactivation",
 }
 
 export function EmailLogsPage() {
@@ -268,8 +272,12 @@ export function EmailLogsPage() {
                 <SelectItem value="LANDLORD_APPROVAL">Landlord Approval</SelectItem>
                 <SelectItem value="LANDLORD_REJECTION">Landlord Rejection</SelectItem>
                 <SelectItem value="LANDLORD_INACTIVE">Landlord Inactive</SelectItem>
+                <SelectItem value="LANDLORD_ACTIVATION">Landlord Activation</SelectItem>
                 <SelectItem value="TENANT_REQUEST">Tenant Request</SelectItem>
                 <SelectItem value="NOTIFICATION">Notification</SelectItem>
+                <SelectItem value="USER_CREDENTIALS">User Credentials</SelectItem>
+                <SelectItem value="USER_ACTIVATION">User Activation</SelectItem>
+                <SelectItem value="USER_DEACTIVATION">User Deactivation</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>

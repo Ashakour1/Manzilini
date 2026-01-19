@@ -471,5 +471,192 @@ export const emailTemplates = {
         </body>
       </html>
     `;
+  },
+
+  // User credentials email template
+  userCredentials: (userName, email, password, dashboardUrl) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to Manzilini</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff; color: #111827;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="padding: 16px;">
+            <tr>
+              <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%;">
+                  <tr>
+                    <td style="padding: 10px 24px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af;">
+                      Welcome
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 24px 16px 24px;">
+                      <p style="color: #111827; font-size: 20px; line-height: 28px; margin: 0 0 14px; font-weight: 600;">
+                        Hi ${userName},
+                      </p>
+                      <p style="color: #374151; font-size: 15px; line-height: 24px; margin: 0 0 16px;">
+                        Your account has been created on Manzilini. Below are your login credentials to access your account.
+                      </p>
+                      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <p style="color: #111827; font-size: 14px; font-weight: 600; margin: 0 0 12px;">Your Login Credentials:</p>
+                        <p style="color: #374151; font-size: 14px; margin: 8px 0;">
+                          <strong style="color: #111827;">Email:</strong> <span style="font-family: monospace; color: #4b5563;">${email}</span>
+                        </p>
+                        <p style="color: #374151; font-size: 14px; margin: 8px 0;">
+                          <strong style="color: #111827;">Password:</strong> <span style="font-family: monospace; color: #4b5563;">${password}</span>
+                        </p>
+                      </div>
+                      <p style="margin: 0 0 16px;">
+                        <a href="${dashboardUrl}" style="color: #2563eb; font-size: 15px; text-decoration: underline;">Open your dashboard</a>
+                      </p>
+                      <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                        Need help? Reply to this email or visit the help center anytime.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 24px 18px 24px;">
+                      <p style="color: #d1d5db; font-size: 12px; margin: 0;">
+                        © ${new Date().getFullYear()} Manzilini. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+  },
+
+  // User activation email template (when status changes from INACTIVE to ACTIVE)
+  userActivation: (userName, dashboardUrl) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Activated - Manzilini</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff; color: #111827;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="padding: 16px;">
+            <tr>
+              <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%;">
+                  <tr>
+                    <td style="padding: 10px 24px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af;">
+                      Account Status Update
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 24px 16px 24px;">
+                      <p style="color: #111827; font-size: 20px; line-height: 28px; margin: 0 0 14px; font-weight: 600;">
+                        Hi ${userName},
+                      </p>
+                      <p style="color: #374151; font-size: 15px; line-height: 24px; margin: 0 0 16px;">
+                        Great news! Your Manzilini account has been activated and is now active.
+                      </p>
+                      <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                        <p style="color: #166534; font-size: 14px; font-weight: 600; margin: 0;">
+                          ✓ Account Status: ACTIVE
+                        </p>
+                      </div>
+                      <p style="color: #374151; font-size: 15px; line-height: 24px; margin: 0 0 16px;">
+                        You can now access all features and manage your account.
+                      </p>
+                      <p style="margin: 0 0 16px;">
+                        <a href="${dashboardUrl}" style="color: #2563eb; font-size: 15px; text-decoration: underline;">Open your dashboard</a>
+                      </p>
+                      <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                        Need help? Reply to this email or visit the help center anytime.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 24px 18px 24px;">
+                      <p style="color: #d1d5db; font-size: 12px; margin: 0;">
+                        © ${new Date().getFullYear()} Manzilini. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+  },
+
+  // User deactivation email template (when status changes from ACTIVE to INACTIVE)
+  userDeactivation: (userName, inactiveReason = null) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Status Update - Manzilini</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff; color: #111827;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="padding: 16px;">
+            <tr>
+              <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%;">
+                  <tr>
+                    <td style="padding: 10px 24px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af;">
+                      Account Status Update
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 24px 16px 24px;">
+                      <p style="color: #111827; font-size: 20px; line-height: 28px; margin: 0 0 14px; font-weight: 600;">
+                        Hi ${userName},
+                      </p>
+                      <p style="color: #374151; font-size: 15px; line-height: 24px; margin: 0 0 16px;">
+                        We're writing to inform you about a change to your Manzilini account status.
+                      </p>
+                      <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                        <p style="color: #991b1b; font-size: 14px; font-weight: 600; margin: 0 0 8px;">
+                          Account Status: INACTIVE
+                        </p>
+                        <p style="color: #7f1d1d; font-size: 13px; margin: 0;">
+                          Your account access has been temporarily restricted.
+                        </p>
+                      </div>
+                      ${inactiveReason ? `
+                      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                        <p style="color: #111827; font-size: 14px; font-weight: 600; margin: 0 0 8px;">Reason:</p>
+                        <p style="color: #374151; font-size: 14px; margin: 0;">${inactiveReason}</p>
+                      </div>
+                      ` : ''}
+                      <p style="color: #374151; font-size: 15px; line-height: 24px; margin: 0 0 16px;">
+                        If you believe this is an error or would like to discuss reactivating your account, please don't hesitate to reach out to our support team.
+                      </p>
+                      <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                        Need help? Reply to this email or visit the help center anytime.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 24px 18px 24px;">
+                      <p style="color: #d1d5db; font-size: 12px; margin: 0;">
+                        © ${new Date().getFullYear()} Manzilini. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
   }
 };

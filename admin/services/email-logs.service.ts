@@ -6,7 +6,7 @@ export interface EmailLog {
   recipientName?: string | null;
   subject: string;
   message: string;
-  emailType: "WELCOME" | "PASSWORD_RESET" | "VERIFICATION" | "LANDLORD_APPROVAL" | "LANDLORD_REJECTION" | "LANDLORD_INACTIVE" | "TENANT_REQUEST" | "NOTIFICATION";
+  emailType: "WELCOME" | "PASSWORD_RESET" | "VERIFICATION" | "LANDLORD_APPROVAL" | "LANDLORD_REJECTION" | "LANDLORD_INACTIVE" | "LANDLORD_ACTIVATION" | "TENANT_REQUEST" | "NOTIFICATION" | "USER_CREDENTIALS" | "USER_ACTIVATION" | "USER_DEACTIVATION";
   status: "SENT" | "FAILED" | "PENDING";
   errorMessage?: string | null;
   landlordId?: string | null;

@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { emailTemplates } from "./email-templates.js";
 import prisma from "../db/prisma.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "re_J59eVrFe_6XponoSK9mEt6TboiBukDznc");
+const resend = new Resend("re_J59eVrFe_6XponoSK9mEt6TboiBukDznc");
 
 // Log email to database
 const logEmail = async (emailLogData) => {
@@ -284,6 +284,81 @@ export const sendLandlordActivationEmail = async (
     { 
       type: "landlord_activation",
       loginUrl 
+    }
+  );
+};
+
+// Send user credentials email when a new user is created
+export const sendUserCredentialsEmail = async (
+  email,
+  userName,
+  password,
+  role = "USER",
+  userId = null
+) => {
+  // Use agent login URL for dashboard link
+  const dashboardUrl = process.env.AGENT_PORTAL_URL || "https://panel.manzilini.com/agent-login";
+  
+  const emailMessage = emailTemplates.userCredentials(userName, email, password, dashboardUrl);
+  return sendEmail(
+    email,
+    "Welcome to Manzilini - Your Account Credentials",
+    emailMessage,
+    "USER_CREDENTIALS",
+    userName,
+    null,
+    { 
+      type: "user_credentials",
+      role,
+      dashboardUrl 
+    }
+  );
+};
+
+// Send user activation email (when status changes from INACTIVE to ACTIVE)
+export const sendUserActivationEmail = async (
+  email,
+  userName,
+  role = "USER",
+  userId = null
+) => {
+  // Use agent login URL for dashboard link
+  const dashboardUrl = process.env.AGENT_PORTAL_URL || "https://panel.manzilini.com/agent-login";
+  
+  const emailMessage = emailTemplates.userActivation(userName, dashboardUrl);
+  return sendEmail(
+    email,
+    "🎉 Your Manzilini Account Has Been Activated!",
+    emailMessage,
+    "USER_ACTIVATION",
+    userName,
+    null,
+    { 
+      type: "user_activation",
+      role,
+      dashboardUrl 
+    }
+  );
+};
+
+// Send user deactivation email (when status changes from ACTIVE to INACTIVE)
+export const sendUserDeactivationEmail = async (
+  email,
+  userName,
+  inactiveReason = null,
+  userId = null
+) => {
+  const emailMessage = emailTemplates.userDeactivation(userName, inactiveReason);
+  return sendEmail(
+    email,
+    "Manzilini Account Status Update",
+    emailMessage,
+    "USER_DEACTIVATION",
+    userName,
+    null,
+    { 
+      type: "user_deactivation",
+      inactiveReason 
     }
   );
 };
