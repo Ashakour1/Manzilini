@@ -201,6 +201,7 @@ enum Role {
   SUPER_ADMIN
   PROPERTY_OWNER
   AGENT
+  LANDLORD
 }
 
 enum propertyType {
