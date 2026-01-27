@@ -7,7 +7,8 @@ import {
     deleteLandlord,
     verifyLandlord,
     getLandlordsForAgent,
-    updateLandlordStatus
+    updateLandlordStatus,
+    registerLandlordWithUser
 } from '../controllers/landlord.controller.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 
 // Public route for landlord registration (no auth required)
 router.post('/register', registerLandlord);
+router.post('/reg', registerLandlordWithUser);
 // Admin route for landlord registration (auth required)
 router.post('/', AuthMiddleware, registerLandlord);
 router.get('/', getLandlords);

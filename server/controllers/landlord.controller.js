@@ -1,13 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
-import bcrypt from 'bcrypt';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
-import { sendWelcomeEmail, sendLandlordApprovalEmail, sendLandlordInactiveEmail, sendLandlordRejectionEmail, sendLandlordActivationEmail, sendUserCredentialsEmail } from '../services/email.service.js';
+import { sendWelcomeEmail, sendLandlordApprovalEmail, sendLandlordInactiveEmail, sendLandlordRejectionEmail, sendLandlordActivationEmail } from '../services/email.service.js';
 
 
-
-// Register a new landlord
-export const registerLandlord = asyncHandler(async (req, res) => {
+export const registerLandlordWithUser = asyncHandler(async (req, res) => {
     try {
         const { name, email, phone, company_name, address, password } = req.body || {};
 
@@ -137,6 +134,66 @@ export const registerLandlord = asyncHandler(async (req, res) => {
             user
         });
 
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Register a new landlord
+export const registerLandlord = asyncHandler(async (req, res) => {
+    try {
+        const { name, email, phone, company_name, address } = req.body || {};
+
+        if (!name || !email) {
+            return res.status(400).json({ message: 'Name and email are required' });
+        }
+
+        // Check if landlord with this email already exists
+        const existingLandlord = await prisma.landlord.findUnique({
+            where: { email }
+        });
+
+        if (existingLandlord) {
+            return res.status(400).json({ message: 'Landlord with this email already exists' });
+        }
+
+        // Get creator user ID if authenticated
+        const createdBy = req.user?.id || null;
+
+        // Generate unique ID and create landlord in a single transaction
+        // This ensures counter only increments on successful creation
+        const landlord = await generateUniqueIdAndCreate('Landlord', async (tx, uniqueId) => {
+            return await tx.landlord.create({
+                data: {
+                    id: uniqueId,
+                    name,
+                    email,
+                    phone,
+                    company_name,
+                    address,
+                    status: 'ACTIVE', // Default status
+                    createdBy: createdBy,
+                }
+            });
+        });
+
+        // Send welcome email to the landlord
+        try {
+            await sendWelcomeEmail(landlord.email, landlord.name, landlord.id);
+            // Update email tracking fields on success
+            await prisma.landlord.update({
+                where: { id: landlord.id },
+                data: {
+                    is_sent_email: true,
+                    is_sent_at: new Date()
+                }
+            });
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't fail the registration if email fails
+        }
+
+        res.status(201).json(landlord);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
