@@ -16,7 +16,7 @@ const router = express.Router();
 
 // Public route for landlord registration (no auth required)
 router.post('/register', registerLandlord);
-router.post('/reg', registerLandlordWithUser);
+router.post('/auth/register', registerLandlordWithUser);
 // Admin route for landlord registration (auth required)
 router.post('/', AuthMiddleware, registerLandlord);
 router.get('/', getLandlords);

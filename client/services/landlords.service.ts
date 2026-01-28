@@ -39,7 +39,7 @@ export interface LandlordLoginResponse {
 
 // Register a new landlord (public endpoint)
 export const registerLandlord = async (landlordData: LandlordRegistrationData): Promise<Landlord> => {
-  const response = await fetch(`${API_URL}/landlords/register`, {
+  const response = await fetch(`${API_URL}/landlords/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
