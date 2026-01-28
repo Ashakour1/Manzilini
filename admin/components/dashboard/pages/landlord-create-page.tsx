@@ -21,6 +21,9 @@ type LandlordFormState = {
   phone: string
   company_name: string
   address: string
+  remarks: string
+  nationality: string
+  gender: "MALE" | "FEMALE" | "OTHER"
 }
 
 const initialFormState: LandlordFormState = {
@@ -29,6 +32,9 @@ const initialFormState: LandlordFormState = {
   phone: "",
   company_name: "",
   address: "",
+  remarks: "",
+  nationality: "",
+  gender: "MALE",
 }
 
 type LandlordCreatePageProps = {
@@ -86,6 +92,9 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
         phone: landlord.phone || "",
         company_name: landlord.company_name || "",
         address: landlord.address || "",
+        remarks: landlord.remarks || "",
+        nationality: landlord.nationality || "",
+        gender: (landlord.gender as "MALE" | "FEMALE" | "OTHER") || "MALE",
       })
       setIsVerified(landlord.isVerified || false)
       setStatus(landlord.status || "ACTIVE")
@@ -229,6 +238,9 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
         phone: form.phone.trim() || undefined,
         company_name: form.company_name.trim() || undefined,
         address: form.address.trim() || undefined,
+        remarks: form.remarks.trim() || undefined,
+        nationality: form.nationality.trim() || undefined,
+        gender: form.gender,
       }
 
       if (isEdit && effectiveLandlordId) {
@@ -325,7 +337,7 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
           <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4">
             <div>
               <h2 className="text-base font-semibold text-foreground">Basic Information</h2>
-              <p className="text-xs text-muted-foreground">Landlord contact details</p>
+              <p className="text-xs text-muted-foreground">Landlord contact details and notes</p>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
@@ -380,6 +392,47 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
                 value={form.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 placeholder="123 Main St, City, State, ZIP"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="nationality">Nationality</Label>
+                <Input
+                  id="nationality"
+                  value={form.nationality}
+                  onChange={(e) => handleInputChange("nationality", e.target.value)}
+                  placeholder="Kenyan, Canadian, ..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  value={form.gender}
+                  onValueChange={(value: "MALE" | "FEMALE" | "OTHER") =>
+                    handleInputChange("gender", value)
+                  }
+                >
+                  <SelectTrigger id="gender">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Male</SelectItem>
+                    <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="remarks">Remarks</Label>
+              <Textarea
+                id="remarks"
+                value={form.remarks}
+                onChange={(e) => handleInputChange("remarks", e.target.value)}
+                placeholder="Internal notes about this landlord (not visible to them)"
                 rows={3}
               />
             </div>

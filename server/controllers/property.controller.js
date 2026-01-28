@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
+import cloudinary from '../config/cloudinary.js';
 
 
 
@@ -279,12 +280,25 @@ export const createProperty = asyncHandler(async (req, res) => {
             }
         }
 
-        // Convert uploaded files to publicly accessible URLs served by this API
-        const imageBaseUrl = `${req.protocol}://${req.get("host")}/uploads`;
-        const imageUrls = (req.files || []).map((file) => {
-            const filename = file.filename || file.originalname;
-            return `${imageBaseUrl}/${filename}`;
-        });
+        // Upload property images to Cloudinary (memory upload -> buffer)
+        const imageUrls = [];
+        if (Array.isArray(req.files) && req.files.length > 0) {
+            for (const file of req.files) {
+                const mimeType = file.mimetype || 'image/jpeg';
+                const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+
+                const result = await cloudinary.uploader.upload(encodedImage, {
+                    resource_type: "image",
+                    quality: "auto:best",
+                    fetch_format: "auto",
+                    folder: "properties",
+                });
+
+                if (result && result.secure_url) {
+                    imageUrls.push(result.secure_url);
+                }
+            }
+        }
         const propertyData = {
             title,
             description,
@@ -415,6 +429,32 @@ export const updateProperty = asyncHandler(async (req, res) => {
         if (landlord_id !== undefined) {
             // Allow null or empty string to remove landlord association
             updateData.landlord_id = (landlord_id === '' || landlord_id === null) ? null : landlord_id;
+        }
+
+        // If new images are uploaded, push them to Cloudinary and append as PropertyImages
+        const newImageUrls = [];
+        if (Array.isArray(req.files) && req.files.length > 0) {
+            for (const file of req.files) {
+                const mimeType = file.mimetype || 'image/jpeg';
+                const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+
+                const result = await cloudinary.uploader.upload(encodedImage, {
+                    resource_type: "image",
+                    quality: "auto:best",
+                    fetch_format: "auto",
+                    folder: "properties",
+                });
+
+                if (result && result.secure_url) {
+                    newImageUrls.push(result.secure_url);
+                }
+            }
+        }
+
+        if (newImageUrls.length) {
+            updateData.images = {
+                create: newImageUrls.map((url) => ({ url })),
+            };
         }
 
         const property = await prisma.property.update({

@@ -2,11 +2,26 @@ import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 import { sendWelcomeEmail, sendLandlordApprovalEmail, sendLandlordInactiveEmail, sendLandlordRejectionEmail, sendLandlordActivationEmail } from '../services/email.service.js';
+import cloudinary from '../config/cloudinary.js';
 
 
 export const registerLandlordWithUser = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone, company_name, address, password } = req.body || {};
+        const {
+            name,
+            email,
+            phone,
+            company_name,
+            address,
+            nationality,
+            gender,
+            remarks,
+            password,
+            // landlord document fields
+            documentType,
+            documentImage,
+            documentNotes,
+        } = req.body || {};
 
         if (!name || !email || !password) {
             return res.status(400).json({
@@ -53,12 +68,41 @@ export const registerLandlordWithUser = asyncHandler(async (req, res) => {
                         phone,
                         company_name,
                         address,
+                        nationality,
+                        gender,
+                        remarks,
                         status: 'INACTIVE',
                         createdBy
                     }
                 });
             }
         );
+
+        // Optionally create initial landlord document record if provided
+        const docImage =
+            documentImage ||
+            req.body.document_image ||
+            null;
+        const docType =
+            documentType ||
+            req.body.document_type ||
+            null;
+        const docNotes =
+            documentNotes ||
+            req.body.notes ||
+            null;
+
+        if (docImage || docType || docNotes) {
+            await prisma.landlordDocument.create({
+                data: {
+                    landlordId: landlord.id,
+                    documentType: docType,
+                    documentImage: docImage,
+                    url: docImage,
+                    notes: docNotes,
+                },
+            });
+        }
 
         // ✅ Create user for landlord
         let user = null;
@@ -142,7 +186,20 @@ export const registerLandlordWithUser = asyncHandler(async (req, res) => {
 // Register a new landlord
 export const registerLandlord = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone, company_name, address } = req.body || {};
+        const {
+            name,
+            email,
+            phone,
+            company_name,
+            address,
+            nationality,
+            gender,
+            remarks,
+            // landlord document fields
+            documentType,
+            documentImage,
+            documentNotes,
+        } = req.body || {};
 
         if (!name || !email) {
             return res.status(400).json({ message: 'Name and email are required' });
@@ -171,11 +228,40 @@ export const registerLandlord = asyncHandler(async (req, res) => {
                     phone,
                     company_name,
                     address,
+                    nationality,
+                    gender,
+                    remarks,
                     status: 'INACTIVE', // Default status
                     createdBy: createdBy,
                 }
             });
         });
+
+        // Optionally create initial landlord document record if provided
+        const docImage =
+            documentImage ||
+            req.body.document_image ||
+            null;
+        const docType =
+            documentType ||
+            req.body.document_type ||
+            null;
+        const docNotes =
+            documentNotes ||
+            req.body.notes ||
+            null;
+
+        if (docImage || docType || docNotes) {
+            await prisma.landlordDocument.create({
+                data: {
+                    landlordId: landlord.id,
+                    documentType: docType,
+                    documentImage: docImage,
+                    url: docImage,
+                    notes: docNotes,
+                },
+            });
+        }
 
         // Send welcome email to the landlord
         try {
@@ -194,6 +280,51 @@ export const registerLandlord = asyncHandler(async (req, res) => {
         }
 
         res.status(201).json(landlord);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Upload a landlord document image to Cloudinary and create LandlordDocument
+export const uploadLandlordDocument = asyncHandler(async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { documentType, notes } = req.body || {};
+
+        const landlord = await prisma.landlord.findUnique({
+            where: { id },
+        });
+
+        if (!landlord) {
+            return res.status(404).json({ message: 'Landlord not found' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'Document file is required' });
+        }
+
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
+
+        const result = await cloudinary.uploader.upload(encodedImage, {
+            resource_type: "image",
+            quality: "auto:best",
+            fetch_format: "auto",
+            folder: "landlords/documents",
+        });
+
+        const doc = await prisma.landlordDocument.create({
+            data: {
+                landlordId: id,
+                documentType: documentType || null,
+                fileName: req.file.originalname || null,
+                documentImage: result?.secure_url || null,
+                url: result?.secure_url || null,
+                notes: notes || null,
+            },
+        });
+
+        res.status(201).json(doc);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -338,7 +469,24 @@ export const getLandlordById = asyncHandler(async (req, res) => {
 export const updateLandlord = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, phone, company_name, address, isVerified, status, rejectionReason, inactiveReason } = req.body || {};
+        const {
+            name,
+            email,
+            phone,
+            company_name,
+            address,
+            nationality,
+            gender,
+            remarks,
+            isVerified,
+            status,
+            rejectionReason,
+            inactiveReason,
+            // optional landlord document fields on update
+            documentType,
+            documentImage,
+            documentNotes,
+        } = req.body || {};
 
         console.log(req.body);
         // Check if landlord exists
@@ -373,6 +521,9 @@ export const updateLandlord = asyncHandler(async (req, res) => {
         if (phone !== undefined) updateData.phone = phone;
         if (company_name !== undefined) updateData.company_name = company_name;
         if (address !== undefined) updateData.address = address;
+        if (nationality !== undefined) updateData.nationality = nationality;
+        if (gender !== undefined) updateData.gender = gender;
+        if (remarks !== undefined) updateData.remarks = remarks;
         if (isVerified !== undefined) updateData.isVerified = isVerified;
         if (status !== undefined) updateData.status = status;
         if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
@@ -407,6 +558,32 @@ export const updateLandlord = asyncHandler(async (req, res) => {
             where: { id },
             data: updateData
         });
+
+        // Optionally create an additional landlord document record on update
+        const docImage =
+            documentImage ||
+            req.body.document_image ||
+            null;
+        const docType =
+            documentType ||
+            req.body.document_type ||
+            null;
+        const docNotes =
+            documentNotes ||
+            req.body.notes ||
+            null;
+
+        if (docImage || docType || docNotes) {
+            await prisma.landlordDocument.create({
+                data: {
+                    landlordId: landlord.id,
+                    documentType: docType,
+                    documentImage: docImage,
+                    url: docImage,
+                    notes: docNotes,
+                },
+            });
+        }
 
         // Send approval email when landlord is verified (approved) for the first time
         if (isBeingApproved) {

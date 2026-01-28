@@ -41,6 +41,8 @@ type Landlord = {
   phone?: string
   company_name?: string
   address?: string
+  nationality?: string
+  gender?: "MALE" | "FEMALE" | "OTHER"
   isVerified?: boolean
   status?: "ACTIVE" | "INACTIVE"
   rejectionReason?: string | null
@@ -120,8 +122,14 @@ export function LandlordsPage() {
       const name = landlord.name?.toLowerCase() ?? ""
       const email = landlord.email?.toLowerCase() ?? ""
       const company = landlord.company_name?.toLowerCase() ?? ""
+      const nationality = landlord.nationality?.toLowerCase() ?? ""
 
-      const matchesSearch = !term || name.includes(term) || email.includes(term) || company.includes(term)
+      const matchesSearch =
+        !term ||
+        name.includes(term) ||
+        email.includes(term) ||
+        company.includes(term) ||
+        nationality.includes(term)
       return matchesSearch
     })
 
@@ -390,6 +398,7 @@ export function LandlordsPage() {
                           </button>
                         </TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Phone</TableHead>
+                        <TableHead className="h-12 font-semibold text-foreground">Profile</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Company</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Creator</TableHead>
                         <TableHead className="h-12 font-semibold text-foreground">Verification</TableHead>
@@ -431,6 +440,22 @@ export function LandlordsPage() {
                               <div className="flex items-center gap-2">
                                 <Phone className="h-4 w-4 text-[#2a6f97]" />
                                 <span className="text-sm">{landlord.phone}</span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {landlord.gender || landlord.nationality ? (
+                              <div className="flex flex-col text-xs text-muted-foreground">
+                                {landlord.gender && (
+                                  <span className="capitalize">
+                                    {landlord.gender.toLowerCase()}
+                                  </span>
+                                )}
+                                {landlord.nationality && (
+                                  <span>{landlord.nationality}</span>
+                                )}
                               </div>
                             ) : (
                               <span className="text-sm text-muted-foreground">-</span>

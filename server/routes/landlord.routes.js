@@ -8,9 +8,11 @@ import {
     verifyLandlord,
     getLandlordsForAgent,
     updateLandlordStatus,
-    registerLandlordWithUser
+    registerLandlordWithUser,
+    uploadLandlordDocument,
 } from '../controllers/landlord.controller.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
+import upload from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -26,6 +28,10 @@ router.get('/:id', getLandlordById);
 router.put('/:id', AuthMiddleware, updateLandlord);
 router.patch('/:id/verify', AuthMiddleware, verifyLandlord);
 router.patch('/:id/status', AuthMiddleware, updateLandlordStatus);
+
+// Landlord document upload (Cloudinary via memory upload)
+router.post('/:id/documents', AuthMiddleware, upload.single('document'), uploadLandlordDocument);
+
 router.delete('/:id', AuthMiddleware, deleteLandlord);
 
 export default router;
