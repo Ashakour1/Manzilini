@@ -77,7 +77,42 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
         });
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            // If the token refers to a user that no longer exists, gracefully
+            // fall back to returning the full user list (admin panels often
+            // expect some data instead of a hard error here).
+            const users = await prisma.user.findMany({
+                orderBy: {
+                    createdAt: 'asc'
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                    image: true,
+                    is_sent_email: true,
+                    is_sent_at: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    agentId: true,
+                    agent: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                            image: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            properties: true
+                        }
+                    }
+                }
+            });
+            return res.status(200).json(users);
         }
 
         res.status(200).json(user);

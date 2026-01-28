@@ -12,6 +12,9 @@ import fieldAgentsRoutes from './routes/field-agents.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import emailLogsRoutes from './routes/email-logs.routes.js';
 import emailRoutes from './routes/email.routes.js';
+import accountRoutes from './routes/account.routes.js';
+import incomeRoutes from './routes/income.routes.js';
+import expenseRoutes from './routes/expense.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,6 +63,9 @@ app.use('/api/v1/field-agents', fieldAgentsRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/email-logs', emailLogsRoutes);
 app.use('/api/v1/email', emailRoutes);
+app.use('/api/v1/accounts', accountRoutes);
+app.use('/api/v1/incomes', incomeRoutes);
+app.use('/api/v1/expenses', expenseRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

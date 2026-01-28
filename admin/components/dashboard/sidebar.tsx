@@ -16,7 +16,9 @@ import {
   Shield, 
   MapPin,
   Menu,
-  Mail
+  Mail,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -34,6 +36,17 @@ const menuItems = [
   { id: "field-agents", icon: MapPin, label: "Field Agents", href: "/field-agents" },
   { id: "users", icon: Shield, label: "Users", href: "/users" },
   { id: "payments", icon: CreditCard, label: "Payments", href: "/payments" },
+  {
+    id: "finance",
+    icon: BarChart3,
+    label: "Finance",
+    href: "#",
+    children: [
+      { id: "accounts", icon: CreditCard, label: "Accounts", href: "/accounts" },
+      { id: "incomes", icon: ArrowDownCircle, label: "Incomes", href: "/incomes" },
+      { id: "expenses", icon: ArrowUpCircle, label: "Expenses", href: "/expenses" },
+    ],
+  },
   { id: "maintenance", icon: Wrench, label: "Maintenance", href: "/maintenance" },
   { id: "documents", icon: FileText, label: "Documents", href: "/documents" },
   { id: "reports", icon: BarChart3, label: "Reports", href: "/reports" },
@@ -47,6 +60,7 @@ export function DashboardSidebar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -151,8 +165,81 @@ export function DashboardSidebar() {
       {/* Navigation Menu */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2">
         {filteredMenuItems.map((item) => {
+          const hasChildren = Array.isArray((item as any).children) && (item as any).children.length > 0
+
+          if (hasChildren) {
+            const children = (item as any).children as typeof menuItems
+            const isGroupActive = children.some(
+              (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)
+            )
+            const isExpanded = expandedGroups.includes(item.id) || isGroupActive
+
+            return (
+              <div key={item.id} className="space-y-0.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedGroups((prev) =>
+                      prev.includes(item.id)
+                        ? prev.filter((id) => id !== item.id)
+                        : [...prev, item.id]
+                    )
+                  }
+                  className={`group relative flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                    isGroupActive
+                      ? "bg-blue-50 text-[#2a6f97] font-medium"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  <item.icon
+                    className={`h-4 w-4 flex-shrink-0 ${
+                      isGroupActive ? "text-[#2a6f97]" : "text-gray-500 group-hover:text-gray-700"
+                    }`}
+                  />
+                  <span className="flex-1 truncate">{item.label}</span>
+                  <span
+                    className={`ml-1 h-3 w-3 flex-shrink-0 transition-transform ${
+                      isExpanded ? "rotate-90" : ""
+                    }`}
+                  >
+                    ▸
+                  </span>
+                </button>
+                {isExpanded && (
+                  <div className="space-y-0.5 pl-6">
+                    {children.map((child) => {
+                      const childActive =
+                        pathname === child.href || pathname.startsWith(`${child.href}/`)
+                      return (
+                        <Link
+                          key={child.id}
+                          href={child.href}
+                          onClick={onLinkClick}
+                          className={`group relative flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${
+                            childActive
+                              ? "bg-blue-50 text-[#2a6f97] font-medium"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                        >
+                          <child.icon
+                            className={`h-3.5 w-3.5 flex-shrink-0 ${
+                              childActive
+                                ? "text-[#2a6f97]"
+                                : "text-gray-500 group-hover:text-gray-700"
+                            }`}
+                          />
+                          <span className="flex-1 truncate">{child.label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
-          
+
           return (
             <Link
               key={item.id}

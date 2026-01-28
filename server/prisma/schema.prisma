@@ -27,6 +27,10 @@ model User {
   // link to agent profile
   agentId String?
   agent   FieldAgent? @relation(fields: [agentId], references: [id])
+
+  // link to expenses
+  expenses Expense[]
+  incomes Income[]
 }
 
 model Landlord {
@@ -47,6 +51,9 @@ model Landlord {
   properties      Property[]
   emailLogs       EmailLog[]
   
+  // link to expenses
+  expenses Expense[]
+  incomes Income[]
   // creator
   createdBy       String?
   creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
@@ -86,7 +93,10 @@ model Property {
   property_applications PropertyApplication[]
   images                PropertyImages[]
   payments              Payment[]
-  
+
+  // link to expenses
+  expenses Expense[]
+  incomes Income[]
   is_published           Boolean?              @default(false)
   
 
@@ -177,6 +187,105 @@ model EmailLog {
   @@index([landlordId])
   @@index([createdAt])
   @@map("email_logs")
+}
+model Account {
+  id             String   @id
+  name     String
+  balance  Decimal  @db.Decimal(15,2)
+
+  incomes  Income[]
+  expenses Expense[]
+}
+model Income {
+id            String   @id
+  date          DateTime
+  source        String   // Rent, Commission, Service Fee, Other
+
+  amount        Decimal  @db.Decimal(15, 2)
+
+  paymentMethod String   // Cash, Bank, Mobile Money
+
+  // Link to account (uses Account.id which is String)
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id])
+
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id])
+
+  // tenantId      BigInt?
+  // tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+
+  landlordId    String?
+  landlord      Landlord? @relation(fields: [landlordId], references: [id])
+
+  reference     String?
+  description   String?
+
+  createdById   String?
+  createdBy     User?     @relation(fields: [createdById], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+  @@index([accountId])
+}
+
+model Expense {
+  id            String   @id
+
+  date          DateTime
+  category      String   // Maintenance, Marketing, Utilities, Salary, Office
+
+  amount        Decimal  @db.Decimal(15, 2)
+
+  paymentMethod String   // Cash, Bank, Mobile Money
+  
+  // Link to account (uses Account.id which is String)
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id])
+
+  vendorName    String?
+
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id])
+
+  landlordId    String?
+  landlord      Landlord? @relation(fields: [landlordId], references: [id])
+
+  reference     String?
+  description   String?
+
+  createdById   String?
+  createdBy     User?     @relation(fields: [createdById], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+}
+
+enum PaymentMethod {
+  CASH
+  BANK
+  MOBILE_MONEY
+}
+
+enum IncomeSource {
+  RENT
+  COMMISSION
+  SERVICE_FEE
+  OTHER
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  MARKETING
+  UTILITIES
+  SALARY
+  OFFICE
+  OTHER
 }
 
 enum LandlordStatus {
