@@ -42,7 +42,6 @@ type Landlord = {
   company_name?: string
   address?: string
   nationality?: string
-  gender?: "MALE" | "FEMALE" | "OTHER"
   isVerified?: boolean
   status?: "ACTIVE" | "INACTIVE"
   rejectionReason?: string | null
@@ -446,17 +445,10 @@ export function LandlordsPage() {
                             )}
                           </TableCell>
                           <TableCell className="py-4">
-                            {landlord.gender || landlord.nationality ? (
-                              <div className="flex flex-col text-xs text-muted-foreground">
-                                {landlord.gender && (
-                                  <span className="capitalize">
-                                    {landlord.gender.toLowerCase()}
-                                  </span>
-                                )}
-                                {landlord.nationality && (
-                                  <span>{landlord.nationality}</span>
-                                )}
-                              </div>
+                            {landlord.nationality ? (
+                              <span className="text-xs text-muted-foreground">
+                                {landlord.nationality}
+                              </span>
                             ) : (
                               <span className="text-sm text-muted-foreground">-</span>
                             )}

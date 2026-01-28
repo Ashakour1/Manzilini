@@ -23,7 +23,8 @@ type LandlordFormState = {
   address: string
   remarks: string
   nationality: string
-  gender: "MALE" | "FEMALE" | "OTHER"
+  documentType: string
+  documentNotes: string
 }
 
 const initialFormState: LandlordFormState = {
@@ -34,7 +35,8 @@ const initialFormState: LandlordFormState = {
   address: "",
   remarks: "",
   nationality: "",
-  gender: "MALE",
+  documentType: "",
+  documentNotes: "",
 }
 
 type LandlordCreatePageProps = {
@@ -72,6 +74,7 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
     role?: string
     image?: string
   } | null>(null)
+  const [documentFile, setDocumentFile] = useState<File | null>(null)
 
   const isEdit = Boolean(effectiveLandlordId)
 
@@ -94,8 +97,11 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
         address: landlord.address || "",
         remarks: landlord.remarks || "",
         nationality: landlord.nationality || "",
-        gender: (landlord.gender as "MALE" | "FEMALE" | "OTHER") || "MALE",
+        // document fields are for adding new docs; leave empty on load for now
+        documentType: "",
+        documentNotes: "",
       })
+      setDocumentFile(null)
       setIsVerified(landlord.isVerified || false)
       setStatus(landlord.status || "ACTIVE")
       setExistingRejectionReason(landlord.rejectionReason || null)
@@ -232,7 +238,7 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
     setIsSubmitting(true)
 
     try {
-      const landlordData = {
+      const landlordData: any = {
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim() || undefined,
@@ -240,17 +246,26 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
         address: form.address.trim() || undefined,
         remarks: form.remarks.trim() || undefined,
         nationality: form.nationality.trim() || undefined,
-        gender: form.gender,
       }
 
+      // Attach document file (if any) so service can send multipart/form-data
+      const payload: any = { ...landlordData }
+      if (documentFile) {
+        payload.documentFile = documentFile
+      }
+
+      let landlordId = effectiveLandlordId
+
       if (isEdit && effectiveLandlordId) {
-        await updateLandlord(effectiveLandlordId, landlordData)
+        const updated = await updateLandlord(effectiveLandlordId, payload)
+        landlordId = updated?.id || effectiveLandlordId
         toast({
           title: "Success",
           description: "Landlord updated successfully",
         })
       } else {
-        await registerLandlord(landlordData)
+        const created = await registerLandlord(payload)
+        landlordId = created?.id
         toast({
           title: "Success",
           description: "Landlord registered successfully",
@@ -396,34 +411,14 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
               />
             </div>
             
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="nationality">Nationality</Label>
-                <Input
-                  id="nationality"
-                  value={form.nationality}
-                  onChange={(e) => handleInputChange("nationality", e.target.value)}
-                  placeholder="Kenyan, Canadian, ..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select
-                  value={form.gender}
-                  onValueChange={(value: "MALE" | "FEMALE" | "OTHER") =>
-                    handleInputChange("gender", value)
-                  }
-                >
-                  <SelectTrigger id="gender">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="nationality">Nationality</Label>
+              <Input
+                id="nationality"
+                value={form.nationality}
+                onChange={(e) => handleInputChange("nationality", e.target.value)}
+                placeholder="Kenyan, Canadian, ..."
+              />
             </div>
 
             <div className="space-y-2">
@@ -434,6 +429,52 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
                 onChange={(e) => handleInputChange("remarks", e.target.value)}
                 placeholder="Internal notes about this landlord (not visible to them)"
                 rows={3}
+              />
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border/50">
+              <Label htmlFor="documentType">Document type</Label>
+              <Select
+                value={form.documentType}
+                onValueChange={(value) => handleInputChange("documentType", value)}
+              >
+                <SelectTrigger id="documentType">
+                  <SelectValue placeholder="Select document type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ID">ID</SelectItem>
+                  <SelectItem value="PASSPORT">Passport</SelectItem>
+                  <SelectItem value="LICENSE">License</SelectItem>
+                  <SelectItem value="CERTIFICATE">Certificate</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="documentFile">Document image (file)</Label>
+              <Input
+                id="documentFile"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null
+                  setDocumentFile(file)
+                }}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Upload the landlord’s document image (e.g. ID, passport, lease). It will be stored securely.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="documentNotes">Document notes</Label>
+              <Textarea
+                id="documentNotes"
+                value={form.documentNotes}
+                onChange={(e) => handleInputChange("documentNotes", e.target.value)}
+                placeholder="Notes about this document (e.g. expiry, page, etc.)"
+                rows={2}
               />
             </div>
           </section>

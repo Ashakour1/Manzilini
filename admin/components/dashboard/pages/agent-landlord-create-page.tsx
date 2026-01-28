@@ -18,7 +18,6 @@ type LandlordFormState = {
   company_name: string
   address: string
   nationality: string
-  gender: "MALE" | "FEMALE" | "OTHER"
 }
 
 const initialFormState: LandlordFormState = {
@@ -28,7 +27,6 @@ const initialFormState: LandlordFormState = {
   company_name: "",
   address: "",
   nationality: "",
-  gender: "MALE",
 }
 
 export function AgentLandlordCreatePage() {
@@ -53,7 +51,6 @@ export function AgentLandlordCreatePage() {
         company_name: form.company_name.trim() || undefined,
         address: form.address.trim() || undefined,
         nationality: form.nationality.trim() || undefined,
-        gender: form.gender,
       }
 
       await registerLandlord(landlordData)
@@ -158,34 +155,14 @@ export function AgentLandlordCreatePage() {
               />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="nationality">Nationality</Label>
-                <Input
-                  id="nationality"
-                  value={form.nationality}
-                  onChange={(e) => handleInputChange("nationality", e.target.value)}
-                  placeholder="Kenyan, Canadian, ..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select
-                  value={form.gender}
-                  onValueChange={(value: "MALE" | "FEMALE" | "OTHER") =>
-                    handleInputChange("gender", value)
-                  }
-                >
-                  <SelectTrigger id="gender">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="nationality">Nationality</Label>
+              <Input
+                id="nationality"
+                value={form.nationality}
+                onChange={(e) => handleInputChange("nationality", e.target.value)}
+                placeholder="Kenyan, Canadian, ..."
+              />
             </div>
           </section>
 

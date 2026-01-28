@@ -42,7 +42,6 @@ model Landlord {
   address         String?
   remarks         String?
   nationality     String?
-  gender          Gender          @default(MALE)
   isVerified      Boolean         @default(false)
   status          LandlordStatus  @default(ACTIVE)
   rejectionReason String?
@@ -68,7 +67,7 @@ model LandlordDocument {
   landlordId  String
   landlord    Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
 
-  documentType String?
+  documentType String? 
 
   documentImage String?
   url          String?
@@ -285,17 +284,19 @@ model Expense {
   @@index([category])
 }
 
+enum DocumentType {
+  ID
+  PASSPORT
+  LICENSE
+  CERTIFICATE
+  OTHER
+}
 enum PaymentMethod {
   CASH
   BANK
   MOBILE_MONEY
 }
 
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
 enum IncomeSource {
   RENT
   COMMISSION

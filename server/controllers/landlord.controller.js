@@ -14,7 +14,6 @@ export const registerLandlordWithUser = asyncHandler(async (req, res) => {
             company_name,
             address,
             nationality,
-            gender,
             remarks,
             password,
             // landlord document fields
@@ -69,7 +68,6 @@ export const registerLandlordWithUser = asyncHandler(async (req, res) => {
                         company_name,
                         address,
                         nationality,
-                        gender,
                         remarks,
                         status: 'INACTIVE',
                         createdBy
@@ -92,13 +90,31 @@ export const registerLandlordWithUser = asyncHandler(async (req, res) => {
             req.body.notes ||
             null;
 
-        if (docImage || docType || docNotes) {
+        // If a file is uploaded with this request, upload it to Cloudinary
+        let finalDocImage = docImage;
+        if (req.file) {
+            const mimeType = req.file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
+
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "landlords/documents",
+            });
+
+            if (result && result.secure_url) {
+                finalDocImage = result.secure_url;
+            }
+        }
+
+        if (finalDocImage || docType || docNotes) {
             await prisma.landlordDocument.create({
                 data: {
                     landlordId: landlord.id,
                     documentType: docType,
-                    documentImage: docImage,
-                    url: docImage,
+                    documentImage: finalDocImage,
+                    url: finalDocImage,
                     notes: docNotes,
                 },
             });
@@ -193,7 +209,6 @@ export const registerLandlord = asyncHandler(async (req, res) => {
             company_name,
             address,
             nationality,
-            gender,
             remarks,
             // landlord document fields
             documentType,
@@ -229,7 +244,6 @@ export const registerLandlord = asyncHandler(async (req, res) => {
                     company_name,
                     address,
                     nationality,
-                    gender,
                     remarks,
                     status: 'INACTIVE', // Default status
                     createdBy: createdBy,
@@ -251,13 +265,31 @@ export const registerLandlord = asyncHandler(async (req, res) => {
             req.body.notes ||
             null;
 
-        if (docImage || docType || docNotes) {
+        // If a file is uploaded with this request, upload it to Cloudinary
+        let finalDocImage = docImage;
+        if (req.file) {
+            const mimeType = req.file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
+
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "landlords/documents",
+            });
+
+            if (result && result.secure_url) {
+                finalDocImage = result.secure_url;
+            }
+        }
+
+        if (finalDocImage || docType || docNotes) {
             await prisma.landlordDocument.create({
                 data: {
                     landlordId: landlord.id,
                     documentType: docType,
-                    documentImage: docImage,
-                    url: docImage,
+                    documentImage: finalDocImage,
+                    url: finalDocImage,
                     notes: docNotes,
                 },
             });
@@ -317,7 +349,6 @@ export const uploadLandlordDocument = asyncHandler(async (req, res) => {
             data: {
                 landlordId: id,
                 documentType: documentType || null,
-                fileName: req.file.originalname || null,
                 documentImage: result?.secure_url || null,
                 url: result?.secure_url || null,
                 notes: notes || null,
@@ -353,7 +384,8 @@ export const getLandlords = asyncHandler(async (req, res) => {
                         role: true,
                         image: true
                     }
-                }
+                },
+                documents: true,
             }
         });
         res.status(200).json(landlords);
@@ -421,7 +453,8 @@ export const getLandlordsForAgent = asyncHandler(async (req, res) => {
                         role: true,
                         image: true
                     }
-                }
+                },
+                documents: true,
             }
         });
 
@@ -451,7 +484,8 @@ export const getLandlordById = asyncHandler(async (req, res) => {
                         role: true,
                         image: true
                     }
-                }
+                },
+                documents: true,
             }
         });
 
@@ -476,7 +510,6 @@ export const updateLandlord = asyncHandler(async (req, res) => {
             company_name,
             address,
             nationality,
-            gender,
             remarks,
             isVerified,
             status,
@@ -522,7 +555,6 @@ export const updateLandlord = asyncHandler(async (req, res) => {
         if (company_name !== undefined) updateData.company_name = company_name;
         if (address !== undefined) updateData.address = address;
         if (nationality !== undefined) updateData.nationality = nationality;
-        if (gender !== undefined) updateData.gender = gender;
         if (remarks !== undefined) updateData.remarks = remarks;
         if (isVerified !== undefined) updateData.isVerified = isVerified;
         if (status !== undefined) updateData.status = status;
@@ -573,13 +605,31 @@ export const updateLandlord = asyncHandler(async (req, res) => {
             req.body.notes ||
             null;
 
-        if (docImage || docType || docNotes) {
+        // If a file is uploaded with this request, upload it to Cloudinary
+        let finalDocImage = docImage;
+        if (req.file) {
+            const mimeType = req.file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
+
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "landlords/documents",
+            });
+
+            if (result && result.secure_url) {
+                finalDocImage = result.secure_url;
+            }
+        }
+
+        if (finalDocImage || docType || docNotes) {
             await prisma.landlordDocument.create({
                 data: {
                     landlordId: landlord.id,
                     documentType: docType,
-                    documentImage: docImage,
-                    url: docImage,
+                    documentImage: finalDocImage,
+                    url: finalDocImage,
                     notes: docNotes,
                 },
             });

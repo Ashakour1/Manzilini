@@ -16,16 +16,17 @@ import upload from '../middlewares/upload.js';
 
 const router = express.Router();
 
-// Public route for landlord registration (no auth required)
-router.post('/register', registerLandlord);
-router.post('/auth/register', registerLandlordWithUser);
-// Admin route for landlord registration (auth required)
-router.post('/', AuthMiddleware, registerLandlord);
+// Public route for landlord registration (no auth required) with optional document upload
+router.post('/register', upload.single('document'), registerLandlord);
+router.post('/auth/register', upload.single('document'), registerLandlordWithUser);
+// Admin route for landlord registration (auth required) with optional document upload
+router.post('/', AuthMiddleware, upload.single('document'), registerLandlord);
 router.get('/', getLandlords);
 // Agent-specific endpoint for landlords
 router.get('/agent', AuthMiddleware, getLandlordsForAgent);
 router.get('/:id', getLandlordById);
-router.put('/:id', AuthMiddleware, updateLandlord);
+// Allow updating landlord with optional document upload
+router.put('/:id', AuthMiddleware, upload.single('document'), updateLandlord);
 router.patch('/:id/verify', AuthMiddleware, verifyLandlord);
 router.patch('/:id/status', AuthMiddleware, updateLandlordStatus);
 

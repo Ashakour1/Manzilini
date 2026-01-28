@@ -60,6 +60,23 @@ type Landlord = {
     role?: string
     image?: string
   } | null
+  documents?: {
+    id: string
+    documentType?: string | null
+    documentImage?: string | null
+    url?: string | null
+    notes?: string | null
+    uploadedAt?: string
+  }[]
+}
+
+type LandlordDocument = {
+  id: string
+  documentType?: string | null
+  documentImage?: string | null
+  url?: string | null
+  notes?: string | null
+  uploadedAt?: string
 }
 
 export default function LandlordDetailsPage() {
@@ -79,6 +96,8 @@ export default function LandlordDetailsPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [inactiveDialogOpen, setInactiveDialogOpen] = useState(false)
   const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<LandlordDocument | null>(null)
+  const [documentModalOpen, setDocumentModalOpen] = useState(false)
 
   useEffect(() => {
     if (!landlordId) return
@@ -345,6 +364,63 @@ export default function LandlordDetailsPage() {
                         <Button variant="ghost" size="sm">
                           View
                         </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents Card */}
+            {landlord.documents && landlord.documents.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documents</CardTitle>
+                  <CardDescription>Uploaded landlord documents</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {landlord.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">
+                            {doc.documentType || "Document"}
+                          </p>
+                          {doc.notes && (
+                            <p className="text-xs text-muted-foreground">
+                              {doc.notes}
+                            </p>
+                          )}
+                          {doc.uploadedAt && (
+                            <p className="text-[11px] text-muted-foreground">
+                              Uploaded{" "}
+                              {new Date(doc.uploadedAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          )}
+                        </div>
+                        {doc.documentImage && (
+                          <button
+                            type="button"
+                            className="ml-4 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={() => {
+                              setSelectedDocument(doc)
+                              setDocumentModalOpen(true)
+                            }}
+                          >
+                            <img
+                              src={doc.documentImage}
+                              alt={doc.documentType || "Document image"}
+                              className="h-20 w-20 rounded-md object-cover"
+                            />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -684,6 +760,45 @@ export default function LandlordDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Document Preview Dialog */}
+      {selectedDocument && (
+        <Dialog
+          open={documentModalOpen}
+          onOpenChange={(open) => {
+            setDocumentModalOpen(open)
+            if (!open) setSelectedDocument(null)
+          }}
+        >
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{selectedDocument.documentType || "Document"}</DialogTitle>
+              {selectedDocument.uploadedAt && (
+                <DialogDescription>
+                  Uploaded{" "}
+                  {new Date(selectedDocument.uploadedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <div className="space-y-3">
+              {selectedDocument.documentImage && (
+                <img
+                  src={selectedDocument.documentImage}
+                  alt={selectedDocument.documentType || "Document image"}
+                  className="w-full max-h-[70vh] rounded-md object-contain border"
+                />
+              )}
+              {selectedDocument.notes && (
+                <p className="text-sm text-muted-foreground">{selectedDocument.notes}</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>

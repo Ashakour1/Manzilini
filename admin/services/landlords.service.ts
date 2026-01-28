@@ -2,15 +2,35 @@ import { API_URL, getAuthHeaders } from "../lib/api";
 
 const LANDLORD_API_URL = `${API_URL}/landlords`;
 
-// Register a new landlord
-export const registerLandlord = async (landlordData = {}) => {
-  const response = await fetch(LANDLORD_API_URL, {
+// Register a new landlord (supports optional document file)
+export const registerLandlord = async (landlordData: any = {}) => {
+  const headers = getAuthHeaders();
+
+  const hasFile = landlordData.documentFile instanceof File;
+
+  const options: RequestInit = {
     method: "POST",
-    headers: getAuthHeaders({
+    headers,
+  };
+
+  if (hasFile) {
+    const formData = new FormData();
+    Object.entries(landlordData).forEach(([key, value]) => {
+      if (key === "documentFile") return;
+      if (value === undefined || value === null) return;
+      formData.append(key, String(value));
+    });
+    formData.append("document", landlordData.documentFile as File);
+    options.body = formData;
+  } else {
+    options.headers = {
+      ...headers,
       "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(landlordData),
-  });
+    };
+    options.body = JSON.stringify(landlordData);
+  }
+
+  const response = await fetch(LANDLORD_API_URL, options);
 
   if (!response.ok) {
     const error = await response.json();
@@ -59,14 +79,33 @@ export const getLandlordById = async (id: string) => {
 };
 
 // Update landlord
-export const updateLandlord = async (id: string, updates = {}) => {
-  const response = await fetch(`${LANDLORD_API_URL}/${id}`, {
+export const updateLandlord = async (id: string, updates: any = {}) => {
+  const headers = getAuthHeaders();
+  const hasFile = updates.documentFile instanceof File;
+
+  const options: RequestInit = {
     method: "PUT",
-    headers: getAuthHeaders({
+    headers,
+  };
+
+  if (hasFile) {
+    const formData = new FormData();
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key === "documentFile") return;
+      if (value === undefined || value === null) return;
+      formData.append(key, String(value));
+    });
+    formData.append("document", updates.documentFile as File);
+    options.body = formData;
+  } else {
+    options.headers = {
+      ...headers,
       "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(updates),
-  });
+    };
+    options.body = JSON.stringify(updates);
+  }
+
+  const response = await fetch(`${LANDLORD_API_URL}/${id}`, options);
 
   if (!response.ok) {
     const error = await response.json();
