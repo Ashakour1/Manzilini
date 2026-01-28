@@ -171,7 +171,7 @@ export const registerLandlord = asyncHandler(async (req, res) => {
                     phone,
                     company_name,
                     address,
-                    status: 'ACTIVE', // Default status
+                    status: 'INACTIVE', // Default status
                     createdBy: createdBy,
                 }
             });
