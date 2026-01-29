@@ -25,14 +25,25 @@ import {
   ChevronRight,
   ExternalLink,
   Heart,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPropertyById, publishProperty } from "@/services/properties.service"
+import { getPropertyById, publishProperty, deleteProperty } from "@/services/properties.service"
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type Property = {
   id: string
@@ -92,6 +103,8 @@ export default function PropertyDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!propertyId) return
@@ -130,6 +143,27 @@ export default function PropertyDetailsPage() {
       })
     } finally {
       setIsPublishing(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!property) return
+    setIsDeleting(true)
+    try {
+      await deleteProperty(property.id)
+      toast({
+        title: "Success",
+        description: "Property deleted successfully",
+      })
+      router.push("/properties")
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete property",
+        variant: "destructive",
+      })
+      setIsDeleting(false)
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -187,7 +221,7 @@ export default function PropertyDetailsPage() {
   }
 
   const mainImage = property.images && property.images.length > 0 ? property.images[selectedImageIndex] : null
-  const otherImages = property.images && property.images.length > 1 ? property.images.filter((_, i) => i !== selectedImageIndex).slice(0, 3) : []
+  const allImages = property.images || []
 
   return (
     <main className="flex-1 p-3 sm:p-4 lg:p-5">
@@ -246,7 +280,7 @@ export default function PropertyDetailsPage() {
               <span>{property.zip_code}</span>
             </>
           )}
-          {(property.latitude && property.longitude) && (
+          {property.latitude && property.longitude && Number(property.latitude) !== 0 && Number(property.longitude) !== 0 && (
             <>
               <Separator orientation="vertical" className="h-4" />
               <Button variant="ghost" size="sm" className="h-auto p-0 text-sm" asChild>
@@ -269,45 +303,37 @@ export default function PropertyDetailsPage() {
         </div>
 
         {/* Image Gallery */}
-        {property.images && property.images.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="md:col-span-3">
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
-                {mainImage && (
-                  <img
-                    src={mainImage.url}
-                    alt={property.title}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
+        {allImages.length > 0 ? (
+          <div className="space-y-4">
+            {/* Main Image */}
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+              {mainImage && (
+                <img
+                  src={mainImage.url}
+                  alt={property.title}
+                  className="h-full w-full object-cover"
+                />
+              )}
             </div>
-            {otherImages.length > 0 && (
-              <div className="grid gap-4">
-                {otherImages.map((image, index) => (
+            {/* All Other Images Grid */}
+            {allImages.length > 1 && (
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {allImages.map((image, index) => (
                   <button
                     key={image.url}
                     type="button"
-                    onClick={() => {
-                      const originalIndex = property.images!.findIndex(img => img.url === image.url)
-                      setSelectedImageIndex(originalIndex)
-                    }}
-                    className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted transition-opacity hover:opacity-80"
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative aspect-video w-full overflow-hidden rounded-lg border bg-muted transition-opacity hover:opacity-80 ${
+                      selectedImageIndex === index ? "ring-2 ring-primary" : ""
+                    }`}
                   >
                     <img
                       src={image.url}
-                      alt={`${property.title} - Image ${index + 2}`}
+                      alt={`${property.title} - Image ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
                   </button>
                 ))}
-                {property.images.length > 4 && (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted/50 flex items-center justify-center">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      +{property.images.length - 4} more
-                    </span>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -327,39 +353,46 @@ export default function PropertyDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-                  {property.bedrooms && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Bedrooms</p>
-                      <p className="text-2xl font-bold text-foreground">{property.bedrooms}</p>
-                    </div>
-                  )}
-                  {property.bathrooms && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Bathrooms</p>
-                      <p className="text-2xl font-bold text-foreground">{property.bathrooms}</p>
-                    </div>
-                  )}
-                  {property.garages && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Garages</p>
-                      <p className="text-2xl font-bold text-foreground">{property.garages}</p>
-                    </div>
-                  )}
-                  {property.size && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Size</p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {Number(property.size).toLocaleString()} <span className="text-base font-normal">sq ft</span>
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Bedrooms</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {property.bedrooms !== undefined && property.bedrooms !== null ? property.bedrooms : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Bathrooms</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {property.bathrooms !== undefined && property.bathrooms !== null ? property.bathrooms : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Garages</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {property.garages !== undefined && property.garages !== null ? property.garages : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Size</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {property.size && Number(property.size) > 0 ? (
+                        <>
+                          {Number(property.size).toLocaleString()} <span className="text-base font-normal">sq ft</span>
+                        </>
+                      ) : (
+                        "N/A"
+                      )}
+                    </p>
+                  </div>
                 </div>
-                {property.floor && (
+                {property.floor !== undefined && property.floor !== null && (
                   <div className="mt-4 pt-4 border-t">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Layers className="h-4 w-4" />
-                      View floor plan
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">
+                        Floor: {property.floor}
+                        {property.total_floors && ` of ${property.total_floors}`}
+                      </span>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -374,25 +407,16 @@ export default function PropertyDetailsPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Property Type</p>
-                    <p className="mt-1 text-sm font-medium text-foreground">{property.property_type}</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{property.property_type || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
                     <div className="mt-1">
                       <Badge variant={getStatusVariant(property.status)} className="uppercase">
-                        {property.status}
+                        {property.status || "N/A"}
                       </Badge>
                     </div>
                   </div>
-                  {property.floor && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Floor</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
-                        {property.floor}
-                        {property.total_floors && ` of ${property.total_floors}`}
-                      </p>
-                    </div>
-                  )}
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Furnished</p>
                     <div className="mt-1 flex items-center gap-2">
@@ -406,26 +430,44 @@ export default function PropertyDetailsPage() {
                       </p>
                     </div>
                   </div>
-                  {property.balcony !== undefined && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Balcony</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {property.balcony ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <p className="text-sm font-medium text-foreground">{property.balcony ? "Yes" : "No"}</p>
+                    </div>
+                  </div>
+                  {property.zip_code && (
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Balcony</p>
-                      <div className="mt-1 flex items-center gap-2">
-                        {property.balcony ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Zip Code</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{property.zip_code}</p>
+                    </div>
+                  )}
+                  {(property.latitude || property.longitude) && (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Coordinates</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {Number(property.latitude) !== 0 && Number(property.longitude) !== 0 ? (
+                          <>
+                            {property.latitude}, {property.longitude}
+                          </>
                         ) : (
-                          <XCircle className="h-4 w-4 text-muted-foreground" />
+                          "N/A"
                         )}
-                        <p className="text-sm font-medium text-foreground">{property.balcony ? "Yes" : "No"}</p>
-                      </div>
+                      </p>
                     </div>
                   )}
                 </div>
-                {property.description && (
-                  <div className="pt-4 border-t">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Description</p>
-                    <p className="text-sm text-foreground leading-relaxed">{property.description}</p>
-                  </div>
-                )}
+                <div className="pt-4 border-t">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Description</p>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {property.description || "No description provided"}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -452,14 +494,9 @@ export default function PropertyDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Pricing & Actions Card */}
-            <Card className="sticky top-6">
+            <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Pricing</CardTitle>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </div>
+                <CardTitle>Pricing</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -468,7 +505,7 @@ export default function PropertyDetailsPage() {
                       {formatPrice(property.price, property.currency, property.payment_frequency)}
                     </span>
                   </div>
-                  {property.deposit_amount && (
+                  {property.deposit_amount && Number(property.deposit_amount) > 0 && (
                     <p className="text-sm text-muted-foreground mt-1">
                       Deposit: {property.currency} {Number(property.deposit_amount).toLocaleString()}
                     </p>
@@ -476,22 +513,23 @@ export default function PropertyDetailsPage() {
                 </div>
                 <Separator />
                 <div className="space-y-3">
-                  <Button className="w-full" size="lg">
-                    Reserve now
+                  <Button 
+                    onClick={() => router.push(`/properties/${propertyId}/edit`)} 
+                    className="w-full" 
+                    size="lg"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Property
                   </Button>
-                  <Button variant="outline" className="w-full">
-                    Request tour
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {isDeleting ? "Deleting..." : "Delete Property"}
                   </Button>
-                </div>
-                <div className="space-y-2 pt-2">
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>No charges until your reservation begins</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Cancel for free up to 2 hours before</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -652,6 +690,28 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the property "{property.title}" and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   )
 }
