@@ -6,6 +6,8 @@ import { ArrowLeft, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { getFieldAgentById, createFieldAgent, updateFieldAgent } from "@/services/field-agents.service"
 
@@ -13,12 +15,16 @@ type FieldAgentFormState = {
   name: string
   email: string
   phone: string
+  documentType: string
+  documentNotes: string
 }
 
 const initialFormState: FieldAgentFormState = {
   name: "",
   email: "",
   phone: "",
+  documentType: "",
+  documentNotes: "",
 }
 
 type FieldAgentCreatePageProps = {
@@ -33,7 +39,7 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
   const { toast } = useToast()
   const [form, setForm] = useState<FieldAgentFormState>(initialFormState)
   const [image, setImage] = useState<File | null>(null)
-  const [documentImage, setDocumentImage] = useState<File | null>(null)
+  const [documentFile, setDocumentFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [documentPreview, setDocumentPreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -56,13 +62,13 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
         name: agent.name || "",
         email: agent.email || "",
         phone: agent.phone || "",
+        documentType: "",
+        documentNotes: "",
       })
       if (agent.image) {
         setImagePreview(agent.image)
       }
-      if (agent.document_image) {
-        setDocumentPreview(agent.document_image)
-      }
+      setDocumentFile(null)
     } catch (err) {
       toast({
         title: "Error",
@@ -93,9 +99,9 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
     }
   }
 
-  const handleDocumentImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
-    setDocumentImage(file)
+    setDocumentFile(file)
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -112,8 +118,8 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
     setImagePreview(null)
   }
 
-  const removeDocumentImage = () => {
-    setDocumentImage(null)
+  const removeDocumentFile = () => {
+    setDocumentFile(null)
     setDocumentPreview(null)
   }
 
@@ -122,27 +128,29 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
     setIsSubmitting(true)
 
     try {
+      const agentData: any = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || undefined,
+      }
+
+      if (image) {
+        agentData.image = image
+      }
+
+      if (documentFile) {
+        agentData.documentFile = documentFile
+        agentData.documentType = form.documentType || undefined
+        agentData.documentNotes = form.documentNotes || undefined
+      }
+
       if (isEdit && effectiveAgentId) {
-        const agentData = {
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim() || undefined,
-          image: image || undefined,
-          document_image: documentImage || undefined,
-        }
         await updateFieldAgent(effectiveAgentId, agentData)
         toast({
           title: "Success",
           description: "Field agent updated successfully",
         })
       } else {
-        const agentData = {
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim() || undefined,
-          image: image || undefined,
-          document_image: documentImage || undefined,
-        }
         await createFieldAgent(agentData)
         toast({
           title: "Success",
@@ -286,8 +294,27 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
 
           <section className="space-y-4 rounded-3xl border border-border/80 bg-transparent p-4">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Document Image</h2>
-              <p className="text-xs text-muted-foreground">Upload a document image (ID, license, etc.)</p>
+              <h2 className="text-base font-semibold text-foreground">Document</h2>
+              <p className="text-xs text-muted-foreground">Upload agent documents (ID, license, etc.)</p>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border/50">
+              <Label htmlFor="documentType">Document type</Label>
+              <Select
+                value={form.documentType}
+                onValueChange={(value) => handleInputChange("documentType", value)}
+              >
+                <SelectTrigger id="documentType">
+                  <SelectValue placeholder="Select document type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ID">ID</SelectItem>
+                  <SelectItem value="PASSPORT">Passport</SelectItem>
+                  <SelectItem value="LICENSE">License</SelectItem>
+                  <SelectItem value="CERTIFICATE">Certificate</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-4">
@@ -303,7 +330,7 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
                     variant="destructive"
                     size="sm"
                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                    onClick={removeDocumentImage}
+                    onClick={removeDocumentFile}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -315,18 +342,29 @@ export function FieldAgentCreatePage({ agentId }: FieldAgentCreatePageProps) {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="document_image">Document Image</Label>
+                <Label htmlFor="documentFile">Document image (file)</Label>
                 <Input
-                  id="document_image"
+                  id="documentFile"
                   type="file"
                   accept="image/*"
-                  onChange={handleDocumentImageChange}
+                  onChange={handleDocumentFileChange}
                   className="cursor-pointer"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Upload a document image (ID card, license, etc.), max 10MB
+                  Upload the agent's document image (e.g. ID, passport, license). It will be stored securely.
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="documentNotes">Document notes</Label>
+              <Textarea
+                id="documentNotes"
+                value={form.documentNotes}
+                onChange={(e) => handleInputChange("documentNotes", e.target.value)}
+                placeholder="Notes about this document (e.g. expiry, page, etc.)"
+                rows={2}
+              />
             </div>
           </section>
 

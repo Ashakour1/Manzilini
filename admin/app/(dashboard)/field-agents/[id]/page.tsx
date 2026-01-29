@@ -8,9 +8,11 @@ import {
   Mail,
   Phone,
   User,
-  FileText,
   Calendar,
+  FileText,
   Image as ImageIcon,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +21,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton"
 import { getFieldAgentById } from "@/services/field-agents.service"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
+type AgentDocument = {
+  id: string
+  documentType?: string | null
+  documentImage?: string | null
+  url?: string | null
+  notes?: string | null
+  uploadedAt?: string
+}
 
 type FieldAgent = {
   id: string
@@ -29,6 +41,7 @@ type FieldAgent = {
   document_image?: string
   createdAt?: string
   updatedAt?: string
+  documents?: AgentDocument[]
 }
 
 export default function FieldAgentDetailsPage() {
@@ -39,6 +52,8 @@ export default function FieldAgentDetailsPage() {
   const [agent, setAgent] = useState<FieldAgent | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedDocument, setSelectedDocument] = useState<AgentDocument | null>(null)
+  const [documentModalOpen, setDocumentModalOpen] = useState(false)
 
   useEffect(() => {
     if (!agentId) return
@@ -59,36 +74,33 @@ export default function FieldAgentDetailsPage() {
     load()
   }, [agentId])
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <main className="flex-1 p-3 sm:p-4 lg:p-5">
         <div className="mx-auto flex max-w-7xl flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="px-0">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </div>
-          <div className="flex items-center justify-center py-12">
-            <div className="space-y-4 w-full max-w-2xl">
-              <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-10 w-32" />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-6">
+              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+            <div className="space-y-6">
               <Skeleton className="h-64 w-full" />
             </div>
           </div>
         </div>
       </main>
     )
+  }
 
   if (error) {
     return (
       <main className="flex-1 p-3 sm:p-4 lg:p-5">
         <div className="mx-auto flex max-w-7xl flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="px-0">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="px-0">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
           <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
             <p className="text-sm text-destructive">{error}</p>
           </div>
@@ -107,37 +119,42 @@ export default function FieldAgentDetailsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="px-0">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/field-agents")} className="px-0">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
             <Separator orientation="vertical" className="h-6" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Field Agent Details</h1>
-              <p className="text-sm text-muted-foreground">View complete information about this field agent</p>
+              <h1 className="text-2xl font-bold text-foreground">{agent.name}</h1>
+              <p className="text-sm text-muted-foreground">Field agent details and information</p>
             </div>
           </div>
-          <Button onClick={() => router.push(`/field-agents/${agentId}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Agent
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.push(`/field-agents/${agent.id}/edit`)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Profile Card */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Contact Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Basic details about the field agent</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Contact Information
+                </CardTitle>
+                <CardDescription>Field agent contact details</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="flex items-center gap-6">
                   {agent.image ? (
-                    <Avatar className="h-24 w-24 border-2 border-[#2a6f97]">
+                    <Avatar className="h-24 w-24 border-2 border-primary">
                       <AvatarImage src={agent.image} alt={agent.name} />
-                      <AvatarFallback className="bg-[#2a6f97] text-white text-xl font-semibold">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
                         {agent.name
                           .split(" ")
                           .map((n) => n[0])
@@ -147,8 +164,8 @@ export default function FieldAgentDetailsPage() {
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <div className="h-24 w-24 rounded-full border-2 border-[#2a6f97] bg-[#2a6f97]/10 flex items-center justify-center">
-                      <User className="h-12 w-12 text-[#2a6f97]" />
+                    <div className="h-24 w-24 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
+                      <User className="h-12 w-12 text-primary" />
                     </div>
                   )}
                   <div className="flex-1">
@@ -160,23 +177,34 @@ export default function FieldAgentDetailsPage() {
                 <Separator />
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span className="font-medium">Email</span>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={`mailto:${agent.email}`}
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        {agent.email}
+                      </a>
                     </div>
-                    <p className="text-sm font-medium text-foreground pl-6">{agent.email}</p>
                   </div>
-
-                  {agent.phone && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        <span className="font-medium">Phone</span>
-                      </div>
-                      <p className="text-sm font-medium text-foreground pl-6">{agent.phone}</p>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      {agent.phone ? (
+                        <a
+                          href={`tel:${agent.phone}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {agent.phone}
+                        </a>
+                      ) : (
+                        <p className="text-sm font-medium text-muted-foreground">N/A</p>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -185,81 +213,104 @@ export default function FieldAgentDetailsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Documents</CardTitle>
-                <CardDescription>Agent documents and verification</CardDescription>
+                <CardDescription>Uploaded agent documents</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {agent.document_image ? (
+              <CardContent>
+                {agent.documents && agent.documents.length > 0 ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-4 border rounded-lg">
-                      <FileText className="h-5 w-5 text-[#2a6f97]" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Verification Document</p>
-                        <p className="text-xs text-muted-foreground">Click to view full document</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(agent.document_image, "_blank")}
+                    {agent.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between rounded-lg border p-3"
                       >
-                        View Document
-                      </Button>
-                    </div>
-                    <div className="mt-4">
-                      <img
-                        src={agent.document_image}
-                        alt="Verification document"
-                        className="w-full rounded-lg border max-h-96 object-contain"
-                      />
-                    </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">
+                            {doc.documentType || "Document"}
+                          </p>
+                          {doc.notes && (
+                            <p className="text-xs text-muted-foreground">
+                              {doc.notes}
+                            </p>
+                          )}
+                          {doc.uploadedAt && (
+                            <p className="text-[11px] text-muted-foreground">
+                              Uploaded{" "}
+                              {new Date(doc.uploadedAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          )}
+                        </div>
+                        {doc.documentImage && (
+                          <button
+                            type="button"
+                            className="ml-4 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={() => {
+                              setSelectedDocument(doc)
+                              setDocumentModalOpen(true)
+                            }}
+                          >
+                            <img
+                              src={doc.documentImage}
+                              alt={doc.documentType || "Document image"}
+                              className="h-20 w-20 rounded-md object-cover"
+                            />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">No document uploaded</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-4">N/A</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Right Column */}
           <div className="space-y-6">
             {/* Quick Info */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Info</CardTitle>
+                <CardDescription>Summary information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>Created</span>
-                  </div>
-                  <p className="text-sm font-medium text-foreground pl-6">
-                    {agent.createdAt
-                      ? new Date(agent.createdAt).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "N/A"}
-                  </p>
-                </div>
-
-                {agent.updatedAt && (
+                {agent.createdAt && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span>Last Updated</span>
+                      <span>Created</span>
                     </div>
                     <p className="text-sm font-medium text-foreground pl-6">
-                      {new Date(agent.updatedAt).toLocaleDateString("en-US", {
+                      {new Date(agent.createdAt).toLocaleDateString("en-US", {
                         month: "long",
                         day: "numeric",
                         year: "numeric",
                       })}
                     </p>
                   </div>
+                )}
+
+                {agent.updatedAt && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Last Updated</span>
+                      </div>
+                      <p className="text-sm font-medium text-foreground pl-6">
+                        {new Date(agent.updatedAt).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </>
                 )}
 
                 <Separator />
@@ -274,13 +325,15 @@ export default function FieldAgentDetailsPage() {
                   </Badge>
                 </div>
 
+                <Separator />
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <FileText className="h-3.5 w-3.5" />
-                    <span>Document</span>
+                    <span>Documents</span>
                   </div>
-                  <Badge variant={agent.document_image ? "default" : "secondary"} className="ml-6">
-                    {agent.document_image ? "Uploaded" : "Not uploaded"}
+                  <Badge variant={agent.documents && agent.documents.length > 0 ? "default" : "secondary"} className="ml-6">
+                    {agent.documents && agent.documents.length > 0 ? `${agent.documents.length} uploaded` : "No documents"}
                   </Badge>
                 </div>
               </CardContent>
@@ -303,7 +356,7 @@ export default function FieldAgentDetailsPage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => router.back()}
+                  onClick={() => router.push("/field-agents")}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to List
@@ -313,7 +366,45 @@ export default function FieldAgentDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Document Preview Dialog */}
+      {selectedDocument && (
+        <Dialog
+          open={documentModalOpen}
+          onOpenChange={(open) => {
+            setDocumentModalOpen(open)
+            if (!open) setSelectedDocument(null)
+          }}
+        >
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{selectedDocument.documentType || "Document"}</DialogTitle>
+              {selectedDocument.uploadedAt && (
+                <DialogDescription>
+                  Uploaded{" "}
+                  {new Date(selectedDocument.uploadedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <div className="space-y-3">
+              {selectedDocument.documentImage && (
+                <img
+                  src={selectedDocument.documentImage}
+                  alt={selectedDocument.documentType || "Document image"}
+                  className="w-full max-h-[70vh] rounded-md object-contain border"
+                />
+              )}
+              {selectedDocument.notes && (
+                <p className="text-sm text-muted-foreground">{selectedDocument.notes}</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   )
 }
-

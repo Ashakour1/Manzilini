@@ -1,11 +1,20 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
+import cloudinary from '../config/cloudinary.js';
 
 // Create a new field agent
 export const createFieldAgent = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone } = req.body || {};
+        const { 
+            name, 
+            email, 
+            phone,
+            // agent document fields
+            documentType,
+            documentImage,
+            documentNotes,
+        } = req.body || {};
 
         if (!name || !email) {
             return res.status(400).json({ message: 'Name and email are required' });
@@ -20,24 +29,24 @@ export const createFieldAgent = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'Field agent with this email already exists' });
         }
 
-        // Handle image uploads
-        const imageBaseUrl = `${req.protocol}://${req.get("host")}/uploads`;
+        // Handle profile image upload to Cloudinary
         let imageUrl = null;
-        let documentImageUrl = null;
-
-        if (req.files) {
-            if (req.files.image && req.files.image[0]) {
-                const filename = req.files.image[0].filename || req.files.image[0].originalname;
-                imageUrl = `${imageBaseUrl}/${filename}`;
-            }
-            if (req.files.document_image && req.files.document_image[0]) {
-                const filename = req.files.document_image[0].filename || req.files.document_image[0].originalname;
-                documentImageUrl = `${imageBaseUrl}/${filename}`;
+        if (req.files && req.files.image && req.files.image[0]) {
+            const file = req.files.image[0];
+            const mimeType = file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "agents/profile",
+            });
+            if (result && result.secure_url) {
+                imageUrl = result.secure_url;
             }
         }
 
         // Generate unique ID and create field agent in a single transaction
-        // This ensures counter only increments on successful creation
         const fieldAgent = await generateUniqueIdAndCreate('FieldAgent', async (tx, uniqueId) => {
             return await tx.fieldAgent.create({
                 data: {
@@ -46,12 +55,49 @@ export const createFieldAgent = asyncHandler(async (req, res) => {
                     email,
                     phone,
                     image: imageUrl,
-                    document_image: documentImageUrl,
                 }
             });
         });
 
-        res.status(201).json(fieldAgent);
+        // Handle document upload
+        const docImage = documentImage || req.body.document_image || null;
+        const docType = documentType || req.body.document_type || null;
+        const docNotes = documentNotes || req.body.notes || null;
+
+        let finalDocImage = docImage;
+        if (req.files && req.files.document && req.files.document[0]) {
+            const file = req.files.document[0];
+            const mimeType = file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "agents/documents",
+            });
+            if (result && result.secure_url) {
+                finalDocImage = result.secure_url;
+            }
+        }
+
+        if (finalDocImage || docType || docNotes) {
+            await prisma.agentDocument.create({
+                data: {
+                    agentId: fieldAgent.id,
+                    documentType: docType,
+                    documentImage: finalDocImage,
+                    notes: docNotes,
+                },
+            });
+        }
+
+        // Fetch agent with documents
+        const agentWithDocs = await prisma.fieldAgent.findUnique({
+            where: { id: fieldAgent.id },
+            include: { documents: true }
+        });
+
+        res.status(201).json(agentWithDocs);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -63,6 +109,9 @@ export const getFieldAgents = asyncHandler(async (req, res) => {
         const fieldAgents = await prisma.fieldAgent.findMany({
             orderBy: {
                 createdAt: 'desc'
+            },
+            include: {
+                documents: true
             }
         });
         res.status(200).json(fieldAgents);
@@ -76,7 +125,10 @@ export const getFieldAgentById = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
         const fieldAgent = await prisma.fieldAgent.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                documents: true
+            }
         });
 
         if (!fieldAgent) {
@@ -93,7 +145,15 @@ export const getFieldAgentById = asyncHandler(async (req, res) => {
 export const updateFieldAgent = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, phone } = req.body || {};
+        const { 
+            name, 
+            email, 
+            phone,
+            // agent document fields
+            documentType,
+            documentImage,
+            documentNotes,
+        } = req.body || {};
 
         // Check if field agent exists
         const existingAgent = await prisma.fieldAgent.findUnique({
@@ -121,17 +181,19 @@ export const updateFieldAgent = asyncHandler(async (req, res) => {
         if (email !== undefined) updateData.email = email;
         if (phone !== undefined) updateData.phone = phone;
 
-        // Handle image uploads
-        const imageBaseUrl = `${req.protocol}://${req.get("host")}/uploads`;
-        
-        if (req.files) {
-            if (req.files.image && req.files.image[0]) {
-                const filename = req.files.image[0].filename || req.files.image[0].originalname;
-                updateData.image = `${imageBaseUrl}/${filename}`;
-            }
-            if (req.files.document_image && req.files.document_image[0]) {
-                const filename = req.files.document_image[0].filename || req.files.document_image[0].originalname;
-                updateData.document_image = `${imageBaseUrl}/${filename}`;
+        // Handle profile image upload to Cloudinary
+        if (req.files && req.files.image && req.files.image[0]) {
+            const file = req.files.image[0];
+            const mimeType = file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "agents/profile",
+            });
+            if (result && result.secure_url) {
+                updateData.image = result.secure_url;
             }
         }
 
@@ -140,7 +202,45 @@ export const updateFieldAgent = asyncHandler(async (req, res) => {
             data: updateData
         });
 
-        res.status(200).json(fieldAgent);
+        // Handle document upload
+        const docImage = documentImage || req.body.document_image || null;
+        const docType = documentType || req.body.document_type || null;
+        const docNotes = documentNotes || req.body.notes || null;
+
+        let finalDocImage = docImage;
+        if (req.files && req.files.document && req.files.document[0]) {
+            const file = req.files.document[0];
+            const mimeType = file.mimetype || 'image/jpeg';
+            const encodedImage = `data:${mimeType};base64,${file.buffer.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(encodedImage, {
+                resource_type: "image",
+                quality: "auto:best",
+                fetch_format: "auto",
+                folder: "agents/documents",
+            });
+            if (result && result.secure_url) {
+                finalDocImage = result.secure_url;
+            }
+        }
+
+        if (finalDocImage || docType || docNotes) {
+            await prisma.agentDocument.create({
+                data: {
+                    agentId: fieldAgent.id,
+                    documentType: docType,
+                    documentImage: finalDocImage,
+                    notes: docNotes,
+                },
+            });
+        }
+
+        // Fetch agent with documents
+        const agentWithDocs = await prisma.fieldAgent.findUnique({
+            where: { id: fieldAgent.id },
+            include: { documents: true }
+        });
+
+        res.status(200).json(agentWithDocs);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

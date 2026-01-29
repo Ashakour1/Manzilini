@@ -77,6 +77,20 @@ model LandlordDocument {
   updatedAt    DateTime @updatedAt
 }
 
+model AgentDocument {
+  id          String    @id @default(cuid())
+  agentId     String
+  agent       FieldAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  documentType String?
+
+  documentImage String?
+  notes        String?
+
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Property {
   id                    String                @id
   title                 String
@@ -170,6 +184,7 @@ model FieldAgent {
 
   // reverse relation: User can link to this agent
   users User[]
+  documents AgentDocument[]
 }
 
 model IdCounter {

@@ -34,26 +34,53 @@ export const createFieldAgent = async (agentData: {
   email: string;
   phone?: string;
   image?: File;
-  document_image?: File;
+  documentFile?: File;
+  documentType?: string;
+  documentNotes?: string;
 }) => {
-  const formData = new FormData();
-  formData.append("name", agentData.name);
-  formData.append("email", agentData.email);
-  if (agentData.phone) {
-    formData.append("phone", agentData.phone);
-  }
-  if (agentData.image) {
-    formData.append("image", agentData.image);
-  }
-  if (agentData.document_image) {
-    formData.append("document_image", agentData.document_image);
+  const headers = getAuthHeaders();
+  const hasFile = agentData.image instanceof File || agentData.documentFile instanceof File;
+
+  const options: RequestInit = {
+    method: "POST",
+    headers,
+  };
+
+  if (hasFile) {
+    const formData = new FormData();
+    formData.append("name", agentData.name);
+    formData.append("email", agentData.email);
+    if (agentData.phone) {
+      formData.append("phone", agentData.phone);
+    }
+    if (agentData.image) {
+      formData.append("image", agentData.image);
+    }
+    if (agentData.documentFile) {
+      formData.append("document", agentData.documentFile);
+    }
+    if (agentData.documentType) {
+      formData.append("documentType", agentData.documentType);
+    }
+    if (agentData.documentNotes) {
+      formData.append("documentNotes", agentData.documentNotes);
+    }
+    options.body = formData;
+  } else {
+    options.headers = {
+      ...headers,
+      "Content-Type": "application/json",
+    };
+    options.body = JSON.stringify({
+      name: agentData.name,
+      email: agentData.email,
+      phone: agentData.phone,
+      documentType: agentData.documentType,
+      documentNotes: agentData.documentNotes,
+    });
   }
 
-  const response = await fetch(FIELD_AGENTS_API_URL, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: formData,
-  });
+  const response = await fetch(FIELD_AGENTS_API_URL, options);
 
   if (!response.ok) {
     const error = await response.json();
@@ -71,27 +98,54 @@ export const updateFieldAgent = async (
     email: string;
     phone?: string;
     image?: File;
-    document_image?: File;
+    documentFile?: File;
+    documentType?: string;
+    documentNotes?: string;
   }
 ) => {
-  const formData = new FormData();
-  formData.append("name", updates.name);
-  formData.append("email", updates.email);
-  if (updates.phone !== undefined) {
-    formData.append("phone", updates.phone || "");
-  }
-  if (updates.image) {
-    formData.append("image", updates.image);
-  }
-  if (updates.document_image) {
-    formData.append("document_image", updates.document_image);
+  const headers = getAuthHeaders();
+  const hasFile = updates.image instanceof File || updates.documentFile instanceof File;
+
+  const options: RequestInit = {
+    method: "PUT",
+    headers,
+  };
+
+  if (hasFile) {
+    const formData = new FormData();
+    formData.append("name", updates.name);
+    formData.append("email", updates.email);
+    if (updates.phone !== undefined) {
+      formData.append("phone", updates.phone || "");
+    }
+    if (updates.image) {
+      formData.append("image", updates.image);
+    }
+    if (updates.documentFile) {
+      formData.append("document", updates.documentFile);
+    }
+    if (updates.documentType) {
+      formData.append("documentType", updates.documentType);
+    }
+    if (updates.documentNotes) {
+      formData.append("documentNotes", updates.documentNotes);
+    }
+    options.body = formData;
+  } else {
+    options.headers = {
+      ...headers,
+      "Content-Type": "application/json",
+    };
+    options.body = JSON.stringify({
+      name: updates.name,
+      email: updates.email,
+      phone: updates.phone,
+      documentType: updates.documentType,
+      documentNotes: updates.documentNotes,
+    });
   }
 
-  const response = await fetch(`${FIELD_AGENTS_API_URL}/${id}`, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: formData,
-  });
+  const response = await fetch(`${FIELD_AGENTS_API_URL}/${id}`, options);
 
   if (!response.ok) {
     const error = await response.json();
