@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, FileText, MapPin, Clock, CheckCircle, XCircle } from "lucide-react"
+import { Building2, Users, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, FileText, MapPin, Clock, CheckCircle, XCircle, ArrowDownCircle, ArrowUpCircle, Home, Wallet, TrendingDown, Percent, UserCheck } from "lucide-react"
 import { useEffect, useState, useMemo } from "react"
 import { useAuthStore } from "@/store/authStore"
 import {
@@ -155,18 +155,14 @@ export function DashboardContent() {
     
     return [
       {
-        label: "Total Earnings",
-        value: `$${stats.totalEarnings.toLocaleString()}`,
-        change: stats.revenueChange ? `${stats.revenueChange > 0 ? '+' : ''}${stats.revenueChange.toFixed(1)}%` : "+0%",
-        isPositive: (stats.revenueChange || 0) >= 0,
-        icon: DollarSign,
-      },
-      {
         label: "Properties",
         value: stats.totalProperties.toString(),
         change: stats.propertiesChange ? `${stats.propertiesChange > 0 ? '+' : ''}${stats.propertiesChange.toFixed(1)}%` : "+0%",
         isPositive: (stats.propertiesChange || 0) >= 0,
         icon: Building2,
+        iconColor: "text-blue-600",
+        bgColor: "bg-blue-50",
+        hoverBgColor: "group-hover:bg-blue-100",
       },
       {
         label: "Active Tenants",
@@ -174,6 +170,9 @@ export function DashboardContent() {
         change: stats.tenantsChange ? `${stats.tenantsChange > 0 ? '+' : ''}${stats.tenantsChange.toFixed(1)}%` : "+0%",
         isPositive: (stats.tenantsChange || 0) >= 0,
         icon: Users,
+        iconColor: "text-emerald-600",
+        bgColor: "bg-emerald-50",
+        hoverBgColor: "group-hover:bg-emerald-100",
       },
       {
         label: "Monthly Revenue",
@@ -181,16 +180,84 @@ export function DashboardContent() {
         change: stats.revenueChange ? `${stats.revenueChange > 0 ? '+' : ''}${stats.revenueChange.toFixed(1)}%` : "+0%",
         isPositive: (stats.revenueChange || 0) >= 0,
         icon: TrendingUp,
+        iconColor: "text-amber-600",
+        bgColor: "bg-amber-50",
+        hoverBgColor: "group-hover:bg-amber-100",
+      },
+      {
+        label: "Total Income",
+        value: `$${stats.totalIncome.toLocaleString()}`,
+        change: "+0%",
+        isPositive: true,
+        icon: ArrowUpCircle,
+        iconColor: "text-green-600",
+        bgColor: "bg-green-50",
+        hoverBgColor: "group-hover:bg-green-100",
+      },
+      {
+        label: "Total Expenses",
+        value: `$${stats.totalExpenses.toLocaleString()}`,
+        change: "+0%",
+        isPositive: false,
+        icon: ArrowDownCircle,
+        iconColor: "text-red-600",
+        bgColor: "bg-red-50",
+        hoverBgColor: "group-hover:bg-red-100",
+      },
+      {
+        label: "Net Profit",
+        value: `$${stats.netProfit.toLocaleString()}`,
+        change: "+0%",
+        isPositive: stats.netProfit >= 0,
+        icon: DollarSign,
+        iconColor: stats.netProfit >= 0 ? "text-emerald-600" : "text-red-600",
+        bgColor: stats.netProfit >= 0 ? "bg-emerald-50" : "bg-red-50",
+        hoverBgColor: stats.netProfit >= 0 ? "group-hover:bg-emerald-100" : "group-hover:bg-red-100",
+      },
+      {
+        label: "Total Accounts",
+        value: stats.totalAccounts.toString(),
+        change: "+0%",
+        isPositive: true,
+        icon: Wallet,
+        iconColor: "text-purple-600",
+        bgColor: "bg-purple-50",
+        hoverBgColor: "group-hover:bg-purple-100",
+      },
+      {
+        label: "Total Landlords",
+        value: stats.totalLandlords.toString(),
+        change: "+0%",
+        isPositive: true,
+        icon: UserCheck,
+        iconColor: "text-indigo-600",
+        bgColor: "bg-indigo-50",
+        hoverBgColor: "group-hover:bg-indigo-100",
+      },
+      {
+        label: "Occupancy Rate",
+        value: `${stats.occupancyRate}%`,
+        change: "+0%",
+        isPositive: stats.occupancyRate >= 70,
+        icon: Percent,
+        iconColor: "text-cyan-600",
+        bgColor: "bg-cyan-50",
+        hoverBgColor: "group-hover:bg-cyan-100",
       },
     ]
   }, [stats])
 
   const headlineStatsFallback = useMemo(() => {
     return [
-      { label: "Total Earnings", icon: DollarSign },
-      { label: "Properties", icon: Building2 },
-      { label: "Active Tenants", icon: Users },
-      { label: "Monthly Revenue", icon: TrendingUp },
+      { label: "Properties", icon: Building2, iconColor: "text-blue-600", bgColor: "bg-blue-50", hoverBgColor: "group-hover:bg-blue-100" },
+      { label: "Active Tenants", icon: Users, iconColor: "text-emerald-600", bgColor: "bg-emerald-50", hoverBgColor: "group-hover:bg-emerald-100" },
+      { label: "Monthly Revenue", icon: TrendingUp, iconColor: "text-amber-600", bgColor: "bg-amber-50", hoverBgColor: "group-hover:bg-amber-100" },
+      { label: "Total Income", icon: ArrowUpCircle, iconColor: "text-green-600", bgColor: "bg-green-50", hoverBgColor: "group-hover:bg-green-100" },
+      { label: "Total Expenses", icon: ArrowDownCircle, iconColor: "text-red-600", bgColor: "bg-red-50", hoverBgColor: "group-hover:bg-red-100" },
+      { label: "Net Profit", icon: DollarSign, iconColor: "text-emerald-600", bgColor: "bg-emerald-50", hoverBgColor: "group-hover:bg-emerald-100" },
+      { label: "Total Accounts", icon: Wallet, iconColor: "text-purple-600", bgColor: "bg-purple-50", hoverBgColor: "group-hover:bg-purple-100" },
+      { label: "Total Landlords", icon: UserCheck, iconColor: "text-indigo-600", bgColor: "bg-indigo-50", hoverBgColor: "group-hover:bg-indigo-100" },
+      { label: "Occupancy Rate", icon: Percent, iconColor: "text-cyan-600", bgColor: "bg-cyan-50", hoverBgColor: "group-hover:bg-cyan-100" },
     ]
   }, [])
 
@@ -227,7 +294,7 @@ export function DashboardContent() {
         ) : null}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {(headlineStats.length ? headlineStats : headlineStatsFallback).map((stat: any) => (
             <Card 
               key={stat.label} 
@@ -256,7 +323,7 @@ export function DashboardContent() {
                       </>
                     )}
                   </div>
-                  <div className="rounded-lg bg-[#2a6f97]/10 p-1.5 text-[#2a6f97] transition-colors group-hover:bg-[#2a6f97]/20">
+                  <div className={`rounded-lg ${stat.bgColor || 'bg-[#2a6f97]/10'} p-1.5 ${stat.iconColor || 'text-[#2a6f97]'} transition-colors ${stat.hoverBgColor || 'group-hover:bg-[#2a6f97]/20'}`}>
                     <stat.icon className="h-3 w-3" />
                   </div>
                 </div>
@@ -265,12 +332,124 @@ export function DashboardContent() {
           ))}
         </div>
 
+        {/* Recent Activity - Section 2 */}
+        <Card className="border border-gray-200 bg-white">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold text-gray-900">Recent Activity</CardTitle>
+                <CardDescription className="text-xs text-gray-600">Latest transactions and updates</CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard/activity-logs")}
+                className="text-xs text-[#2a6f97] hover:text-[#2a6f97] hover:bg-[#2a6f97]/10"
+              >
+                View All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentActivity.length > 0 ? (
+              <div className="space-y-2">
+                {recentActivity.map((activity) => {
+                  const getActivityIcon = () => {
+                    switch (activity.type) {
+                      case "Income":
+                        return <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+                      case "Expense":
+                        return <ArrowDownCircle className="h-4 w-4 text-red-600" />
+                      case "Lease":
+                        return <FileText className="h-4 w-4 text-blue-600" />
+                      case "Property":
+                        return <Home className="h-4 w-4 text-purple-600" />
+                      case "Payment":
+                        return <CreditCard className="h-4 w-4 text-[#2a6f97]" />
+                      case "Maintenance":
+                        return <Calendar className="h-4 w-4 text-orange-600" />
+                      default:
+                        return <Clock className="h-4 w-4 text-gray-600" />
+                    }
+                  }
+
+                  const getActivityBgColor = () => {
+                    switch (activity.type) {
+                      case "Income":
+                        return "bg-emerald-50"
+                      case "Expense":
+                        return "bg-red-50"
+                      case "Lease":
+                        return "bg-blue-50"
+                      case "Property":
+                        return "bg-purple-50"
+                      case "Payment":
+                        return "bg-[#2a6f97]/10"
+                      case "Maintenance":
+                        return "bg-orange-50"
+                      default:
+                        return "bg-gray-50"
+                    }
+                  }
+
+                  const isNegative = activity.amount.startsWith('-')
+                  const isPositive = activity.amount.startsWith('+')
+
+                  return (
+                    <div 
+                      key={activity.id} 
+                      className="flex items-center justify-between rounded-lg border border-gray-100 bg-white p-4 transition-all hover:border-gray-200 hover:shadow-sm"
+                    >
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className={`mt-0.5 rounded-lg ${getActivityBgColor()} p-2 flex-shrink-0`}>
+                          {getActivityIcon()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">{activity.description}</p>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 flex-shrink-0">
+                              {activity.type}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <p className="text-xs text-gray-500">{activity.time}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        <span className={`text-sm font-semibold ${
+                          isNegative 
+                            ? 'text-red-600' 
+                            : isPositive 
+                            ? 'text-emerald-600' 
+                            : 'text-gray-900'
+                        }`}>
+                          {activity.amount}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-full bg-gray-100 p-3 mb-3">
+                  <Clock className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-1">No recent activity</p>
+                <p className="text-xs text-gray-500">Activity will appear here as it happens</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Charts Grid */}
         <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-          {/* Revenue Chart */}
+          {/* Income Chart */}
           <Card className="border border-gray-200 bg-white">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900">Revenue & Expenses</CardTitle>
+              <CardTitle className="text-base font-semibold text-gray-900">Income & Expenses</CardTitle>
               <CardDescription className="text-xs text-gray-600">Monthly financial overview</CardDescription>
             </CardHeader>
             <CardContent>
@@ -278,12 +457,12 @@ export function DashboardContent() {
                 <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2a6f97" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#2a6f97" stopOpacity={0.05} />
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
                     </linearGradient>
                     <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3a7fa7" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3a7fa7" stopOpacity={0.05} />
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -297,22 +476,33 @@ export function DashboardContent() {
                     stroke="#94a3b8"
                     tick={{ fill: '#64748b', fontSize: 12 }}
                     axisLine={{ stroke: '#e5e7eb' }}
-                    tickFormatter={(value) => `$${value / 1000}k`}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                      if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                      return `$${value}`;
+                    }}
                   />
                   <Tooltip content={<CustomTooltip />} />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '10px' }}
+                    iconType="circle"
+                    formatter={(value) => (
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>{value}</span>
+                    )}
+                  />
                   <Area 
                     type="monotone" 
                     dataKey="revenue" 
-                    stroke="#2a6f97" 
+                    stroke="#10b981" 
                     strokeWidth={2.5}
                     fill="url(#revenueGradient)"
-                    name="Revenue"
+                    name="Income"
                   />
                   <Area 
                     type="monotone" 
                     dataKey="expenses" 
-                    stroke="#3a7fa7" 
-                    strokeWidth={2}
+                    stroke="#ef4444" 
+                    strokeWidth={2.5}
                     fill="url(#expensesGradient)"
                     name="Expenses"
                   />
@@ -440,40 +630,6 @@ export function DashboardContent() {
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-900">Recent Activity</CardTitle>
-            <CardDescription className="text-xs text-gray-600">Latest transactions and updates</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {recentActivity.map((activity) => (
-                <div 
-                  key={activity.id} 
-                  className="flex items-center justify-between rounded-lg bg-gray-50/50 p-4 transition-colors hover:bg-gray-100/50"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-lg bg-[#2a6f97]/10 p-2">
-                      {activity.type === "Payment" && <CreditCard className="h-4 w-4 text-[#2a6f97]" />}
-                      {activity.type === "Lease" && <Building2 className="h-4 w-4 text-[#2a6f97]" />}
-                      {activity.type === "Maintenance" && <Calendar className="h-4 w-4 text-[#2a6f97]" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                      <p className="text-xs text-gray-600">{activity.time}</p>
-                    </div>
-                  </div>
-                  <span className={`text-sm font-semibold ${
-                    activity.amount.startsWith('-') ? 'text-gray-600' : 'text-gray-900'
-                  }`}>
-                    {activity.amount}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </main>
   )

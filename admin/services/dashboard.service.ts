@@ -2,12 +2,19 @@ import { API_URL } from "../lib/api";
 import { getProperties } from "./properties.service";
 import { getLandlords } from "./landlords.service";
 import { getUsers } from "./users.service";
+import { getIncomes, getExpenses, getAccounts } from "./finance.service";
 
 export interface DashboardStats {
   totalEarnings: number;
   totalProperties: number;
   activeTenants: number;
   monthlyRevenue: number;
+  totalIncome: number;
+  totalExpenses: number;
+  netProfit: number;
+  totalAccounts: number;
+  totalLandlords: number;
+  occupancyRate: number;
   propertiesChange?: number;
   tenantsChange?: number;
   revenueChange?: number;
@@ -43,15 +50,19 @@ export interface RecentActivity {
   description: string;
   amount: string;
   time: string;
+  timestamp?: number; // For sorting
 }
 
 // Get dashboard statistics
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {
-    const [properties, landlords, users] = await Promise.all([
+    const [properties, landlords, users, accounts, incomes, expenses] = await Promise.all([
       getProperties(),
       getLandlords(),
       getUsers(),
+      getAccounts().catch(() => []),
+      getIncomes().catch(() => []),
+      getExpenses().catch(() => []),
     ]);
 
     // Calculate total earnings (sum of all property prices)
@@ -68,15 +79,45 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     // Get total properties
     const totalProperties = properties.length;
 
+    // Calculate occupancy rate
+    const occupancyRate = totalProperties > 0 
+      ? Math.round((rentedProperties.length / totalProperties) * 100) 
+      : 0;
+
     // Active tenants (assuming users with tenant role or from applications)
     // For now, we'll use a placeholder - you may need to add a tenants API
     const activeTenants = users.length; // This is a placeholder
+
+    // Calculate total income from all accounts or incomes
+    const totalIncome = accounts.length > 0
+      ? accounts.reduce((sum: number, acc: any) => sum + (acc.totalIncome || 0), 0)
+      : (incomes as any[]).reduce((sum: number, inc: any) => sum + Number(inc.amount || 0), 0);
+
+    // Calculate total expenses from all accounts or expenses
+    const totalExpenses = accounts.length > 0
+      ? accounts.reduce((sum: number, acc: any) => sum + (acc.totalExpense || 0), 0)
+      : (expenses as any[]).reduce((sum: number, exp: any) => sum + Number(exp.amount || 0), 0);
+
+    // Calculate net profit
+    const netProfit = totalIncome - totalExpenses;
+
+    // Get total accounts
+    const totalAccounts = accounts.length;
+
+    // Get total landlords
+    const totalLandlords = landlords.length;
 
     return {
       totalEarnings,
       totalProperties,
       activeTenants,
       monthlyRevenue,
+      totalIncome,
+      totalExpenses,
+      netProfit,
+      totalAccounts,
+      totalLandlords,
+      occupancyRate,
     };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -87,36 +128,51 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
 // Get revenue data (last 8 months)
 export const getRevenueData = async (): Promise<RevenueData[]> => {
   try {
-    const properties = await getProperties();
+    const [incomes, expenses] = await Promise.all([
+      getIncomes().catch(() => []),
+      getExpenses().catch(() => []),
+    ]);
+
+    // Get last 8 months
+    const now = new Date();
+    const months: RevenueData[] = [];
     
-    // Group properties by month based on createdAt
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
-    const revenueData: RevenueData[] = months.map((month, index) => {
-      // Calculate revenue for this month (simplified - you may need actual payment data)
-      const monthProperties = properties.filter((p: any) => {
-        if (!p.createdAt) return false;
-        const date = new Date(p.createdAt);
-        return date.getMonth() === index;
+    for (let i = 7; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const monthIndex = date.getMonth();
+      const year = date.getFullYear();
+
+      // Calculate revenue from incomes for this month
+      const monthIncomes = (incomes as any[]).filter((income: any) => {
+        const incomeDate = income.date ? new Date(income.date) : (income.createdAt ? new Date(income.createdAt) : null);
+        if (!incomeDate) return false;
+        return incomeDate.getMonth() === monthIndex && incomeDate.getFullYear() === year;
       });
-      
-      const revenue = monthProperties.reduce((sum: number, p: any) => {
-        if (p.status === "RENTED") {
-          return sum + (Number(p.price) || 0);
-        }
-        return sum;
+
+      const revenue = monthIncomes.reduce((sum: number, income: any) => {
+        return sum + Number(income.amount || 0);
       }, 0);
 
-      // Estimate expenses (20% of revenue)
-      const expenses = revenue * 0.2;
+      // Calculate expenses for this month
+      const monthExpenses = (expenses as any[]).filter((expense: any) => {
+        const expenseDate = expense.date ? new Date(expense.date) : (expense.createdAt ? new Date(expense.createdAt) : null);
+        if (!expenseDate) return false;
+        return expenseDate.getMonth() === monthIndex && expenseDate.getFullYear() === year;
+      });
 
-      return {
-        month,
+      const expensesTotal = monthExpenses.reduce((sum: number, expense: any) => {
+        return sum + Number(expense.amount || 0);
+      }, 0);
+
+      months.push({
+        month: monthName,
         revenue: Math.round(revenue),
-        expenses: Math.round(expenses),
-      };
-    });
+        expenses: Math.round(expensesTotal),
+      });
+    }
 
-    return revenueData;
+    return months;
   } catch (error) {
     console.error("Error fetching revenue data:", error);
     return [];
@@ -219,43 +275,103 @@ export const getPaymentStatus = async (): Promise<PaymentStatusData[]> => {
   }
 };
 
+// Helper function to format time ago
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return "Just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+  return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+};
+
 // Get recent activity
 export const getRecentActivity = async (): Promise<RecentActivity[]> => {
   try {
-    const [properties, landlords] = await Promise.all([
+    const [properties, incomes, expenses] = await Promise.all([
       getProperties(),
-      getLandlords(),
+      getIncomes().catch(() => []),
+      getExpenses().catch(() => []),
     ]);
 
     const activities: RecentActivity[] = [];
 
-    // Get recent properties (last 4)
+    // Add recent properties
     const recentProperties = properties
       .sort((a: any, b: any) => {
         const dateA = new Date(a.createdAt || 0).getTime();
         const dateB = new Date(b.createdAt || 0).getTime();
         return dateB - dateA;
       })
-      .slice(0, 4);
+      .slice(0, 3);
 
-    recentProperties.forEach((property: any, index: number) => {
-      const timeAgo = index === 0 ? "2 hours ago" : 
-                     index === 1 ? "5 hours ago" : 
-                     index === 2 ? "1 day ago" : 
-                     "2 days ago";
-
+    recentProperties.forEach((property: any) => {
+      const createdAt = property.createdAt ? new Date(property.createdAt) : new Date();
       activities.push({
-        id: property.id || `activity-${index}`,
+        id: property.id || `property-${property.id}`,
         type: property.status === "RENTED" ? "Lease" : "Property",
         description: property.status === "RENTED" 
           ? `New lease signed for ${property.title || "Property"}`
           : `New property added: ${property.title || "Property"}`,
         amount: property.price ? `$${Number(property.price).toLocaleString()}` : "$0",
-        time: timeAgo,
+        time: formatTimeAgo(createdAt),
+        timestamp: createdAt.getTime(),
       });
     });
 
-    return activities;
+    // Add recent incomes
+    const recentIncomes = (incomes as any[])
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || a.date || 0).getTime();
+        const dateB = new Date(b.createdAt || b.date || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+
+    recentIncomes.forEach((income: any) => {
+      const createdAt = income.createdAt ? new Date(income.createdAt) : (income.date ? new Date(income.date) : new Date());
+      activities.push({
+        id: income.id || `income-${income.id}`,
+        type: "Income",
+        description: `Income from ${income.source || "Unknown"}`,
+        amount: `+$${Number(income.amount || 0).toLocaleString()}`,
+        time: formatTimeAgo(createdAt),
+        timestamp: createdAt.getTime(),
+      });
+    });
+
+    // Add recent expenses
+    const recentExpenses = (expenses as any[])
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || a.date || 0).getTime();
+        const dateB = new Date(b.createdAt || b.date || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+
+    recentExpenses.forEach((expense: any) => {
+      const createdAt = expense.createdAt ? new Date(expense.createdAt) : (expense.date ? new Date(expense.date) : new Date());
+      activities.push({
+        id: expense.id || `expense-${expense.id}`,
+        type: "Expense",
+        description: `${expense.category || "Expense"}${expense.vendorName ? ` - ${expense.vendorName}` : ""}`,
+        amount: `-$${Number(expense.amount || 0).toLocaleString()}`,
+        time: formatTimeAgo(createdAt),
+        timestamp: createdAt.getTime(),
+      });
+    });
+
+    // Sort all activities by timestamp (most recent first) and limit to 10
+    return activities
+      .sort((a, b) => {
+        const timeA = a.timestamp || 0;
+        const timeB = b.timestamp || 0;
+        return timeB - timeA; // Most recent first
+      })
+      .slice(0, 10);
   } catch (error) {
     console.error("Error fetching recent activity:", error);
     return [];
