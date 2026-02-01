@@ -29,6 +29,7 @@ export function DashboardHeader() {
     const routes: Record<string, string> = {
       '/dashboard': 'Dashboard',
       '/properties': 'Properties',
+      '/property-applications': 'Property Applications',
       '/landlords': 'Landlords',
       '/tenants': 'Tenants',
       '/field-agents': 'Field Agents',

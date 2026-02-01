@@ -15,6 +15,7 @@ import emailRoutes from './routes/email.routes.js';
 import accountRoutes from './routes/account.routes.js';
 import incomeRoutes from './routes/income.routes.js';
 import expenseRoutes from './routes/expense.routes.js';
+import propertyApplicationsRoutes from './routes/property.applications.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +67,7 @@ app.use('/api/v1/email', emailRoutes);
 app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/incomes', incomeRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/property-applications', propertyApplicationsRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

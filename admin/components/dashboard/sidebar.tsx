@@ -19,6 +19,7 @@ import {
   Mail,
   ArrowDownCircle,
   ArrowUpCircle,
+  ClipboardList,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -31,6 +32,7 @@ import Image from "next/image"
 const menuItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
   { id: "properties", icon: Building2, label: "Properties", href: "/properties" },
+  { id: "property-applications", icon: ClipboardList, label: "Property Applications", href: "/property-applications" },
   { id: "landlords", icon: UserCheck, label: "Landlords", href: "/landlords" },
   { id: "tenants", icon: Users, label: "Tenants", href: "/tenants" },
   { id: "field-agents", icon: MapPin, label: "Field Agents", href: "/field-agents" },
