@@ -281,7 +281,7 @@ export function PropertyApplicationsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border/50 shadow-sm">
+          <Card className="border-border/50 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
               <CardTitle className="text-xs font-semibold text-muted-foreground">Total</CardTitle>
               <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -290,7 +290,7 @@ export function PropertyApplicationsPage() {
               <div className="text-lg font-bold text-foreground">{stats.total}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm">
+          <Card className="border-border/50 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
               <CardTitle className="text-xs font-semibold text-muted-foreground">Pending</CardTitle>
               <Clock className="h-3.5 w-3.5 text-yellow-600" />
@@ -299,7 +299,7 @@ export function PropertyApplicationsPage() {
               <div className="text-lg font-bold text-foreground">{stats.pending}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm">
+          <Card className="border-border/50 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
               <CardTitle className="text-xs font-semibold text-muted-foreground">Approved</CardTitle>
               <CheckCircle className="h-3.5 w-3.5 text-green-600" />
@@ -308,7 +308,7 @@ export function PropertyApplicationsPage() {
               <div className="text-lg font-bold text-foreground">{stats.approved}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm">
+          <Card className="border-border/50 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
               <CardTitle className="text-xs font-semibold text-muted-foreground">Rejected</CardTitle>
               <XCircle className="h-3.5 w-3.5 text-red-600" />
@@ -320,7 +320,7 @@ export function PropertyApplicationsPage() {
         </div>
 
         {/* Filters and Search */}
-        <Card className="border-border/50 shadow-sm">
+        <Card className="border-border/50 shadow-none">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -348,7 +348,7 @@ export function PropertyApplicationsPage() {
         </Card>
 
         {/* Applications Table */}
-        <Card className="border-border/50 shadow-sm">
+        <Card className="border-border/50 shadow-none">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">
@@ -399,7 +399,8 @@ export function PropertyApplicationsPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </button>
                       </TableHead>
-                      <TableHead>Contact</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>
                         <button
                           onClick={() => handleSort("status")}
@@ -441,6 +442,12 @@ export function PropertyApplicationsPage() {
                                 {application.email}
                               </div>
                             )}
+                          
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                           
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Phone className="h-3 w-3" />
                               {application.phone}
