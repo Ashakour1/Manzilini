@@ -352,7 +352,7 @@ export function UsersPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-6">
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Total Users</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -364,7 +364,7 @@ export function UsersPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">All registered users</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Administrators</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -376,7 +376,7 @@ export function UsersPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Admin & Super Admin</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Regular Users</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -388,7 +388,7 @@ export function UsersPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Standard users</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Property Owners</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -400,7 +400,7 @@ export function UsersPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Property owners</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Active Users</CardTitle>
             <div className="rounded-lg bg-green-100 p-1.5">
@@ -412,7 +412,7 @@ export function UsersPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Active accounts</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Inactive Users</CardTitle>
             <div className="rounded-lg bg-gray-100 p-1.5">

@@ -180,7 +180,7 @@ export function FieldAgentsPage() {
 
       {/* Statistics */}
       <div className="grid gap-2 md:grid-cols-2">
-        <Card className="border-border/50 shadow-sm transition-shadow hover:shadow-md">
+        <Card className="border-border/50 shadow-none transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-semibold text-muted-foreground">Total Agents</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -192,7 +192,7 @@ export function FieldAgentsPage() {
             <p className="mt-0.5 text-[10px] text-muted-foreground">Registered field agents</p>
           </CardContent>
         </Card>
-        <Card className="border-border/50 shadow-sm transition-shadow hover:shadow-md">
+        <Card className="border-border/50 shadow-none transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-semibold text-muted-foreground">With Images</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">

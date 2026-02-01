@@ -349,7 +349,7 @@ export function PropertiesPage() {
 
       {/* Statistics Cards */}
       <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Total Properties</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -361,7 +361,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">All properties</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">For Rent</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -373,7 +373,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Available for rent</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">For Sale</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -385,7 +385,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Available for sale</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Rented</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -397,7 +397,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Currently rented</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Sold</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -409,7 +409,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Properties sold</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Featured</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
@@ -421,7 +421,7 @@ export function PropertiesPage() {
             <p className="text-[10px] text-gray-500 mt-0.5">Featured properties</p>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 bg-white shadow-none hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
             <CardTitle className="text-xs font-medium text-gray-600">Total Value</CardTitle>
             <div className="rounded-lg bg-[#2a6f97]/10 p-1.5">
