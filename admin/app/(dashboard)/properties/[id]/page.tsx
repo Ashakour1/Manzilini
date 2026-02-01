@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPropertyById, publishProperty, deleteProperty } from "@/services/properties.service"
+import { getPropertyById, publishProperty, deleteProperty, deletePropertyImage } from "@/services/properties.service"
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -89,7 +89,7 @@ type Property = {
   is_published?: boolean
   createdAt?: string
   updatedAt?: string
-  images?: { url: string }[]
+  images?: { id: string; url: string }[]
 }
 
 export default function PropertyDetailsPage() {
@@ -105,6 +105,7 @@ export default function PropertyDetailsPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!propertyId) return
@@ -164,6 +165,39 @@ export default function PropertyDetailsPage() {
       })
       setIsDeleting(false)
       setDeleteDialogOpen(false)
+    }
+  }
+
+  const handleDeleteImage = async (imageId: string) => {
+    if (!property || !imageId) return
+    
+    setDeletingImageId(imageId)
+    try {
+      await deletePropertyImage(property.id, imageId)
+      
+      // Update property state by removing the deleted image
+      const updatedImages = property.images?.filter(img => img.id !== imageId) || []
+      setProperty({ ...property, images: updatedImages })
+      
+      // Adjust selected image index if needed
+      if (selectedImageIndex >= updatedImages.length && updatedImages.length > 0) {
+        setSelectedImageIndex(updatedImages.length - 1)
+      } else if (updatedImages.length === 0) {
+        setSelectedImageIndex(0)
+      }
+      
+      toast({
+        title: "Success",
+        description: "Image deleted successfully",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete image",
+        variant: "destructive",
+      })
+    } finally {
+      setDeletingImageId(null)
     }
   }
 
@@ -308,31 +342,70 @@ export default function PropertyDetailsPage() {
             {/* Main Image */}
             <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
               {mainImage && (
-                <img
-                  src={mainImage.url}
-                  alt={property.title}
-                  className="h-full w-full object-cover"
-                />
+                <>
+                  <img
+                    src={mainImage.url}
+                    alt={property.title}
+                    className="h-full w-full object-cover"
+                  />
+                  {mainImage.id && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => handleDeleteImage(mainImage.id)}
+                      disabled={deletingImageId === mainImage.id}
+                    >
+                      {deletingImageId === mainImage.id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </>
               )}
             </div>
             {/* All Other Images Grid */}
             {allImages.length > 1 && (
               <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {allImages.map((image, index) => (
-                  <button
-                    key={image.url}
-                    type="button"
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`relative aspect-video w-full overflow-hidden rounded-lg border bg-muted transition-opacity hover:opacity-80 ${
-                      selectedImageIndex === index ? "ring-2 ring-primary" : ""
-                    }`}
+                  <div
+                    key={image.id || image.url}
+                    className="relative group"
                   >
-                    <img
-                      src={image.url}
-                      alt={`${property.title} - Image ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`relative aspect-video w-full overflow-hidden rounded-lg border bg-muted transition-opacity hover:opacity-80 ${
+                        selectedImageIndex === index ? "ring-2 ring-primary" : ""
+                      }`}
+                    >
+                      <img
+                        src={image.url}
+                        alt={`${property.title} - Image ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                    {image.id && (
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteImage(image.id)
+                        }}
+                        disabled={deletingImageId === image.id}
+                      >
+                        {deletingImageId === image.id ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

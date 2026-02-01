@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProperties, getPropertyById, createProperty, updateProperty, deleteProperty, getPropertyTypes, getPropertyCountsByCity, getPropertiesForUser } from '../controllers/property.controller.js';
+import { getProperties, getPropertyById, createProperty, updateProperty, deleteProperty, deletePropertyImage, getPropertyTypes, getPropertyCountsByCity, getPropertiesForUser } from '../controllers/property.controller.js';
 import upload from '../middlewares/upload.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
@@ -24,5 +24,8 @@ router.post("/", AuthMiddleware, upload.array("images", 10), createProperty);
 router.put('/:id', AuthMiddleware, upload.array("images", 10), updateProperty);
 
 router.delete('/:id', AuthMiddleware, deleteProperty);
+
+// Delete a single property image
+router.delete('/:id/images/:imageId', AuthMiddleware, deletePropertyImage);
 
 export default router;

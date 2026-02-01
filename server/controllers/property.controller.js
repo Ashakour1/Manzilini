@@ -490,10 +490,35 @@ export const deleteProperty = asyncHandler(async (req, res) => {
         // Check if property exists
         const existingProperty = await prisma.property.findUnique({
             where: { id },
+            include: { images: true }
         });
 
         if (!existingProperty) {
             return res.status(404).json({ message: 'Property not found' });
+        }
+
+        // Delete images from Cloudinary first
+        if (existingProperty.images && existingProperty.images.length > 0) {
+            for (const image of existingProperty.images) {
+                try {
+                    // Extract public_id from Cloudinary URL
+                    // URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{version}/{folder}/{public_id}.{format}
+                    // or: https://res.cloudinary.com/{cloud_name}/image/upload/{folder}/{public_id}.{format}
+                    const urlParts = image.url.split('/');
+                    const uploadIndex = urlParts.findIndex(part => part === 'upload');
+                    if (uploadIndex !== -1 && uploadIndex < urlParts.length - 1) {
+                        // Get the path after 'upload' (skip version if present)
+                        let pathAfterUpload = urlParts.slice(uploadIndex + 1).join('/');
+                        // Remove file extension
+                        const publicId = pathAfterUpload.replace(/\.[^/.]+$/, '');
+                        
+                        await cloudinary.uploader.destroy(publicId);
+                    }
+                } catch (cloudinaryError) {
+                    console.error('Error deleting image from Cloudinary:', cloudinaryError);
+                    // Continue even if Cloudinary deletion fails
+                }
+            }
         }
 
         // Delete related records first (in case cascade doesn't work immediately after migration)
@@ -521,6 +546,59 @@ export const deleteProperty = asyncHandler(async (req, res) => {
         });
 
         res.status(200).json({ message: 'Property deleted successfully', id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Delete a single property image
+export const deletePropertyImage = asyncHandler(async (req, res) => {
+    try {
+        const { id, imageId } = req.params;
+        
+        // Check if property exists
+        const property = await prisma.property.findUnique({
+            where: { id },
+            include: { images: true }
+        });
+
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found' });
+        }
+
+        // Find the image to delete
+        const imageToDelete = property.images.find(img => img.id === imageId);
+        
+        if (!imageToDelete) {
+            return res.status(404).json({ message: 'Image not found' });
+        }
+
+        // Delete image from Cloudinary
+        try {
+            // Extract public_id from Cloudinary URL
+            // URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{version}/{folder}/{public_id}.{format}
+            // or: https://res.cloudinary.com/{cloud_name}/image/upload/{folder}/{public_id}.{format}
+            const urlParts = imageToDelete.url.split('/');
+            const uploadIndex = urlParts.findIndex(part => part === 'upload');
+            if (uploadIndex !== -1 && uploadIndex < urlParts.length - 1) {
+                // Get the path after 'upload' (skip version if present)
+                let pathAfterUpload = urlParts.slice(uploadIndex + 1).join('/');
+                // Remove file extension
+                const publicId = pathAfterUpload.replace(/\.[^/.]+$/, '');
+                
+                await cloudinary.uploader.destroy(publicId);
+            }
+        } catch (cloudinaryError) {
+            console.error('Error deleting image from Cloudinary:', cloudinaryError);
+            // Continue with database deletion even if Cloudinary deletion fails
+        }
+
+        // Delete image from database
+        await prisma.propertyImages.delete({
+            where: { id: imageId }
+        });
+
+        res.status(200).json({ message: 'Image deleted successfully', imageId });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

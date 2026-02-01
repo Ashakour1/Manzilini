@@ -127,6 +127,20 @@ export const publishProperty = async (id: string, isPublished: boolean) => {
   return response.json();
 };
 
+// Delete a property image
+export const deletePropertyImage = async (propertyId: string, imageId: string) => {
+  const response = await fetch(`${PROPERTY_API_URL}/${propertyId}/images/${imageId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete property image");
+  }
+
+  return response.json();
+};
+
 export default {
   registerProperty,
   getProperties,
@@ -134,4 +148,5 @@ export default {
   updateProperty,
   deleteProperty,
   publishProperty,
+  deletePropertyImage,
 };

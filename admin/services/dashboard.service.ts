@@ -132,7 +132,7 @@ export const getRevenueData = async (): Promise<RevenueData[]> => {
       getIncomes().catch(() => []),
       getExpenses().catch(() => []),
     ]);
-
+    
     // Get last 8 months
     const now = new Date();
     const months: RevenueData[] = [];
@@ -149,7 +149,7 @@ export const getRevenueData = async (): Promise<RevenueData[]> => {
         if (!incomeDate) return false;
         return incomeDate.getMonth() === monthIndex && incomeDate.getFullYear() === year;
       });
-
+      
       const revenue = monthIncomes.reduce((sum: number, income: any) => {
         return sum + Number(income.amount || 0);
       }, 0);
@@ -169,7 +169,7 @@ export const getRevenueData = async (): Promise<RevenueData[]> => {
         month: monthName,
         revenue: Math.round(revenue),
         expenses: Math.round(expensesTotal),
-      });
+    });
     }
 
     return months;
