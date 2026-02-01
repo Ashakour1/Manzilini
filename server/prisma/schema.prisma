@@ -57,6 +57,9 @@ model Landlord {
   // link to expenses
   expenses Expense[]
   incomes Income[]
+
+  // link to property applications
+  propertyApplications PropertyApplication[]
   // creator
   createdBy       String?
   creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
@@ -148,16 +151,29 @@ model PropertyImages {
 }
 
 model PropertyApplication {
-  id         String            @id @default(cuid())
-  propertyId String
-  tenantId   String
-  message    String?
-  status     ApplicationStatus @default(PENDING)
-  createdAt  DateTime          @default(now())
-  property   Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  // tenant     User              @relation(fields: [tenantId], references: [id])
-  payments   Payment[]
+  id          String   @id @default(uuid())
+
+  // Tenant info (no account required)
+  fullName    String
+  email       String?
+  phone       String
+  message     String?
+
+  // Relations
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  landlordId  String
+  landlord    Landlord @relation(fields: [landlordId], references: [id])
+
+  // Application flow
+  status      ApplicationStatus @default(PENDING)
+  remarks     String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
 
 model Payment {
   id            String        @id @default(cuid())
@@ -168,7 +184,7 @@ model Payment {
 
   paymentDate DateTime?           @default(now())
   createdAt   DateTime            @default(now())
-  application PropertyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  // application PropertyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   property    Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
@@ -340,9 +356,11 @@ enum PaymentStatus {
 
 enum ApplicationStatus {
   PENDING
+  CONTACTED
   APPROVED
   REJECTED
 }
+
 
 enum Role {
   USER

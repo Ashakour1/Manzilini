@@ -1,20 +1,36 @@
 import express from 'express';
-import { createPropertyApplication, getPropertyApplications, getPropertyApplicationById, updatePropertyApplication, deletePropertyApplication, getPropertyApplicationsByTenant } from '../controllers/property.applications.controller.js';
+import { 
+    createPropertyApplication, 
+    getPropertyApplications, 
+    getPropertyApplicationById, 
+    updatePropertyApplication, 
+    deletePropertyApplication, 
+    getPropertyApplicationsByTenant,
+    getPropertyApplicationsByLandlord
+} from '../controllers/property.applications.controller.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
+// Create property application (public endpoint)
+router.post('/', createPropertyApplication);
 
-router.post('/',createPropertyApplication);
+// Get all property applications with optional filters (query params: propertyId, landlordId, status)
+router.get('/', AuthMiddleware, getPropertyApplications);
 
-router.get('/', AuthMiddleware,getPropertyApplications);
+// Get property applications by landlord
+router.get('/landlord/:landlordId', AuthMiddleware, getPropertyApplicationsByLandlord);
 
-router.get('/:id',AuthMiddleware, getPropertyApplicationById);
+// Get property applications by tenant (query params: email, phone)
+router.get('/tenant', AuthMiddleware, getPropertyApplicationsByTenant);
 
-router.put('/:id',AuthMiddleware, updatePropertyApplication);
+// Get single property application by ID
+router.get('/:id', AuthMiddleware, getPropertyApplicationById);
 
-router.delete('/:id',AuthMiddleware, deletePropertyApplication);
+// Update property application
+router.put('/:id', AuthMiddleware, updatePropertyApplication);
 
-router.get('/tenant/:tenantId', AuthMiddleware,getPropertyApplicationsByTenant);
+// Delete property application
+router.delete('/:id', AuthMiddleware, deletePropertyApplication);
 
 export default router;
