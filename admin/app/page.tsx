@@ -58,10 +58,14 @@ export default function Home() {
         router.replace("/agent-login");
         return;
       }
-      // Redirect to role-specific dashboard
-      const { getDashboardPath } = require("@/lib/role-utils");
-      const dashboardPath = getDashboardPath(user.role);
-      router.replace(dashboardPath);
+      // Only redirect ADMIN and SUPER_ADMIN to admin dashboard
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        const { getDashboardPath } = require("@/lib/role-utils");
+        const dashboardPath = getDashboardPath(user.role);
+        router.replace(dashboardPath);
+        return;
+      }
+      // Other users stay on login page or redirect to home
     }
   }, [isHydrated, isLoggedIn, user, router, logout]);
 
@@ -87,9 +91,16 @@ export default function Home() {
       const data = await Login(formData.email, formData.password);
       
       // Redirect agents to agent login page
-      const role = data.role?.toUpperCase();
-      if (role === "AGENT") {
+      const userRole = data.role?.toUpperCase();
+      if (userRole === "AGENT") {
         setError("This login page is for administrators only. Please use the agent login page.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Only allow ADMIN and SUPER_ADMIN to login
+      if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+        setError("Access denied. This login is for administrators only.");
         setIsLoading(false);
         return;
       }
@@ -102,7 +113,7 @@ export default function Home() {
         role: data.role,
       });
 
-      // Redirect to role-specific dashboard
+      // Redirect ADMIN and SUPER_ADMIN to admin dashboard
       const { getDashboardPath } = require("@/lib/role-utils");
       const dashboardPath = getDashboardPath(data.role);
       router.push(dashboardPath);

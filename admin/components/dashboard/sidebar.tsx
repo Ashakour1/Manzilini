@@ -121,25 +121,34 @@ export function DashboardSidebar() {
     }
     
     const userRole = user.role.toUpperCase()
-    const rolePrefix = "/admin"
     
     // Map menu items with role-specific paths
     const mappedItems = menuItems.map(item => {
-      if (item.href === "/dashboard") {
-        return { ...item, href: `${rolePrefix}/dashboard` }
+      // SUPER_ADMIN uses original paths (no /admin prefix)
+      if (userRole === "SUPER_ADMIN") {
+        return item
       }
-      if (item.href.startsWith("/")) {
-        return { ...item, href: `${rolePrefix}${item.href}` }
-      }
-      if (item.children) {
-        return {
-          ...item,
-          children: item.children.map(child => ({
-            ...child,
-            href: `${rolePrefix}${child.href}`
-          }))
+      
+      // ADMIN uses /admin prefix
+      if (userRole === "ADMIN") {
+        const rolePrefix = "/admin"
+        if (item.href === "/dashboard") {
+          return { ...item, href: `${rolePrefix}/dashboard` }
+        }
+        if (item.href.startsWith("/")) {
+          return { ...item, href: `${rolePrefix}${item.href}` }
+        }
+        if (item.children) {
+          return {
+            ...item,
+            children: item.children.map(child => ({
+              ...child,
+              href: `${rolePrefix}${child.href}`
+            }))
+          }
         }
       }
+      
       return item
     })
     
@@ -156,7 +165,7 @@ export function DashboardSidebar() {
       )
     }
     
-    // Super admin sees all menu items (through admin routes)
+    // Super admin sees all menu items (original paths, no /admin prefix)
     if (userRole === "SUPER_ADMIN") {
       return mappedItems
     }
