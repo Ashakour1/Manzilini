@@ -116,26 +116,52 @@ export function DashboardSidebar() {
 
   // Filter menu items based on user role
   const filteredMenuItems = useMemo(() => {
-    // Default to most restrictive view (AGENT) until role is loaded
-    // This prevents showing all items briefly before filtering
     if (!isHydrated || !user?.role) {
-      // Return AGENT view (most restrictive) while loading
-      return menuItems.filter(item => 
-        item.id === "properties" || item.id === "landlords"
+      return []
+    }
+    
+    const userRole = user.role.toUpperCase()
+    const rolePrefix = "/admin"
+    
+    // Map menu items with role-specific paths
+    const mappedItems = menuItems.map(item => {
+      if (item.href === "/dashboard") {
+        return { ...item, href: `${rolePrefix}/dashboard` }
+      }
+      if (item.href.startsWith("/")) {
+        return { ...item, href: `${rolePrefix}${item.href}` }
+      }
+      if (item.children) {
+        return {
+          ...item,
+          children: item.children.map(child => ({
+            ...child,
+            href: `${rolePrefix}${child.href}`
+          }))
+        }
+      }
+      return item
+    })
+    
+    // Filter based on role
+    if (userRole === "ADMIN") {
+      // Admin can only access: dashboard, properties, landlords, users, field-agents, tenants
+      return mappedItems.filter(item => 
+        item.id === "dashboard" ||
+        item.id === "properties" ||
+        item.id === "landlords" ||
+        item.id === "users" ||
+        item.id === "field-agents" ||
+        item.id === "tenants"
       )
     }
     
-    // const userRole = user.role.toUpperCase()
+    // Super admin sees all menu items (through admin routes)
+    if (userRole === "SUPER_ADMIN") {
+      return mappedItems
+    }
     
-    // if (userRole === "AGENT") {
-    //   // AGENT role only sees Properties and Landlords
-    //   return menuItems.filter(item => 
-    //     item.id === "properties" || item.id === "landlords"
-    //   )
-    // }
-    
-    // All other roles see all menu items
-    return menuItems
+    return []
   }, [user?.role, isHydrated])
 
   const avatarSrc = useMemo(() => {

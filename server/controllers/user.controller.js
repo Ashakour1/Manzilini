@@ -276,6 +276,7 @@ export const updateUser = asyncHandler(async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({ message: 'User not found' });
         }
+        
 
         // If email is being updated, check if new email already exists
         if (email && email !== existingUser.email) {
@@ -319,6 +320,7 @@ export const updateUser = asyncHandler(async (req, res) => {
         // Check if password is being updated
         const isPasswordBeingUpdated = password !== undefined;
 
+        
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (email !== undefined) updateData.email = email;
@@ -435,6 +437,12 @@ export const deleteUser = asyncHandler(async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+        
+        if(user.id === req.user.id) {
+            return res.status(400).json({ message: 'You cannot delete yourself' });
+        }
+
+       
 
         // Check if user has property applications by querying PropertyApplication directly
         const propertyApplications = await prisma.propertyApplication.findMany({

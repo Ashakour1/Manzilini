@@ -153,6 +153,70 @@ export function DashboardContent() {
   const headlineStats = useMemo(() => {
     if (!stats) return []
     
+    const userRole = user?.role?.toUpperCase()
+    
+    // Admin-specific stats (only show what admin can access)
+    if (userRole === "ADMIN") {
+      return [
+        {
+          label: "Properties",
+          value: stats.totalProperties.toString(),
+          change: stats.propertiesChange ? `${stats.propertiesChange > 0 ? '+' : ''}${stats.propertiesChange.toFixed(1)}%` : "+0%",
+          isPositive: (stats.propertiesChange || 0) >= 0,
+          icon: Building2,
+          iconColor: "text-blue-600",
+          bgColor: "bg-blue-50",
+          hoverBgColor: "group-hover:bg-blue-100",
+          onClick: () => router.push("/admin/properties"),
+        },
+        {
+          label: "Landlords",
+          value: stats.totalLandlords.toString(),
+          change: "+0%",
+          isPositive: true,
+          icon: UserCheck,
+          iconColor: "text-indigo-600",
+          bgColor: "bg-indigo-50",
+          hoverBgColor: "group-hover:bg-indigo-100",
+          onClick: () => router.push("/admin/landlords"),
+        },
+        {
+          label: "Users",
+          value: stats.totalUsers.toString(),
+          change: "+0%",
+          isPositive: true,
+          icon: Users,
+          iconColor: "text-emerald-600",
+          bgColor: "bg-emerald-50",
+          hoverBgColor: "group-hover:bg-emerald-100",
+          onClick: () => router.push("/admin/users"),
+        },
+        {
+          label: "Field Agents",
+          value: stats.totalFieldAgents.toString(),
+          change: "+0%",
+          isPositive: true,
+          icon: MapPin,
+          iconColor: "text-purple-600",
+          bgColor: "bg-purple-50",
+          hoverBgColor: "group-hover:bg-purple-100",
+          onClick: () => router.push("/admin/field-agents"),
+        },
+        {
+          label: "Tenants",
+          value: stats.activeTenants.toString(),
+          change: stats.tenantsChange ? `${stats.tenantsChange > 0 ? '+' : ''}${stats.tenantsChange.toFixed(1)}%` : "+0%",
+          isPositive: (stats.tenantsChange || 0) >= 0,
+          icon: Users,
+          iconColor: "text-cyan-600",
+          bgColor: "bg-cyan-50",
+          hoverBgColor: "group-hover:bg-cyan-100",
+          onClick: () => router.push("/admin/tenants"),
+        },
+      ]
+    }
+    
+    // Super admin or other roles see all stats
     return [
       {
         label: "Properties",
@@ -245,9 +309,22 @@ export function DashboardContent() {
         hoverBgColor: "group-hover:bg-cyan-100",
       },
     ]
-  }, [stats])
+  }, [stats, user?.role, router])
 
   const headlineStatsFallback = useMemo(() => {
+    const userRole = user?.role?.toUpperCase()
+    
+    // Admin-specific fallback
+    if (userRole === "ADMIN") {
+      return [
+        { label: "Properties", icon: Building2, iconColor: "text-blue-600", bgColor: "bg-blue-50", hoverBgColor: "group-hover:bg-blue-100" },
+        { label: "Landlords", icon: UserCheck, iconColor: "text-indigo-600", bgColor: "bg-indigo-50", hoverBgColor: "group-hover:bg-indigo-100" },
+        { label: "Users", icon: Users, iconColor: "text-emerald-600", bgColor: "bg-emerald-50", hoverBgColor: "group-hover:bg-emerald-100" },
+        { label: "Field Agents", icon: MapPin, iconColor: "text-purple-600", bgColor: "bg-purple-50", hoverBgColor: "group-hover:bg-purple-100" },
+        { label: "Tenants", icon: Users, iconColor: "text-cyan-600", bgColor: "bg-cyan-50", hoverBgColor: "group-hover:bg-cyan-100" },
+      ]
+    }
+    
     return [
       { label: "Properties", icon: Building2, iconColor: "text-blue-600", bgColor: "bg-blue-50", hoverBgColor: "group-hover:bg-blue-100" },
       { label: "Active Tenants", icon: Users, iconColor: "text-emerald-600", bgColor: "bg-emerald-50", hoverBgColor: "group-hover:bg-emerald-100" },
@@ -259,7 +336,7 @@ export function DashboardContent() {
       { label: "Total Landlords", icon: UserCheck, iconColor: "text-indigo-600", bgColor: "bg-indigo-50", hoverBgColor: "group-hover:bg-indigo-100" },
       { label: "Occupancy Rate", icon: Percent, iconColor: "text-cyan-600", bgColor: "bg-cyan-50", hoverBgColor: "group-hover:bg-cyan-100" },
     ]
-  }, [])
+  }, [user?.role])
 
   if (!isHydrated) {
     return (
@@ -278,13 +355,21 @@ export function DashboardContent() {
   }
 
   const userName = user?.name?.split(' ')[0] || 'User'
+  const userRole = user?.role?.toUpperCase()
+  const isAdmin = userRole === "ADMIN"
+  
   return (
     <main className="flex-1 overflow-y-auto bg-white">
       <div className="space-y-4 p-3 sm:p-4 lg:p-5">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-xs text-gray-600">Welcome back, {userName}. Here's your overview.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900">Admin Dashboard</h1>
+          <p className="text-xs text-gray-600">
+            {isAdmin 
+              ? `Welcome back, ${userName}. Manage your properties, landlords, users, field agents, and tenants.`
+              : `Welcome back, ${userName}. Here's your overview.`
+            }
+          </p>
         </div>
 
         {error ? (
@@ -294,11 +379,12 @@ export function DashboardContent() {
         ) : null}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {(headlineStats.length ? headlineStats : headlineStatsFallback).map((stat: any) => (
             <Card 
               key={stat.label} 
-              className="group border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5"
+              className={`group border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5 ${stat.onClick ? 'cursor-pointer' : ''}`}
+              onClick={stat.onClick}
             >
               <CardContent className="p-3">
                 <div className="flex items-start justify-between">
@@ -307,14 +393,16 @@ export function DashboardContent() {
                     {headlineStats.length ? (
                       <>
                         <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
-                        <div className="flex items-center gap-1 text-[9px]">
-                          {stat.isPositive ? (
-                            <ArrowUpRight className="h-2.5 w-2.5 text-[#2a6f97]" />
-                          ) : (
-                            <ArrowDownRight className="h-2.5 w-2.5 text-gray-600" />
-                          )}
-                          <span className="text-gray-600">{stat.change} from last month</span>
-                        </div>
+                        {stat.change && (
+                          <div className="flex items-center gap-1 text-[9px]">
+                            {stat.isPositive ? (
+                              <ArrowUpRight className="h-2.5 w-2.5 text-[#2a6f97]" />
+                            ) : (
+                              <ArrowDownRight className="h-2.5 w-2.5 text-gray-600" />
+                            )}
+                            <span className="text-gray-600">{stat.change} from last month</span>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
@@ -444,191 +532,195 @@ export function DashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Charts Grid */}
-        <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-          {/* Income Chart */}
-          <Card className="border border-gray-200 bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900">Income & Expenses</CardTitle>
-              <CardDescription className="text-xs text-gray-600">Monthly financial overview</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="#94a3b8"
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                  />
-                  <YAxis 
-                    stroke="#94a3b8"
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                    tickFormatter={(value) => {
-                      if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-                      if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
-                      return `$${value}`;
-                    }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    wrapperStyle={{ paddingTop: '10px' }}
-                    iconType="circle"
-                    formatter={(value) => (
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>{value}</span>
-                    )}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#10b981" 
-                    strokeWidth={2.5}
-                    fill="url(#revenueGradient)"
-                    name="Income"
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="expenses" 
-                    stroke="#ef4444" 
-                    strokeWidth={2.5}
-                    fill="url(#expensesGradient)"
-                    name="Expenses"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Property Types Pie Chart */}
-          <Card className="border border-gray-200 bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900">Property Distribution</CardTitle>
-              <CardDescription className="text-xs text-gray-600">Portfolio composition</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={propertyTypes as any}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={2}
-                  >
-                    {propertyTypes.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-2">
-                {propertyTypes.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="h-3 w-3 rounded-full" 
-                        style={{ backgroundColor: item.fill }}
+        {/* Charts Grid - Only show for Super Admin */}
+        {!isAdmin && (
+          <>
+            <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
+              {/* Income Chart */}
+              <Card className="border border-gray-200 bg-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">Income & Expenses</CardTitle>
+                  <CardDescription className="text-xs text-gray-600">Monthly financial overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                        </linearGradient>
+                        <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="#94a3b8"
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={{ stroke: '#e5e7eb' }}
                       />
-                      <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Occupancy & Payments */}
-        <div className="grid gap-4 lg:grid-cols-[1.5fr,1fr]">
-          {/* Occupancy Chart */}
-          <Card className="border border-gray-200 bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900">Occupancy Rate</CardTitle>
-              <CardDescription className="text-xs text-gray-600">Monthly occupancy trends</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={occupancyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2a6f97" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#2a6f97" stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="#94a3b8"
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                  />
-                  <YAxis 
-                    stroke="#94a3b8"
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                    domain={[70, 100]}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="occupancy" 
-                    stroke="#2a6f97" 
-                    strokeWidth={3}
-                    fill="url(#occupancyGradient)"
-                    name="Occupancy"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Payment Status */}
-          <Card className="border border-gray-200 bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900">Payment Status</CardTitle>
-              <CardDescription className="text-xs text-gray-600">Current payment overview</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {paymentStatus.map((item) => (
-                  <div key={item.status} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{item.status}</span>
-                      <span className="text-sm font-semibold text-gray-900">{item.count} payments</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full rounded-full bg-[#2a6f97] transition-all duration-500"
-                        style={{ 
-                          width: `${(item.count / paymentStatus.reduce((acc, curr) => acc + curr.count, 0)) * 100}%` 
+                      <YAxis 
+                        stroke="#94a3b8"
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={{ stroke: '#e5e7eb' }}
+                        tickFormatter={(value) => {
+                          if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                          if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                          return `$${value}`;
                         }}
                       />
-                    </div>
-                    <p className="text-xs text-gray-600">${item.amount.toLocaleString()}</p>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend 
+                        wrapperStyle={{ paddingTop: '10px' }}
+                        iconType="circle"
+                        formatter={(value) => (
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>{value}</span>
+                        )}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#10b981" 
+                        strokeWidth={2.5}
+                        fill="url(#revenueGradient)"
+                        name="Income"
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="expenses" 
+                        stroke="#ef4444" 
+                        strokeWidth={2.5}
+                        fill="url(#expensesGradient)"
+                        name="Expenses"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Property Types Pie Chart */}
+              <Card className="border border-gray-200 bg-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">Property Distribution</CardTitle>
+                  <CardDescription className="text-xs text-gray-600">Portfolio composition</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={propertyTypes as any}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                      >
+                        {propertyTypes.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {propertyTypes.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="h-3 w-3 rounded-full" 
+                            style={{ backgroundColor: item.fill }}
+                          />
+                          <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Occupancy & Payments */}
+            <div className="grid gap-4 lg:grid-cols-[1.5fr,1fr]">
+              {/* Occupancy Chart */}
+              <Card className="border border-gray-200 bg-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">Occupancy Rate</CardTitle>
+                  <CardDescription className="text-xs text-gray-600">Monthly occupancy trends</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={occupancyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2a6f97" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#2a6f97" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="#94a3b8"
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={{ stroke: '#e5e7eb' }}
+                      />
+                      <YAxis 
+                        stroke="#94a3b8"
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={{ stroke: '#e5e7eb' }}
+                        domain={[70, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="occupancy" 
+                        stroke="#2a6f97" 
+                        strokeWidth={3}
+                        fill="url(#occupancyGradient)"
+                        name="Occupancy"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Payment Status */}
+              <Card className="border border-gray-200 bg-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">Payment Status</CardTitle>
+                  <CardDescription className="text-xs text-gray-600">Current payment overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {paymentStatus.map((item) => (
+                      <div key={item.status} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">{item.status}</span>
+                          <span className="text-sm font-semibold text-gray-900">{item.count} payments</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                          <div
+                            className="h-full rounded-full bg-[#2a6f97] transition-all duration-500"
+                            style={{ 
+                              width: `${(item.count / paymentStatus.reduce((acc, curr) => acc + curr.count, 0)) * 100}%` 
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-600">${item.amount.toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
 
       </div>
     </main>

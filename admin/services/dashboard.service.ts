@@ -3,6 +3,7 @@ import { getProperties } from "./properties.service";
 import { getLandlords } from "./landlords.service";
 import { getUsers } from "./users.service";
 import { getIncomes, getExpenses, getAccounts } from "./finance.service";
+import { getFieldAgents } from "./field-agents.service";
 
 export interface DashboardStats {
   totalEarnings: number;
@@ -14,6 +15,8 @@ export interface DashboardStats {
   netProfit: number;
   totalAccounts: number;
   totalLandlords: number;
+  totalUsers: number;
+  totalFieldAgents: number;
   occupancyRate: number;
   propertiesChange?: number;
   tenantsChange?: number;
@@ -56,10 +59,11 @@ export interface RecentActivity {
 // Get dashboard statistics
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {
-    const [properties, landlords, users, accounts, incomes, expenses] = await Promise.all([
+    const [properties, landlords, users, fieldAgents, accounts, incomes, expenses] = await Promise.all([
       getProperties(),
       getLandlords(),
       getUsers(),
+      getFieldAgents().catch(() => []),
       getAccounts().catch(() => []),
       getIncomes().catch(() => []),
       getExpenses().catch(() => []),
@@ -107,6 +111,12 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     // Get total landlords
     const totalLandlords = landlords.length;
 
+    // Get total users
+    const totalUsers = users.length;
+
+    // Get total field agents
+    const totalFieldAgents = (fieldAgents as any[]).length;
+
     return {
       totalEarnings,
       totalProperties,
@@ -117,6 +127,8 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       netProfit,
       totalAccounts,
       totalLandlords,
+      totalUsers,
+      totalFieldAgents,
       occupancyRate,
     };
   } catch (error) {

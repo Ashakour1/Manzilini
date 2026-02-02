@@ -2,24 +2,59 @@
 
 import type { ReactNode } from "react"
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { useAuthStore } from "@/store/authStore"
+import { getDashboardPath, canAccessRoute } from "@/lib/role-utils"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { isLoggedIn, isHydrated, user } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   // Redirect unauthenticated users to login
   useEffect(() => {
     if (isHydrated && !isLoggedIn) {
       router.replace("/");
+      return;
     }
-  }, [isHydrated, isLoggedIn, router]);
+
+    // If logged in, check role and redirect to appropriate dashboard
+    if (isHydrated && isLoggedIn && user) {
+      const role = user.role?.toUpperCase();
+      
+      // Redirect agents to agent login
+      if (role === "AGENT") {
+        router.replace("/agent-login");
+        return;
+      }
+
+      // Get the appropriate dashboard path based on role
+      const dashboardPath = getDashboardPath(user.role);
+      
+      // If user is on root dashboard or old routes, redirect to role-specific dashboard
+      if (pathname === "/dashboard" || !pathname.startsWith("/admin/")) {
+        router.replace(dashboardPath);
+        return;
+      }
+
+      // Check if user has access to current route
+      if (!canAccessRoute(user.role, pathname)) {
+        // Redirect to their dashboard if they don't have access
+        router.replace(dashboardPath);
+        return;
+      }
+    }
+  }, [isHydrated, isLoggedIn, user, router, pathname]);
 
   // Don't render dashboard if user is not logged in (will redirect)
   if (!isHydrated || !isLoggedIn) {
+    return null;
+  }
+
+  // Don't render if user doesn't have access (will redirect)
+  if (user && !canAccessRoute(user.role, pathname)) {
     return null;
   }
 

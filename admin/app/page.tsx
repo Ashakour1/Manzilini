@@ -58,7 +58,10 @@ export default function Home() {
         router.replace("/agent-login");
         return;
       }
-      router.replace("/dashboard");
+      // Redirect to role-specific dashboard
+      const { getDashboardPath } = require("@/lib/role-utils");
+      const dashboardPath = getDashboardPath(user.role);
+      router.replace(dashboardPath);
     }
   }, [isHydrated, isLoggedIn, user, router, logout]);
 
@@ -99,8 +102,10 @@ export default function Home() {
         role: data.role,
       });
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to role-specific dashboard
+      const { getDashboardPath } = require("@/lib/role-utils");
+      const dashboardPath = getDashboardPath(data.role);
+      router.push(dashboardPath);
     } catch (error) {
       console.error("Login failed:", error);
       setError(error instanceof Error ? error.message : "Failed to login. Please try again.");
