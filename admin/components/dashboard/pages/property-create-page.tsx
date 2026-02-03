@@ -48,7 +48,7 @@ const initialFormState: PropertyFormState = {
   property_type: "APARTMENT",
   status: "FOR_RENT",
   price: "",
-  currency: "USD",
+  currency: "KES",
   payment_frequency: "MONTHLY",
   deposit_amount: "",
   country: "",
@@ -147,7 +147,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
             property_type: data.property_type || "APARTMENT",
             status: data.status || "FOR_RENT",
             price: (data.price ?? "").toString(),
-            currency: data.currency || "USD",
+            currency: data.currency || "KES",
             payment_frequency: data.payment_frequency || "MONTHLY",
             deposit_amount: (data.deposit_amount ?? "").toString(),
             country: data.country || "",
@@ -345,7 +345,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                       <SelectValue placeholder="Currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {["USD", "EUR", "GBP", "CAD", "AUD", "NZD", "CHF", "JPY", "CNY"].map((option) => (
+                      {["USD", "KES"].map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
