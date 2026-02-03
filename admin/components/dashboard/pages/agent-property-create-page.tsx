@@ -340,16 +340,16 @@ export function AgentPropertyCreatePage() {
                         <SelectItem value="percentage">%</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Input
-                      id="deposit_amount"
-                      type="number"
-                      min="0"
+                  <Input
+                    id="deposit_amount"
+                    type="number"
+                    min="0"
                       max={form.deposit_type === "percentage" ? "100" : undefined}
-                      value={form.deposit_amount}
-                      onChange={(e) => handleInputChange("deposit_amount", e.target.value)}
+                    value={form.deposit_amount}
+                    onChange={(e) => handleInputChange("deposit_amount", e.target.value)}
                       placeholder={form.deposit_type === "percentage" ? "10" : "500"}
                       className="flex-1"
-                    />
+                  />
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {form.deposit_type === "percentage" 

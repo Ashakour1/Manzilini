@@ -191,26 +191,26 @@ export default function AdminFieldAgentDetailsPage() {
                         <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email Address</p>
-                          <a
-                            href={`mailto:${agent.email}`}
+                      <a
+                        href={`mailto:${agent.email}`}
                             className="text-sm font-medium text-primary hover:underline mt-1 block"
-                          >
-                            {agent.email}
-                          </a>
-                        </div>
-                      </div>
+                      >
+                        {agent.email}
+                      </a>
+                    </div>
+                  </div>
                       <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
                         <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone Number</p>
-                          {agent.phone ? (
-                            <a
-                              href={`tel:${agent.phone}`}
+                      {agent.phone ? (
+                        <a
+                          href={`tel:${agent.phone}`}
                               className="text-sm font-medium text-primary hover:underline mt-1 block"
-                            >
-                              {agent.phone}
-                            </a>
-                          ) : (
+                        >
+                          {agent.phone}
+                        </a>
+                      ) : (
                             <p className="text-sm font-medium text-muted-foreground mt-1">N/A</p>
                           )}
                         </div>

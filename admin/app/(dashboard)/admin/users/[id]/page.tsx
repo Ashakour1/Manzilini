@@ -197,14 +197,14 @@ export default function AdminUserDetailsPage() {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-semibold text-foreground mb-4">Account Information</h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                       <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
                         <Hash className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">User ID</p>
                           <p className="text-sm font-mono text-foreground mt-1 break-all">{user.id}</p>
                         </div>
-                      </div>
+                    </div>
                       <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
                         <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
@@ -212,16 +212,16 @@ export default function AdminUserDetailsPage() {
                           <a href={`mailto:${user.email}`} className="text-sm font-medium text-primary hover:underline mt-1 block">
                             {user.email}
                           </a>
-                        </div>
-                      </div>
+                  </div>
+                    </div>
                       <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
                         <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
                           <div className="mt-1">
-                            <Badge variant={getRoleBadgeVariant(user.role)} className="font-medium">
-                              {user.role.replace('_', ' ')}
-                            </Badge>
+                      <Badge variant={getRoleBadgeVariant(user.role)} className="font-medium">
+                        {user.role.replace('_', ' ')}
+                      </Badge>
                           </div>
                         </div>
                       </div>

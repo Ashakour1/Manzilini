@@ -268,8 +268,8 @@ export default function AdminPropertyDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4" />
-                  <span>{property.address}, {property.city}, {property.country}</span>
+            <MapPin className="h-4 w-4" />
+            <span>{property.address}, {property.city}, {property.country}</span>
                   {property.zip_code && <span className="text-sm">({property.zip_code})</span>}
                 </div>
                 
