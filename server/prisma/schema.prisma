@@ -403,6 +403,7 @@ enum PaymentFrequency {
   YEARLY
   WEEKLY
   DAILY
+  FLEXIBLE
 }
 
 enum ContactMethod {

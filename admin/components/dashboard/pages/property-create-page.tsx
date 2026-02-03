@@ -374,7 +374,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                       <SelectValue placeholder="Payment frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {["MONTHLY", "YEARLY", "WEEKLY", "DAILY"].map((option) => (
+                      {["MONTHLY", "YEARLY", "WEEKLY", "DAILY", "FLEXIBLE"].map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
