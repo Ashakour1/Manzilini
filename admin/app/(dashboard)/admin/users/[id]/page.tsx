@@ -12,6 +12,13 @@ import {
   Building2,
   FileText,
   UserCheck,
+  CheckCircle2,
+  XCircle,
+  Users,
+  Clock,
+  Hash,
+  UserX,
+  Phone,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +33,7 @@ type User = {
   name: string
   email: string
   role: string
+  status?: string
   image?: string
   createdAt?: string
   updatedAt?: string
@@ -145,6 +153,12 @@ export default function AdminUserDetailsPage() {
               <p className="text-sm text-muted-foreground">View complete information about this user</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.push(`/admin/users/${userId}/edit`)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -180,24 +194,69 @@ export default function AdminUserDetailsPage() {
 
                 <Separator />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span className="font-medium">Email</span>
-                    </div>
-                    <p className="text-sm font-medium text-foreground pl-6">{user.email}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Shield className="h-4 w-4" />
-                      <span className="font-medium">Role</span>
-                    </div>
-                    <div className="pl-6">
-                      <Badge variant={getRoleBadgeVariant(user.role)} className="font-medium">
-                        {user.role.replace('_', ' ')}
-                      </Badge>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground mb-4">Account Information</h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Hash className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">User ID</p>
+                          <p className="text-sm font-mono text-foreground mt-1 break-all">{user.id}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email Address</p>
+                          <a href={`mailto:${user.email}`} className="text-sm font-medium text-primary hover:underline mt-1 block">
+                            {user.email}
+                          </a>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
+                          <div className="mt-1">
+                            <Badge variant={getRoleBadgeVariant(user.role)} className="font-medium">
+                              {user.role.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        {user.status === "ACTIVE" ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-gray-600 mt-0.5" />
+                        )}
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Account Status</p>
+                          <div className="mt-1">
+                            <Badge 
+                              variant={user.status === "ACTIVE" ? "default" : "secondary"} 
+                              className={`font-medium ${
+                                user.status === "ACTIVE" 
+                                  ? "bg-green-100 text-green-800 hover:bg-green-100" 
+                                  : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                              }`}
+                            >
+                              {user.status === "ACTIVE" ? (
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Active
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <XCircle className="h-3 w-3" />
+                                  Inactive
+                                </span>
+                              )}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -208,7 +267,90 @@ export default function AdminUserDetailsPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Info</CardTitle>
+                <CardTitle>Statistics</CardTitle>
+                <CardDescription>User activity and counts</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Building2 className="h-3.5 w-3.5" />
+                      <span>Properties</span>
+                    </div>
+                    <p className="text-lg font-bold text-foreground pl-6">{user._count?.properties || 0}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>Applications</span>
+                    </div>
+                    <p className="text-lg font-bold text-foreground pl-6">{user._count?.property_applications || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {user.agent && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Assigned Field Agent
+                  </CardTitle>
+                  <CardDescription>Field agent assigned to this user</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    {user.agent.image ? (
+                      <Avatar className="h-16 w-16 border-2 border-primary">
+                        <AvatarImage src={user.agent.image} alt={user.agent.name} />
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                          {user.agent.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-16 w-16 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center">
+                        <User className="h-8 w-8 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-semibold text-lg text-foreground">{user.agent.name}</p>
+                      <p className="text-sm text-muted-foreground">Field Agent</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <a href={`mailto:${user.agent.email}`} className="text-sm font-medium text-primary hover:underline">
+                        {user.agent.email}
+                      </a>
+                    </div>
+                    {user.agent.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <a href={`tel:${user.agent.phone}`} className="text-sm font-medium text-primary hover:underline">
+                          {user.agent.phone}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-4"
+                    onClick={() => router.push(`/admin/field-agents/${user.agentId}`)}
+                  >
+                    View Agent Details
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Timeline</CardTitle>
+                <CardDescription>Account creation and updates</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -222,10 +364,29 @@ export default function AdminUserDetailsPage() {
                           month: "long",
                           day: "numeric",
                           year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })
                       : "N/A"}
                   </p>
                 </div>
+                {user.updatedAt && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Last Updated</span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground pl-6">
+                      {new Date(user.updatedAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

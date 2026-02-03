@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,6 +40,9 @@ type SortDirection = "asc" | "desc"
 
 export function FieldAgentsPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdminRoute = pathname?.startsWith("/admin/field-agents")
+  const basePath = isAdminRoute ? "/admin/field-agents" : "/field-agents"
   const { toast } = useToast()
   const [agents, setAgents] = useState<FieldAgent[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -172,7 +175,7 @@ export function FieldAgentsPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Field Agents</h1>
           <p className="text-xs text-muted-foreground">Manage field agents and their territories</p>
         </div>
-        <Button onClick={() => router.push("/field-agents/new")}>
+        <Button onClick={() => router.push(`${basePath}/new`)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Field Agent
         </Button>
@@ -358,7 +361,7 @@ export function FieldAgentsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push(`/field-agents/${agent.id}`)}
+                                onClick={() => router.push(`${basePath}/${agent.id}`)}
                                 className="h-8 w-8 rounded-md transition-colors hover:bg-muted"
                                 title="View details"
                               >
@@ -367,7 +370,7 @@ export function FieldAgentsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push(`/field-agents/${agent.id}/edit`)}
+                                onClick={() => router.push(`${basePath}/${agent.id}/edit`)}
                                 className="h-8 w-8 rounded-md transition-colors hover:bg-muted"
                                 title="Edit field agent"
                               >

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -73,6 +73,9 @@ type SortDirection = "asc" | "desc"
 
 export function UsersPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdminRoute = pathname?.startsWith("/admin/users")
+  const basePath = isAdminRoute ? "/admin/users" : "/users"
   const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -342,7 +345,7 @@ export function UsersPage() {
           <p className="mt-1 text-xs text-gray-600">Manage system users, roles, and permissions</p>
         </div>
         <Button 
-          onClick={() => router.push("/users/new")} 
+          onClick={() => router.push(`${basePath}/new`)} 
           className="w-full sm:w-auto bg-[#2a6f97] hover:bg-[#1f5a7a] text-white shadow-md hover:shadow-lg transition-all"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -702,11 +705,11 @@ export function UsersPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => router.push(`/users/${user.id}`)}>
+                              <DropdownMenuItem onClick={() => router.push(`${basePath}/${user.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEditDialog(user)}>
+                              <DropdownMenuItem onClick={() => router.push(`${basePath}/${user.id}/edit`)}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit User
                               </DropdownMenuItem>
@@ -826,11 +829,11 @@ export function UsersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => router.push(`/users/${user.id}`)}>
+                            <DropdownMenuItem onClick={() => router.push(`${basePath}/${user.id}`)}>
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEditDialog(user)}>
+                            <DropdownMenuItem onClick={() => router.push(`${basePath}/${user.id}/edit`)}>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit User
                             </DropdownMenuItem>

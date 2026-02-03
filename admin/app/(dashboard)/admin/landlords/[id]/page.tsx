@@ -19,6 +19,9 @@ import {
   ExternalLink,
   AlertCircle,
   Clock,
+  FileText,
+  Shield,
+  Hash,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +34,7 @@ import { SendEmailDialog } from "@/components/dashboard/send-email-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type Landlord = {
   id: string
@@ -318,9 +322,166 @@ export default function AdminLandlordDetailsPage() {
                       <p className="text-sm font-medium text-foreground">{landlord.address || "N/A"}</p>
                     </div>
                   </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nationality</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{landlord.nationality || "N/A"}</p>
+                  </div>
+                  {landlord.remarks && (
+                    <div className="sm:col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remarks</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{landlord.remarks}</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Verification & Status
+                </CardTitle>
+                <CardDescription>Landlord verification and account status</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Verification Status</p>
+                    <Badge 
+                      variant={landlord.isVerified ? "default" : "secondary"} 
+                      className={landlord.isVerified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                    >
+                      {landlord.isVerified ? (
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <XCircle className="h-3 w-3" />
+                          Not Verified
+                        </span>
+                      )}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Account Status</p>
+                    <Badge 
+                      variant={landlord.status === "ACTIVE" ? "default" : "secondary"} 
+                      className={landlord.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                    >
+                      {landlord.status === "ACTIVE" ? (
+                        <span className="flex items-center gap-1">
+                          <UserCheck className="h-3 w-3" />
+                          Active
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <UserX className="h-3 w-3" />
+                          Inactive
+                        </span>
+                      )}
+                    </Badge>
+                  </div>
+                </div>
+                {landlord.rejectionReason && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Rejection Reason</p>
+                    <p className="text-sm text-foreground bg-red-50 border border-red-200 rounded-md p-3">{landlord.rejectionReason}</p>
+                  </div>
+                )}
+                {landlord.inactiveReason && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Inactive Reason</p>
+                    <p className="text-sm text-foreground bg-yellow-50 border border-yellow-200 rounded-md p-3">{landlord.inactiveReason}</p>
+                  </div>
+                )}
+                {landlord.is_sent_email && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Send className="h-4 w-4" />
+                    <span>Email sent {landlord.is_sent_at ? new Date(landlord.is_sent_at).toLocaleDateString() : ""}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {landlord.documents && landlord.documents.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Documents
+                  </CardTitle>
+                  <CardDescription>Uploaded documents and files</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {landlord.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{doc.documentType || "Document"}</p>
+                            {doc.notes && (
+                              <p className="text-xs text-muted-foreground">{doc.notes}</p>
+                            )}
+                            {doc.uploadedAt && (
+                              <p className="text-xs text-muted-foreground">
+                                Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedDocument(doc)
+                            setDocumentModalOpen(true)
+                          }}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {landlord.creator && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Created By
+                  </CardTitle>
+                  <CardDescription>User who created this landlord record</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3">
+                    {landlord.creator.image ? (
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={landlord.creator.image} alt={landlord.creator.name} />
+                        <AvatarFallback>{landlord.creator.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-foreground">{landlord.creator.name}</p>
+                      <p className="text-sm text-muted-foreground">{landlord.creator.email}</p>
+                      {landlord.creator.role && (
+                        <Badge variant="outline" className="mt-1 text-xs">{landlord.creator.role}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -364,13 +525,119 @@ export default function AdminLandlordDetailsPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">N/A</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">No properties found</p>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Timeline</CardTitle>
+                <CardDescription>Account creation and updates</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {landlord.createdAt && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Created</span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground pl-6">
+                      {new Date(landlord.createdAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
+                {landlord.updatedAt && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Last Updated</span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground pl-6">
+                      {new Date(landlord.updatedAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Hash className="h-3.5 w-3.5" />
+                    <span>Landlord ID</span>
+                  </div>
+                  <p className="text-sm font-mono text-foreground pl-6 break-all">{landlord.id}</p>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Document View Modal */}
+      <Dialog open={documentModalOpen} onOpenChange={setDocumentModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDocument?.documentType || "Document"}</DialogTitle>
+            <DialogDescription>
+              {selectedDocument?.notes || "View document details"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedDocument?.documentImage && (
+              <div className="w-full">
+                <img
+                  src={selectedDocument.documentImage}
+                  alt={selectedDocument.documentType || "Document"}
+                  className="w-full h-auto rounded-lg border"
+                />
+              </div>
+            )}
+            {selectedDocument?.url && !selectedDocument?.documentImage && (
+              <div className="w-full">
+                <iframe
+                  src={selectedDocument.url}
+                  className="w-full h-[600px] rounded-lg border"
+                  title={selectedDocument.documentType || "Document"}
+                />
+              </div>
+            )}
+            {selectedDocument?.uploadedAt && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  Uploaded: {new Date(selectedDocument.uploadedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
+            {selectedDocument?.url && (
+              <div className="flex justify-end">
+                <Button variant="outline" asChild>
+                  <a href={selectedDocument.url} target="_blank" rel="noopener noreferrer">
+                    Open in New Tab
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

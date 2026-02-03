@@ -13,6 +13,9 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   XCircle,
+  Clock,
+  Hash,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -173,32 +176,69 @@ export default function AdminFieldAgentDetailsPage() {
 
                 <Separator />
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-6">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={`mailto:${agent.email}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {agent.email}
-                      </a>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      {agent.phone ? (
-                        <a
-                          href={`tel:${agent.phone}`}
-                          className="text-sm font-medium text-primary hover:underline"
-                        >
-                          {agent.phone}
-                        </a>
-                      ) : (
-                        <p className="text-sm font-medium text-muted-foreground">N/A</p>
+                    <h3 className="text-sm font-semibold text-foreground mb-4">Contact Information</h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Hash className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Agent ID</p>
+                          <p className="text-sm font-mono text-foreground mt-1 break-all">{agent.id}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email Address</p>
+                          <a
+                            href={`mailto:${agent.email}`}
+                            className="text-sm font-medium text-primary hover:underline mt-1 block"
+                          >
+                            {agent.email}
+                          </a>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone Number</p>
+                          {agent.phone ? (
+                            <a
+                              href={`tel:${agent.phone}`}
+                              className="text-sm font-medium text-primary hover:underline mt-1 block"
+                            >
+                              {agent.phone}
+                            </a>
+                          ) : (
+                            <p className="text-sm font-medium text-muted-foreground mt-1">N/A</p>
+                          )}
+                        </div>
+                      </div>
+                      {agent.document_image && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30 sm:col-span-2">
+                          <ImageIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Document Image</p>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 h-auto text-primary hover:underline mt-1"
+                              onClick={() => {
+                                setSelectedDocument({
+                                  id: 'main-doc',
+                                  documentType: 'Main Document',
+                                  url: agent.document_image,
+                                  documentImage: agent.document_image,
+                                } as AgentDocument)
+                                setDocumentModalOpen(true)
+                              }}
+                            >
+                              View Document
+                              <ExternalLink className="h-3 w-3 inline ml-1" />
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -208,10 +248,63 @@ export default function AdminFieldAgentDetailsPage() {
           </div>
 
           <div className="space-y-6">
+            {agent.documents && agent.documents.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Documents ({agent.documents.length})
+                  </CardTitle>
+                  <CardDescription>Uploaded documents and files</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {agent.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-start justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start gap-3 flex-1">
+                          <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-foreground">{doc.documentType || "Document"}</p>
+                            {doc.notes && (
+                              <p className="text-xs text-muted-foreground mt-1">{doc.notes}</p>
+                            )}
+                            {doc.uploadedAt && (
+                              <div className="flex items-center gap-1 mt-2">
+                                <Calendar className="h-3 w-3 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground">
+                                  Uploaded: {new Date(doc.uploadedAt).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="ml-2"
+                          onClick={() => {
+                            setSelectedDocument(doc)
+                            setDocumentModalOpen(true)
+                          }}
+                        >
+                          <span className="text-xs">View</span>
+                          <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
-                <CardTitle>Quick Info</CardTitle>
-                <CardDescription>Summary information</CardDescription>
+                <CardTitle>Timeline</CardTitle>
+                <CardDescription>Account creation and updates</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {agent.createdAt && (
@@ -225,15 +318,97 @@ export default function AdminFieldAgentDetailsPage() {
                         month: "long",
                         day: "numeric",
                         year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
                 )}
+                {agent.updatedAt && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Last Updated</span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground pl-6">
+                      {new Date(agent.updatedAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Hash className="h-3.5 w-3.5" />
+                    <span>Agent ID</span>
+                  </div>
+                  <p className="text-sm font-mono text-foreground pl-6 break-all">{agent.id}</p>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Document View Modal */}
+      <Dialog open={documentModalOpen} onOpenChange={setDocumentModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDocument?.documentType || "Document"}</DialogTitle>
+            <DialogDescription>
+              {selectedDocument?.notes || "View document details"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedDocument?.documentImage && (
+              <div className="w-full">
+                <img
+                  src={selectedDocument.documentImage}
+                  alt={selectedDocument.documentType || "Document"}
+                  className="w-full h-auto rounded-lg border"
+                />
+              </div>
+            )}
+            {selectedDocument?.url && !selectedDocument?.documentImage && (
+              <div className="w-full">
+                <iframe
+                  src={selectedDocument.url}
+                  className="w-full h-[600px] rounded-lg border"
+                  title={selectedDocument.documentType || "Document"}
+                />
+              </div>
+            )}
+            {selectedDocument?.uploadedAt && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  Uploaded: {new Date(selectedDocument.uploadedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
+            {selectedDocument?.url && (
+              <div className="flex justify-end">
+                <Button variant="outline" asChild>
+                  <a href={selectedDocument.url} target="_blank" rel="noopener noreferrer">
+                    Open in New Tab
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

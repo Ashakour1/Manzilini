@@ -1,14 +1,15 @@
 "use client"
 
 import { FormEvent, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
-import { createUser } from "@/services/users.service"
+import { createUser, updateUser, getUserById } from "@/services/users.service"
 import { getFieldAgents } from "@/services/field-agents.service"
 
 type UserFormState = {
@@ -29,17 +30,30 @@ const initialFormState: UserFormState = {
   agentId: null,
 }
 
-export function UserCreatePage() {
+type UserCreatePageProps = {
+  userId?: string
+}
+
+export function UserCreatePage({ userId }: UserCreatePageProps) {
   const router = useRouter()
+  const params = useParams()
+  const paramId = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined
+  const effectiveUserId = userId ?? paramId
+  const isEditMode = !!effectiveUserId
+
   const { toast } = useToast()
   const [form, setForm] = useState<UserFormState>(initialFormState)
   const [fieldAgents, setFieldAgents] = useState<Array<{ id: string; name: string; email: string }>>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingAgents, setIsLoadingAgents] = useState(false)
+  const [isLoadingUser, setIsLoadingUser] = useState(false)
 
   useEffect(() => {
     loadFieldAgents()
-  }, [])
+    if (isEditMode && effectiveUserId) {
+      loadUser()
+    }
+  }, [isEditMode, effectiveUserId])
 
   const loadFieldAgents = async () => {
     setIsLoadingAgents(true)
@@ -50,6 +64,31 @@ export function UserCreatePage() {
       console.error("Failed to load field agents:", err)
     } finally {
       setIsLoadingAgents(false)
+    }
+  }
+
+  const loadUser = async () => {
+    if (!effectiveUserId) return
+    setIsLoadingUser(true)
+    try {
+      const user = await getUserById(effectiveUserId)
+      setForm({
+        name: user.name || "",
+        email: user.email || "",
+        password: "", // Don't load password
+        role: user.role || "USER",
+        status: user.status || "ACTIVE",
+        agentId: user.agentId || null,
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to load user",
+        variant: "destructive",
+      })
+      router.push("/admin/users")
+    } finally {
+      setIsLoadingUser(false)
     }
   }
 
@@ -80,7 +119,7 @@ export function UserCreatePage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!form.name || !form.email || !form.password) {
+    if (!form.name || !form.email) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -89,30 +128,66 @@ export function UserCreatePage() {
       return
     }
 
+    if (!isEditMode && !form.password) {
+      toast({
+        title: "Error",
+        description: "Password is required for new users",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      await createUser({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: form.role,
-        status: form.status,
-        agentId: form.agentId,
-      })
-      toast({
-        title: "Success",
-        description: "User created successfully",
-      })
-      router.push("/users")
+      if (isEditMode && effectiveUserId) {
+        await updateUser(effectiveUserId, {
+          name: form.name,
+          email: form.email,
+          role: form.role,
+          status: form.status,
+          agentId: form.agentId,
+          ...(form.password && { password: form.password }),
+        })
+        toast({
+          title: "Success",
+          description: "User updated successfully",
+        })
+        router.push("/admin/users")
+      } else {
+        await createUser({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+          status: form.status,
+          agentId: form.agentId,
+        })
+        toast({
+          title: "Success",
+          description: "User created successfully",
+        })
+        router.push("/admin/users")
+      }
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create user",
+        description: err instanceof Error ? err.message : isEditMode ? "Failed to update user" : "Failed to create user",
         variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isLoadingUser) {
+    return (
+      <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-5">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -122,14 +197,20 @@ export function UserCreatePage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/users")}
+            onClick={() => router.push("/admin/users")}
             className="h-8 w-8 p-0"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Create New User</h1>
-            <p className="text-xs text-muted-foreground mt-1">Add a new user to the system with appropriate permissions</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+              {isEditMode ? "Edit User" : "Create New User"}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isEditMode 
+                ? "Update user information and permissions" 
+                : "Add a new user to the system with appropriate permissions"}
+            </p>
           </div>
         </div>
 
@@ -166,21 +247,29 @@ export function UserCreatePage() {
 
             <div className="space-y-2">
              <div className="flex justify-between">
-             <Label htmlFor="password">Password *</Label>
-             <button type="button" className="text-xs text-muted-foreground" onClick={generatePassword}>
-              Generate Password
-             </button>
+             <Label htmlFor="password">
+               Password {isEditMode ? "(optional)" : "*"}
+             </Label>
+             {!isEditMode && (
+               <button type="button" className="text-xs text-muted-foreground" onClick={generatePassword}>
+                Generate Password
+               </button>
+             )}
               </div>
               <Input
                 id="password"
                 type="text"
                 value={form.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={8}
+                placeholder={isEditMode ? "Leave blank to keep current password" : "••••••••"}
+                required={!isEditMode}
+                minLength={isEditMode ? 0 : 8}
               />
-              <p className="text-xs text-muted-foreground">Minimum 8 characters required</p>
+              <p className="text-xs text-muted-foreground">
+                {isEditMode 
+                  ? "Leave blank to keep the current password" 
+                  : "Minimum 8 characters required"}
+              </p>
             </div>
           </section>
 
@@ -251,12 +340,14 @@ export function UserCreatePage() {
               type="button" 
               variant="outline" 
               className="border-border text-foreground" 
-              onClick={() => router.push("/users")}
+              onClick={() => router.push("/admin/users")}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="bg-[#2a6f97] hover:bg-[#1f5a7a] text-white">
-              {isSubmitting ? "Creating..." : "Create User"}
+              {isSubmitting 
+                ? (isEditMode ? "Updating..." : "Creating...") 
+                : (isEditMode ? "Update User" : "Create User")}
             </Button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,6 +64,9 @@ type SortDirection = "asc" | "desc"
 
 export function LandlordsPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdminRoute = pathname?.startsWith("/admin/landlords")
+  const basePath = isAdminRoute ? "/admin/landlords" : "/landlords"
   const { toast } = useToast()
   const [landlords, setLandlords] = useState<Landlord[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -286,7 +289,7 @@ export function LandlordsPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Landlords</h1>
           <p className="text-xs text-muted-foreground">Manage property landlords</p>
         </div>
-        <Button onClick={() => router.push("/landlords/new")}>
+        <Button onClick={() => router.push(`${basePath}/new`)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Landlord
         </Button>
@@ -586,7 +589,7 @@ export function LandlordsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push(`/landlords/${landlord.id}`)}
+                                onClick={() => router.push(`${basePath}/${landlord.id}`)}
                                 className="h-8 w-8 rounded-md transition-colors hover:bg-muted"
                                 title="View details"
                               >
@@ -595,7 +598,7 @@ export function LandlordsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push(`/landlords/${landlord.id}/edit`)}
+                                onClick={() => router.push(`${basePath}/${landlord.id}/edit`)}
                                 className="h-8 w-8 rounded-md transition-colors hover:bg-muted"
                                 title="Edit landlord"
                               >

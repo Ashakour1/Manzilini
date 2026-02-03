@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -60,6 +60,9 @@ type SortDirection = "asc" | "desc"
 
 export function PropertiesPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdminRoute = pathname?.startsWith("/admin/properties")
+  const basePath = isAdminRoute ? "/admin/properties" : "/properties"
   const { toast } = useToast()
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -340,7 +343,7 @@ export function PropertiesPage() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/properties/new")}>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push(`${basePath}/new`)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Property
           </Button>
@@ -534,7 +537,7 @@ export function PropertiesPage() {
                     </EmptyDescription>
                   </EmptyHeader>
                   {(!searchTerm && typeFilter === "All" && statusFilter === "All") && (
-                    <Button onClick={() => router.push("/properties/new")} className="mt-4">
+                    <Button onClick={() => router.push(`${basePath}/new`)} className="mt-4">
                       <Plus className="mr-2 h-4 w-4" />
                       Add Property
                     </Button>
@@ -676,7 +679,7 @@ export function PropertiesPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => router.push(`/properties/${property.id}`)}
+                            onClick={() => router.push(`${basePath}/${property.id}`)}
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
@@ -685,7 +688,7 @@ export function PropertiesPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => router.push(`/properties/${property.id}/edit`)}
+                            onClick={() => router.push(`${basePath}/${property.id}/edit`)}
                             title="Edit"
                           >
                             <Pencil className="h-4 w-4" />
