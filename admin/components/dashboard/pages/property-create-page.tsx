@@ -23,6 +23,7 @@ type PropertyFormState = {
   currency: string
   payment_frequency: string
   deposit_amount: string
+  deposit_type: "fixed" | "percentage"
   country: string
   city: string
   address: string
@@ -51,6 +52,7 @@ const initialFormState: PropertyFormState = {
   currency: "KES",
   payment_frequency: "MONTHLY",
   deposit_amount: "",
+  deposit_type: "fixed",
   country: "",
   city: "",
   address: "",
@@ -149,7 +151,10 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
             price: (data.price ?? "").toString(),
             currency: data.currency || "KES",
             payment_frequency: data.payment_frequency || "MONTHLY",
-            deposit_amount: (data.deposit_amount ?? "").toString(),
+            deposit_amount: typeof data.deposit_amount === "string" && data.deposit_amount.includes("%") 
+              ? data.deposit_amount.replace("%", "") 
+              : (data.deposit_amount ?? "").toString(),
+            deposit_type: typeof data.deposit_amount === "string" && data.deposit_amount.includes("%") ? "percentage" : "fixed",
             country: data.country || "",
             city: data.city || "",
             address: data.address || "",
@@ -184,6 +189,16 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
   }, [effectivePropertyId, toast])
 
   const buildPayload = () => {
+    // Handle deposit amount - if percentage, store as string with %, otherwise as number
+    let depositAmount: number | string = 0
+    if (form.deposit_amount) {
+      if (form.deposit_type === "percentage") {
+        depositAmount = `${form.deposit_amount}%`
+      } else {
+        depositAmount = Number(form.deposit_amount || 0)
+      }
+    }
+
     const payload: any = {
       title: form.title,
       description: form.description,
@@ -192,7 +207,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
       price: Number(form.price || 0),
       currency: form.currency,
       payment_frequency: form.payment_frequency,
-      deposit_amount: Number(form.deposit_amount || 0),
+      deposit_amount: depositAmount,
       country: form.country,
       city: form.city,
       address: form.address,
@@ -345,7 +360,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                       <SelectValue placeholder="Currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {["USD", "KES"].map((option) => (
+                      {["USD", "EUR", "GBP", "KES", "CAD", "AUD", "NZD", "CHF", "JPY", "CNY", "INR", "ZAR", "AED", "SAR", "EGP"].map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
@@ -374,7 +389,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
                       <SelectValue placeholder="Payment frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {["MONTHLY", "YEARLY", "WEEKLY", "DAILY", "FLEXIBLE"].map((option) => (
+                      {["MONTHLY", "YEARLY", "WEEKLY", "DAILY", "QUARTERLY", "BIWEEKLY", "FLEXIBLE"].map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
@@ -386,14 +401,35 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
               <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="deposit_amount">Deposit amount</Label>
-                  <Input
-                    id="deposit_amount"
-                    type="number"
-                    min="0"
-                    value={form.deposit_amount}
-                    onChange={(e) => handleInputChange("deposit_amount", e.target.value)}
-                    placeholder="500"
-                  />
+                  <div className="flex gap-2">
+                    <Select
+                      value={form.deposit_type}
+                      onValueChange={(value) => handleInputChange("deposit_type", value as "fixed" | "percentage")}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">Fixed</SelectItem>
+                        <SelectItem value="percentage">%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="deposit_amount"
+                      type="number"
+                      min="0"
+                      max={form.deposit_type === "percentage" ? "100" : undefined}
+                      value={form.deposit_amount}
+                      onChange={(e) => handleInputChange("deposit_amount", e.target.value)}
+                      placeholder={form.deposit_type === "percentage" ? "10" : "500"}
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {form.deposit_type === "percentage" 
+                      ? "Enter percentage (e.g., 10 for 10%)" 
+                      : "Enter fixed amount"}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bedrooms">Bedrooms</Label>
