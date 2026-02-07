@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
+import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 
 // Get all tenants
 export const getTenants = asyncHandler(async (req, res) => {
@@ -146,15 +147,37 @@ export const createTenant = asyncHandler(async (req, res) => {
             }
         }
 
-        const tenant = await prisma.tenant.create({
-            data: {
-                fullName,
-                email: email || null,
-                phone,
-                status: status || 'NEW',
-                lastActivityAt: new Date(),
-                applicationsCount: 0
-            },
+        const tenant = await generateUniqueIdAndCreate(
+            'Tenant',
+            async (tx, uniqueId) => {
+                const createdTenant = await tx.tenant.create({
+                    data: {
+                        id: uniqueId,
+                        fullName,
+                        email: email || null,
+                        phone,
+                        status: status || 'NEW',
+                        lastActivityAt: new Date(),
+                        applicationsCount: 0
+                    }
+                });
+
+                // Create activity within the same transaction
+                await tx.tenantActivity.create({
+                    data: {
+                        tenantId: createdTenant.id,
+                        type: 'STATUS_CHANGED',
+                        description: 'Tenant created'
+                    }
+                });
+
+                return createdTenant;
+            }
+        );
+
+        // Fetch tenant with counts after creation
+        const tenantWithCounts = await prisma.tenant.findUnique({
+            where: { id: tenant.id },
             include: {
                 _count: {
                     select: {
@@ -165,16 +188,7 @@ export const createTenant = asyncHandler(async (req, res) => {
             }
         });
 
-        // Create activity
-        await prisma.tenantActivity.create({
-            data: {
-                tenantId: tenant.id,
-                type: 'STATUS_CHANGED',
-                description: 'Tenant created'
-            }
-        });
-
-        res.status(201).json(tenant);
+        res.status(201).json(tenantWithCounts);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

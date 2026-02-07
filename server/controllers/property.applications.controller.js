@@ -55,17 +55,23 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
         });
 
         if (!tenant) {
-            // Create new tenant
-            tenant = await prisma.tenant.create({
-                data: {
-                    fullName,
-                    email: email || null,
-                    phone,
-                    status: 'NEW',
-                    lastActivityAt: new Date(),
-                    applicationsCount: 0
+            // Create new tenant with unique ID
+            tenant = await generateUniqueIdAndCreate(
+                'Tenant',
+                async (tx, uniqueId) => {
+                    return await tx.tenant.create({
+                        data: {
+                            id: uniqueId,
+                            fullName,
+                            email: email || null,
+                            phone,
+                            status: 'NEW',
+                            lastActivityAt: new Date(),
+                            applicationsCount: 0
+                        }
+                    });
                 }
-            });
+            );
         } else {
             // Update tenant info if email is provided and different
             if (email && email !== tenant.email) {

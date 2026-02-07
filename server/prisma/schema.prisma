@@ -152,7 +152,7 @@ model PropertyImages {
 }
 
 model Tenant {
-  id                String       @id @default(uuid())
+  id                String       @id
 
   fullName          String
   email             String?      @unique
