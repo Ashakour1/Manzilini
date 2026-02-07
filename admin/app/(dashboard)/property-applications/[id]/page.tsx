@@ -14,6 +14,7 @@ import {
   CheckCircle,
   XCircle,
   Edit,
+  MessageCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -286,16 +287,51 @@ export default function PropertyApplicationDetailsPage() {
                       <Label className="text-xs text-muted-foreground">Email</Label>
                       <p className="text-sm flex items-center gap-2">
                         <Mail className="h-3 w-3 text-muted-foreground" />
-                        {application.email}
+                        <a href={`mailto:${application.email}`} className="text-primary hover:underline">
+                          {application.email}
+                        </a>
                       </p>
                     </div>
                   )}
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Phone</Label>
-                    <p className="text-sm flex items-center gap-2">
-                      <Phone className="h-3 w-3 text-muted-foreground" />
-                      {application.phone}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        <a href={`tel:${application.phone}`} className="text-primary hover:underline">
+                          {application.phone}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                  {/* Contact Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                      asChild
+                    >
+                      <a
+                        href={`https://wa.me/${application.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${application.fullName}, regarding your application for ${application.property?.title || 'the property'}.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        WhatsApp
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      asChild
+                    >
+                      <a href={`tel:${application.phone}`}>
+                        <Phone className="mr-2 h-4 w-4" />
+                        Call
+                      </a>
+                    </Button>
                   </div>
                   {application.message && (
                     <div className="space-y-1">
