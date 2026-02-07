@@ -49,13 +49,13 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
             });
         }
 
-        // Find existing tenant by phone (phone is unique)
+        // Find or create tenant by phone (phone is unique)
         let tenant = await prisma.tenant.findUnique({
             where: { phone }
         });
 
         if (!tenant) {
-            // Only create new tenant if it doesn't exist
+            // Create new tenant
             tenant = await prisma.tenant.create({
                 data: {
                     fullName,
@@ -66,8 +66,33 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
                     applicationsCount: 0
                 }
             });
+        } else {
+            // Update tenant info if email is provided and different
+            if (email && email !== tenant.email) {
+                // Check if email is already taken by another tenant
+                const existingTenantWithEmail = await prisma.tenant.findUnique({
+                    where: { email }
+                });
+                
+                if (!existingTenantWithEmail) {
+                    tenant = await prisma.tenant.update({
+                        where: { id: tenant.id },
+                        data: { email, fullName, lastActivityAt: new Date() }
+                    });
+                } else {
+                    tenant = await prisma.tenant.update({
+                        where: { id: tenant.id },
+                        data: { fullName, lastActivityAt: new Date() }
+                    });
+                }
+            } else {
+                // Just update name and activity
+                tenant = await prisma.tenant.update({
+                    where: { id: tenant.id },
+                    data: { fullName, lastActivityAt: new Date() }
+                });
+            }
         }
-        // If tenant exists, use it as-is without updating
 
         // Create the property application with unique ID
         const propertyApplication = await generateUniqueIdAndCreate(
