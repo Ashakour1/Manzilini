@@ -151,28 +151,80 @@ model PropertyImages {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
+model Tenant {
+  id                String       @id @default(uuid())
+
+  fullName          String
+  email             String?      @unique
+  phone             String       @unique
+
+  status            TenantStatus @default(NEW)
+
+  lastActivityAt    DateTime?
+  applicationsCount Int          @default(0)
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  applications      PropertyApplication[]
+  activities        TenantActivity[]
+}
+
 model PropertyApplication {
   id          String   @id @default(uuid())
 
-  // Tenant info (no account required)
+  // Tenant snapshot (guest or registered)
   fullName    String
   email       String?
   phone       String
   message     String?
 
   // Relations
+  tenantId    String?
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+
   propertyId  String
   property    Property @relation(fields: [propertyId], references: [id])
 
   landlordId  String
   landlord    Landlord @relation(fields: [landlordId], references: [id])
 
-  // Application flow
-  status      ApplicationStatus @default(PENDING)
-  remarks     String?
+  // Application lifecycle
+  status          ApplicationStatus @default(PENDING)
+  remarks         String?
+
+  statusChangedAt DateTime?
+  statusChangedBy String?
+
+  // Communication tracking
+  emailSent        Boolean   @default(false)
+  emailSentAt      DateTime?
+
+  isCommunicated   Boolean   @default(false)
+  communicatedAt   DateTime?
+
+  viewingRequested Boolean   @default(false)
+  viewingDate      DateTime?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  activities  TenantActivity[]
+}
+
+model TenantActivity {
+  id            String             @id @default(uuid())
+
+  tenantId      String
+  tenant        Tenant           @relation(fields: [tenantId], references: [id])
+
+  applicationId String?
+  application   PropertyApplication? @relation(fields: [applicationId], references: [id])
+
+  type          TenantActivityType
+  description   String?
+
+  createdAt     DateTime           @default(now())
 }
 
 
@@ -356,10 +408,27 @@ enum PaymentStatus {
 }
 
 enum ApplicationStatus {
-  PENDING
+  PENDING     // application submitted, not reviewed yet
+  CONTACTED   // landlord/agent contacted tenant
+  APPROVED    // accepted for this property
+  REJECTED    // not accepted
+  CLOSED      // finished (approved or rejected, no more action)
+}
+
+enum TenantStatus {
+  NEW
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum TenantActivityType {
+  APPLICATION_SENT
   CONTACTED
   APPROVED
   REJECTED
+  VIEWING_REQUESTED
+  STATUS_CHANGED
 }
 
 

@@ -8,10 +8,25 @@ export interface PropertyApplication {
   email?: string;
   phone: string;
   message?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "CONTACTED" | "APPROVED" | "REJECTED" | "CLOSED";
   remarks?: string;
+  statusChangedAt?: string | null;
+  statusChangedBy?: string | null;
+  emailSent: boolean;
+  emailSentAt?: string | null;
+  isCommunicated: boolean;
+  communicatedAt?: string | null;
+  viewingRequested: boolean;
+  viewingDate?: string | null;
   createdAt: string;
   updatedAt: string;
+  tenant?: {
+    id: string;
+    fullName: string;
+    email?: string | null;
+    phone: string;
+    status: string;
+  };
   property?: {
     id: string;
     title: string;
@@ -78,16 +93,36 @@ export const getPropertyApplicationById = async (id: string): Promise<PropertyAp
   }
 };
 
-// Update property application status
-export const updatePropertyApplication = async (id: string, status: string, remarks?: string): Promise<PropertyApplication> => {
+// Update property application
+export const updatePropertyApplication = async (
+  id: string, 
+  status?: string, 
+  remarks?: string,
+  emailSent?: boolean,
+  emailSentAt?: string | null,
+  isCommunicated?: boolean,
+  communicatedAt?: string | null,
+  viewingRequested?: boolean,
+  viewingDate?: string | null
+): Promise<PropertyApplication> => {
   try {
+    const body: any = {};
+    if (status !== undefined) body.status = status;
+    if (remarks !== undefined) body.remarks = remarks;
+    if (emailSent !== undefined) body.emailSent = emailSent;
+    if (emailSentAt !== undefined) body.emailSentAt = emailSentAt;
+    if (isCommunicated !== undefined) body.isCommunicated = isCommunicated;
+    if (communicatedAt !== undefined) body.communicatedAt = communicatedAt;
+    if (viewingRequested !== undefined) body.viewingRequested = viewingRequested;
+    if (viewingDate !== undefined) body.viewingDate = viewingDate;
+
     const response = await fetch(`${API_URL}/property-applications/${id}`, {
       method: "PUT",
       headers: {
         ...getAuthHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ status, remarks }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

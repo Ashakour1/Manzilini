@@ -549,6 +549,274 @@ export function PropertyApplicationsPage() {
         </Card>
       </div>
 
+      {/* View Dialog - Removed, now using separate page */}
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Application Details</DialogTitle>
+            <DialogDescription>Complete application information and timeline</DialogDescription>
+          </DialogHeader>
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Application Status & Overview */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Application Overview</CardTitle>
+                    <div>{getStatusBadge(selectedApplication.status)}</div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Application ID</Label>
+                      <p className="text-sm font-mono">{selectedApplication.id}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Submitted</Label>
+                      <p className="text-sm flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        {new Date(selectedApplication.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Last Updated</Label>
+                      <p className="text-sm flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        {new Date(selectedApplication.updatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Applicant Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Applicant Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <p className="text-sm font-medium">{selectedApplication.fullName}</p>
+                    </div>
+                    {selectedApplication.tenant && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Tenant Status</Label>
+                        <Badge variant="outline">{selectedApplication.tenant.status}</Badge>
+                      </div>
+                    )}
+                    {selectedApplication.email && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Email</Label>
+                        <p className="text-sm flex items-center gap-2">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          {selectedApplication.email}
+                        </p>
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Phone</Label>
+                      <p className="text-sm flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        {selectedApplication.phone}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedApplication.message && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Message from Applicant</Label>
+                      <div className="p-3 bg-muted rounded-md">
+                        <p className="text-sm whitespace-pre-wrap">{selectedApplication.message}</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Property Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Property Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedApplication.property ? (
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Property Title</Label>
+                        <p className="text-sm font-medium">{selectedApplication.property.title}</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Address</Label>
+                          <p className="text-sm">{selectedApplication.property.address}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">City</Label>
+                          <p className="text-sm">{selectedApplication.property.city}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Price</Label>
+                          <p className="text-sm font-medium">
+                            {selectedApplication.property.price?.toLocaleString()} {selectedApplication.property.property_type}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Property Status</Label>
+                          <Badge variant="outline">{selectedApplication.property.status}</Badge>
+                        </div>
+                      </div>
+                      {selectedApplication.property.description && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Description</Label>
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {selectedApplication.property.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Property information not available</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Landlord Information */}
+              {selectedApplication.landlord && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Landlord Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Name</Label>
+                        <p className="text-sm font-medium">{selectedApplication.landlord.name}</p>
+                      </div>
+                      {selectedApplication.landlord.email && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Email</Label>
+                          <p className="text-sm flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            {selectedApplication.landlord.email}
+                          </p>
+                        </div>
+                      )}
+                      {selectedApplication.landlord.phone && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Phone</Label>
+                          <p className="text-sm flex items-center gap-2">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            {selectedApplication.landlord.phone}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Communication Tracking */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Communication Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Email Sent</Label>
+                        <Badge variant={selectedApplication.emailSent ? "default" : "secondary"}>
+                          {selectedApplication.emailSent ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      {selectedApplication.emailSentAt && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(selectedApplication.emailSentAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Communicated</Label>
+                        <Badge variant={selectedApplication.isCommunicated ? "default" : "secondary"}>
+                          {selectedApplication.isCommunicated ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      {selectedApplication.communicatedAt && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(selectedApplication.communicatedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Viewing Requested</Label>
+                        <Badge variant={selectedApplication.viewingRequested ? "default" : "secondary"}>
+                          {selectedApplication.viewingRequested ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      {selectedApplication.viewingDate && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(selectedApplication.viewingDate).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    {selectedApplication.statusChangedAt && (
+                      <div className="space-y-2 p-3 border rounded-lg">
+                        <Label className="text-sm font-medium">Status Changed</Label>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(selectedApplication.statusChangedAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Remarks & Notes */}
+              {selectedApplication.remarks && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Remarks & Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-3 bg-muted rounded-md">
+                      <p className="text-sm whitespace-pre-wrap">{selectedApplication.remarks}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+              Close
+            </Button>
+            {selectedApplication && (
+              <Button onClick={() => {
+                setViewDialogOpen(false)
+                handleUpdateClick(selectedApplication)
+              }}>
+                Update Status
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Update Dialog */}
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>

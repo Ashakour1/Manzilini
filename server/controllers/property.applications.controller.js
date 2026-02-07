@@ -49,13 +49,60 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
             });
         }
 
+        // Find or create tenant by phone (phone is unique)
+        let tenant = await prisma.tenant.findUnique({
+            where: { phone }
+        });
+
+        if (!tenant) {
+            // Create new tenant
+            tenant = await prisma.tenant.create({
+                data: {
+                    fullName,
+                    email: email || null,
+                    phone,
+                    status: 'NEW',
+                    lastActivityAt: new Date(),
+                    applicationsCount: 0
+                }
+            });
+        } else {
+            // Update tenant info if email is provided and different
+            if (email && email !== tenant.email) {
+                // Check if email is already taken by another tenant
+                const existingTenantWithEmail = await prisma.tenant.findUnique({
+                    where: { email }
+                });
+                
+                if (!existingTenantWithEmail) {
+                    tenant = await prisma.tenant.update({
+                        where: { id: tenant.id },
+                        data: { email, fullName, lastActivityAt: new Date() }
+                    });
+                } else {
+                    tenant = await prisma.tenant.update({
+                        where: { id: tenant.id },
+                        data: { fullName, lastActivityAt: new Date() }
+                    });
+                }
+            } else {
+                // Just update name and activity
+                tenant = await prisma.tenant.update({
+                    where: { id: tenant.id },
+                    data: { fullName, lastActivityAt: new Date() }
+                });
+            }
+        }
+
         // Create the property application with unique ID
         const propertyApplication = await generateUniqueIdAndCreate(
             'PropertyApplication',
             async (tx, uniqueId) => {
-                return await tx.propertyApplication.create({
+                // Create application
+                const application = await tx.propertyApplication.create({
                     data: { 
                         id: uniqueId,
+                        tenantId: tenant.id,
                         propertyId, 
                         landlordId,
                         fullName,
@@ -64,6 +111,7 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
                         message: message || null
                     },
                     include: {
+                        tenant: true,
                         property: {
                             include: {
                                 images: true,
@@ -73,6 +121,27 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
                         landlord: true
                     }
                 });
+
+                // Increment tenant applications count
+                await tx.tenant.update({
+                    where: { id: tenant.id },
+                    data: { 
+                        applicationsCount: { increment: 1 },
+                        lastActivityAt: new Date()
+                    }
+                });
+
+                // Create tenant activity
+                await tx.tenantActivity.create({
+                    data: {
+                        tenantId: tenant.id,
+                        applicationId: application.id,
+                        type: 'APPLICATION_SENT',
+                        description: `Applied for property: ${property.title}`
+                    }
+                });
+
+                return application;
             }
         );
 
@@ -123,6 +192,7 @@ export const getPropertyApplicationById = asyncHandler(async (req, res) => {
         const propertyApplication = await prisma.propertyApplication.findUnique({
             where: { id },
             include: {
+                tenant: true,
                 property: {
                     include: {
                         images: true,
@@ -155,7 +225,16 @@ export const getPropertyApplicationById = asyncHandler(async (req, res) => {
 export const updatePropertyApplication = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks } = req.body || {};
+        const { 
+            status, 
+            remarks,
+            emailSent,
+            emailSentAt,
+            isCommunicated,
+            communicatedAt,
+            viewingRequested,
+            viewingDate
+        } = req.body || {};
         
         // Check if application exists
         const existingApplication = await prisma.propertyApplication.findUnique({
@@ -167,7 +246,7 @@ export const updatePropertyApplication = asyncHandler(async (req, res) => {
         }
 
         // Validate status if provided
-        const validStatuses = ['PENDING', 'APPROVED', 'REJECTED'];
+        const validStatuses = ['PENDING', 'CONTACTED', 'APPROVED', 'REJECTED', 'CLOSED'];
         if (status && !validStatuses.includes(status)) {
             return res.status(400).json({ 
                 message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` 
@@ -175,13 +254,58 @@ export const updatePropertyApplication = asyncHandler(async (req, res) => {
         }
 
         const updateData = {};
-        if (status !== undefined) updateData.status = status;
+        
+        // Handle status change tracking
+        if (status !== undefined && status !== existingApplication.status) {
+            updateData.status = status;
+            updateData.statusChangedAt = new Date();
+            // Get user ID from request (if authenticated)
+            updateData.statusChangedBy = req.user?.id || null;
+
+            // Create tenant activity for status change
+            if (existingApplication.tenantId) {
+                await prisma.tenantActivity.create({
+                    data: {
+                        tenantId: existingApplication.tenantId,
+                        applicationId: existingApplication.id,
+                        type: status === 'CONTACTED' ? 'CONTACTED' : 
+                              status === 'APPROVED' ? 'APPROVED' : 
+                              status === 'REJECTED' ? 'REJECTED' : 'STATUS_CHANGED',
+                        description: `Application status changed to ${status}`
+                    }
+                });
+
+                // Update tenant last activity
+                await prisma.tenant.update({
+                    where: { id: existingApplication.tenantId },
+                    data: { lastActivityAt: new Date() }
+                });
+            }
+        }
+        
         if (remarks !== undefined) updateData.remarks = remarks;
+        
+        // Communication tracking fields
+        if (emailSent !== undefined) updateData.emailSent = emailSent;
+        if (emailSentAt !== undefined) {
+            updateData.emailSentAt = emailSentAt ? new Date(emailSentAt) : null;
+        }
+        
+        if (isCommunicated !== undefined) updateData.isCommunicated = isCommunicated;
+        if (communicatedAt !== undefined) {
+            updateData.communicatedAt = communicatedAt ? new Date(communicatedAt) : null;
+        }
+        
+        if (viewingRequested !== undefined) updateData.viewingRequested = viewingRequested;
+        if (viewingDate !== undefined) {
+            updateData.viewingDate = viewingDate ? new Date(viewingDate) : null;
+        }
 
         const propertyApplication = await prisma.propertyApplication.update({
             where: { id },
             data: updateData,
             include: {
+                tenant: true,
                 property: {
                     include: {
                         images: true,
@@ -245,6 +369,7 @@ export const getPropertyApplicationsByTenant = asyncHandler(async (req, res) => 
         const propertyApplications = await prisma.propertyApplication.findMany({
             where: whereClause,
             include: {
+                tenant: true,
                 property: {
                     include: {
                         images: true,
@@ -280,6 +405,7 @@ export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) =
         const propertyApplications = await prisma.propertyApplication.findMany({
             where: whereClause,
             include: {
+                tenant: true,
                 property: {
                     include: {
                         images: true,
