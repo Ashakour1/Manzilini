@@ -101,9 +101,10 @@ model Property {
   property_type         propertyType          @default(APARTMENT)
   status                Status                @default(FOR_RENT)
   price                 Float
-  currency              Currency              @default(USD)
+  currency              Currency              @default(KES)
   payment_frequency     PaymentFrequency      @default(MONTHLY)
   deposit_amount        Float?
+  deposit_type          DepositType           @default(FIXED)
   country               String
   city                  String
   address               String
@@ -389,6 +390,7 @@ enum Status {
 enum Currency {
   USD
   EUR
+  KES
   GBP
   CAD
   AUD
@@ -404,6 +406,11 @@ enum PaymentFrequency {
   WEEKLY
   DAILY
   FLEXIBLE
+}
+
+enum DepositType {
+  FIXED
+  PERCENTAGE
 }
 
 enum ContactMethod {

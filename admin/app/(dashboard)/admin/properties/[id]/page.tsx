@@ -58,6 +58,7 @@ type Property = {
   currency: string
   payment_frequency?: string
   deposit_amount?: number | string
+  deposit_type?: string
   country: string
   city: string
   address: string
@@ -394,7 +395,10 @@ export default function AdminPropertyDetailsPage() {
                           <div className="flex-1">
                             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Deposit Amount</p>
                             <p className="text-sm font-medium text-foreground mt-1">
-                              {property.currency} {property.deposit_amount}
+                              {property.deposit_type === 'PERCENTAGE' 
+                                ? `${property.deposit_amount}%`
+                                : `${property.currency} ${property.deposit_amount}`
+                              }
                             </p>
                           </div>
                         </div>

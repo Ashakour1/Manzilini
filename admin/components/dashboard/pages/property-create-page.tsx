@@ -151,10 +151,8 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
             price: (data.price ?? "").toString(),
             currency: data.currency || "KES",
             payment_frequency: data.payment_frequency || "MONTHLY",
-            deposit_amount: typeof data.deposit_amount === "string" && data.deposit_amount.includes("%") 
-              ? data.deposit_amount.replace("%", "") 
-              : (data.deposit_amount ?? "").toString(),
-            deposit_type: typeof data.deposit_amount === "string" && data.deposit_amount.includes("%") ? "percentage" : "fixed",
+            deposit_amount: (data.deposit_amount ?? "").toString(),
+            deposit_type: data.deposit_type === "PERCENTAGE" ? "percentage" : "fixed",
             country: data.country || "",
             city: data.city || "",
             address: data.address || "",
@@ -189,14 +187,10 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
   }, [effectivePropertyId, toast])
 
   const buildPayload = () => {
-    // Handle deposit amount - if percentage, store as string with %, otherwise as number
-    let depositAmount: number | string = 0
+    // Handle deposit amount - store as number, deposit_type will be sent separately
+    let depositAmount: number | null = null
     if (form.deposit_amount) {
-      if (form.deposit_type === "percentage") {
-        depositAmount = `${form.deposit_amount}%`
-      } else {
-        depositAmount = Number(form.deposit_amount || 0)
-      }
+      depositAmount = Number(form.deposit_amount || 0)
     }
 
     const payload: any = {
@@ -208,6 +202,7 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
       currency: form.currency,
       payment_frequency: form.payment_frequency,
       deposit_amount: depositAmount,
+      deposit_type: form.deposit_type === "percentage" ? "PERCENTAGE" : "FIXED",
       country: form.country,
       city: form.city,
       address: form.address,
@@ -242,7 +237,8 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
       const payload = buildPayload()
 
       if (isEdit && effectivePropertyId) {
-        await updateProperty(effectivePropertyId, payload)
+        const imageFiles = images.filter((file): file is File => Boolean(file))
+        await updateProperty(effectivePropertyId, payload, imageFiles.length > 0 ? imageFiles : undefined)
         toast({
           title: "Property updated",
           description: "Changes have been saved.",
@@ -687,31 +683,33 @@ export function PropertyCreatePage({ propertyId }: PropertyCreatePageProps) {
           </section>
 
           <Separator className="my-4 border-1" />
-          {!isEdit && (
-            <section className="space-y-6 rounded-3xl border-none bg-transparent p-6">
-              <div className="flex items-start gap-3">
-                <ImageIcon className="mt-1 h-5 w-5 text-muted-foreground" />
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">Images</h2>
-                  <p className="text-sm text-muted-foreground">Provide up to 10 images. You can choose any slots.</p>
+          <section className="space-y-6 rounded-3xl border-none bg-transparent p-6">
+            <div className="flex items-start gap-3">
+              <ImageIcon className="mt-1 h-5 w-5 text-muted-foreground" />
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Images</h2>
+                <p className="text-sm text-muted-foreground">
+                  {isEdit 
+                    ? "Add new images (optional). Existing images will remain unchanged." 
+                    : "Provide up to 10 images. You can choose any slots."}
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {images.map((file, index) => (
+                <div key={index} className="space-y-2 rounded-xl border border-dashed border-border/80 bg-transparent p-4">
+                  <Label htmlFor={`image-${index}`}>Image {index + 1} {isEdit && "(optional)"}</Label>
+                  <Input
+                    id={`image-${index}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
+                  />
+                  {file && <p className="text-xs text-muted-foreground truncate">{file.name}</p>}
                 </div>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {images.map((file, index) => (
-                  <div key={index} className="space-y-2 rounded-xl border border-dashed border-border/80 bg-transparent p-4">
-                    <Label htmlFor={`image-${index}`}>Image {index + 1}</Label>
-                    <Input
-                      id={`image-${index}`}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
-                    />
-                    {file && <p className="text-xs text-muted-foreground truncate">{file.name}</p>}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+              ))}
+            </div>
+          </section>
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" className="border-border text-foreground" onClick={() => router.push("/properties")}>

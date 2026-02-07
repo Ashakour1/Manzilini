@@ -241,7 +241,7 @@ export const getPropertyById = asyncHandler(async (req, res) => {
 
 export const createProperty = asyncHandler(async (req, res) => {
     try {
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, deposit_type, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
 
         if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities) {
             return res.status(400).json({ message: 'All required fields must be provided' });
@@ -299,6 +299,16 @@ export const createProperty = asyncHandler(async (req, res) => {
                 }
             }
         }
+        // Handle deposit_amount - if it's a string with %, extract the number
+        let parsedDepositAmount = null;
+        if (deposit_amount !== undefined && deposit_amount !== null && deposit_amount !== '') {
+            if (typeof deposit_amount === 'string' && deposit_amount.includes('%')) {
+                parsedDepositAmount = parseFloat(deposit_amount.replace('%', ''));
+            } else {
+                parsedDepositAmount = parseFloat(deposit_amount);
+            }
+        }
+
         const propertyData = {
             title,
             description,
@@ -307,7 +317,8 @@ export const createProperty = asyncHandler(async (req, res) => {
             price : parseFloat(price),
             currency,
             payment_frequency,
-            deposit_amount : parseFloat(deposit_amount),
+            deposit_amount: parsedDepositAmount,
+            deposit_type: deposit_type || 'FIXED',
             country,
             city,
             address,
@@ -377,7 +388,7 @@ export const createProperty = asyncHandler(async (req, res) => {
 export const updateProperty = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
+        const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, deposit_type, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
 
         // Get current property to check existing landlord
         const currentProperty = await prisma.property.findUnique({
@@ -408,7 +419,15 @@ export const updateProperty = asyncHandler(async (req, res) => {
         if (price !== undefined) updateData.price = parseFloat(price);
         if (currency !== undefined) updateData.currency = currency;
         if (payment_frequency !== undefined) updateData.payment_frequency = payment_frequency;
-        if (deposit_amount !== undefined) updateData.deposit_amount = parseFloat(deposit_amount);
+        if (deposit_amount !== undefined) {
+            // Handle deposit_amount - if it's a string with %, extract the number
+            if (typeof deposit_amount === 'string' && deposit_amount.includes('%')) {
+                updateData.deposit_amount = parseFloat(deposit_amount.replace('%', ''));
+            } else {
+                updateData.deposit_amount = parseFloat(deposit_amount);
+            }
+        }
+        if (deposit_type !== undefined) updateData.deposit_type = deposit_type;
         if (country !== undefined) updateData.country = country;
         if (city !== undefined) updateData.city = city;
         if (address !== undefined) updateData.address = address;

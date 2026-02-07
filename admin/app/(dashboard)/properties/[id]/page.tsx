@@ -55,6 +55,7 @@ type Property = {
   currency: string
   payment_frequency?: string
   deposit_amount?: number | string
+  deposit_type?: string
   country: string
   city: string
   address: string
@@ -580,7 +581,10 @@ export default function PropertyDetailsPage() {
                   </div>
                   {property.deposit_amount && Number(property.deposit_amount) > 0 && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      Deposit: {property.currency} {Number(property.deposit_amount).toLocaleString()}
+                      Deposit: {property.deposit_type === 'PERCENTAGE' 
+                        ? `${Number(property.deposit_amount).toLocaleString()}%`
+                        : `${property.currency} ${Number(property.deposit_amount).toLocaleString()}`
+                      }
                     </p>
                   )}
                 </div>

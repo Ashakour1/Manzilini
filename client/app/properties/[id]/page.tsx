@@ -175,7 +175,12 @@ export default function PropertyDetailPage() {
                     )}
                   </div>
                   {property.deposit_amount && (
-                    <p className="text-sm text-gray-600 mt-1">Deposit: KES{property.deposit_amount?.toLocaleString() || property.deposit_amount}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Deposit: {property.deposit_type === 'PERCENTAGE' 
+                        ? `${property.deposit_amount?.toLocaleString() || property.deposit_amount}%`
+                        : `${property.currency || 'KES'} ${property.deposit_amount?.toLocaleString() || property.deposit_amount}`
+                      }
+                    </p>
                   )}
                 </div>
                 <div className="px-4 py-2 bg-white rounded-lg border border-gray-200">

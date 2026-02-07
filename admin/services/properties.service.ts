@@ -81,20 +81,50 @@ export const getPropertyById = async (id: string) => {
   return response.json();
 };
 
-export const updateProperty = async (id: string, updates = {}) => {
-  const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
-    method: "PUT",
-    headers: getAuthHeaders({
-      "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(updates),
-  });
+export const updateProperty = async (id: string, updates = {}, images?: File[]) => {
+  // If images are provided, use FormData; otherwise use JSON
+  if (images && images.length > 0) {
+    const formData = new FormData();
 
-  if (!response.ok) {
-    throw new Error("Failed to update property");
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value) && key !== "images") {
+        formData.append(key, JSON.stringify(value));
+        return;
+      }
+      formData.append(key, value as string | Blob);
+    });
+
+    // Append images
+    images.forEach((file) => formData.append("images", file));
+
+    const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update property");
+    }
+
+    return response.json();
+  } else {
+    // No images, use JSON
+    const response = await fetch(`${PROPERTY_API_URL}/${id}`, {
+      method: "PUT",
+      headers: getAuthHeaders({
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update property");
+    }
+
+    return response.json();
   }
-
-  return response.json();
 };
 
 export const deleteProperty = async (id: string) => {

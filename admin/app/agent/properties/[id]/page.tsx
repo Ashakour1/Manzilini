@@ -41,6 +41,7 @@ type Property = {
   currency: string
   payment_frequency: string
   deposit_amount?: number
+  deposit_type?: string
   bedrooms?: number
   bathrooms?: number
   garages?: number
@@ -330,7 +331,10 @@ export default function AgentPropertyDetailsPage() {
                   <div>
                     <p className="text-xs text-muted-foreground">Deposit</p>
                     <p className="text-lg font-semibold text-foreground">
-                      {property.currency} {property.deposit_amount.toLocaleString()}
+                      {property.deposit_type === 'PERCENTAGE' 
+                        ? `${property.deposit_amount.toLocaleString()}%`
+                        : `${property.currency} ${property.deposit_amount.toLocaleString()}`
+                      }
                     </p>
                   </div>
                 )}
