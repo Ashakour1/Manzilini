@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthStore } from "@/store/authStore"
 import { API_URL } from "@/lib/api"
 import { useMemo, useState, useEffect } from "react"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import Image from "next/image"
 
 const menuItems = [
@@ -344,6 +344,7 @@ export function DashboardSidebar() {
         </Button>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetContent side="left" className="w-64 p-0 bg-white">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <div className="flex h-full flex-col">
               <SidebarContent onLinkClick={() => setIsMobileMenuOpen(false)} />
             </div>

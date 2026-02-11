@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
 import { createUser, updateUser, getUserById } from "@/services/users.service"
 import { getFieldAgents } from "@/services/field-agents.service"
+import { getLandlords } from "@/services/landlords.service"
 
 type UserFormState = {
   name: string
@@ -19,6 +20,7 @@ type UserFormState = {
   role: string
   status: string
   agentId: string | null
+  landlordId: string | null
 }
 
 const initialFormState: UserFormState = {
@@ -28,6 +30,7 @@ const initialFormState: UserFormState = {
   role: "USER",
   status: "ACTIVE",
   agentId: null,
+  landlordId: null,
 }
 
 type UserCreatePageProps = {
@@ -44,12 +47,15 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
   const { toast } = useToast()
   const [form, setForm] = useState<UserFormState>(initialFormState)
   const [fieldAgents, setFieldAgents] = useState<Array<{ id: string; name: string; email: string }>>([])
+  const [landlords, setLandlords] = useState<Array<{ id: string; name: string; email: string }>>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingAgents, setIsLoadingAgents] = useState(false)
+  const [isLoadingLandlords, setIsLoadingLandlords] = useState(false)
   const [isLoadingUser, setIsLoadingUser] = useState(false)
 
   useEffect(() => {
     loadFieldAgents()
+    loadLandlords()
     if (isEditMode && effectiveUserId) {
       loadUser()
     }
@@ -67,6 +73,26 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
     }
   }
 
+  const loadLandlords = async () => {
+    setIsLoadingLandlords(true)
+    try {
+      const list = await getLandlords()
+      const mapped =
+        (Array.isArray(list)
+          ? list.map((l: any) => ({
+              id: l.id,
+              name: l.name,
+              email: l.email,
+            }))
+          : []) || []
+      setLandlords(mapped)
+    } catch (err) {
+      console.error("Failed to load landlords:", err)
+    } finally {
+      setIsLoadingLandlords(false)
+    }
+  }
+
   const loadUser = async () => {
     if (!effectiveUserId) return
     setIsLoadingUser(true)
@@ -79,6 +105,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
         role: user.role || "USER",
         status: user.status || "ACTIVE",
         agentId: user.agentId || null,
+        landlordId: null,
       })
     } catch (err) {
       toast({
@@ -111,8 +138,23 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
     setForm((prev) => ({
       ...prev,
       agentId: selectedAgentId,
+      landlordId: selectedAgentId ? null : prev.landlordId, // Clear landlord if agent is selected
+      role: selectedAgentId ? "AGENT" : prev.role,
       name: selectedAgent ? selectedAgent.name : prev.name,
       email: selectedAgent ? selectedAgent.email : prev.email
+    }))
+  }
+
+  const handleLandlordChange = (value: string) => {
+    const selectedLandlordId = value === "none" ? null : value
+    const selectedLandlord = landlords.find(l => l.id === selectedLandlordId)
+    setForm((prev) => ({
+      ...prev,
+      landlordId: selectedLandlordId,
+      agentId: selectedLandlordId ? null : prev.agentId, // Clear agent if landlord is selected
+      role: selectedLandlordId ? "LANDLORD" : prev.role,
+      name: selectedLandlord ? selectedLandlord.name : prev.name,
+      email: selectedLandlord ? selectedLandlord.email : prev.email,
     }))
   }
 
@@ -292,6 +334,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
                     <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                     <SelectItem value="PROPERTY_OWNER">Property Owner</SelectItem>
                     <SelectItem value="AGENT">Agent</SelectItem>
+                    <SelectItem value="LANDLORD">Landlord</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -312,26 +355,56 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
               <Label htmlFor="agentId">
                 Field Agent <span className="text-muted-foreground font-normal">(optional)</span>
               </Label>
-                <Select 
-                  value={form.agentId || "none"} 
-                  onValueChange={handleAgentChange}
-                  disabled={isLoadingAgents}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a field agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Agent</SelectItem>
-                    {fieldAgents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name} ({agent.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.agentId && (
-                  <p className="text-xs text-muted-foreground">Name and email will be auto-filled from the selected agent</p>
-                )}
+              <Select
+                value={form.agentId || "none"}
+                onValueChange={handleAgentChange}
+                disabled={isLoadingAgents}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a field agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Agent</SelectItem>
+                  {fieldAgents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name} ({agent.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.agentId && (
+                <p className="text-xs text-muted-foreground">
+                  Name and email will be auto-filled from the selected agent
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="landlordId">
+                Landlord <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Select
+                value={form.landlordId || "none"}
+                onValueChange={handleLandlordChange}
+                disabled={isLoadingLandlords}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a landlord" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Landlord</SelectItem>
+                  {landlords.map((landlord) => (
+                    <SelectItem key={landlord.id} value={landlord.id}>
+                      {landlord.name} ({landlord.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.landlordId && (
+                <p className="text-xs text-muted-foreground">
+                  Name and email will be auto-filled from the selected landlord and role set to Landlord
+                </p>
+              )}
             </div>
           </section>
 
