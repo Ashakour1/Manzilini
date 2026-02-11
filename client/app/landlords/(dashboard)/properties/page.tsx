@@ -94,7 +94,7 @@ export default function LandlordPropertiesPage() {
                   <CardContent className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-900">
-                        {property.currency} {property.price.toLocaleString()}
+                       KES {property.price.toLocaleString()}
                       </span>
                       <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 capitalize">
                         {property.status.replace("_", " ").toLowerCase()}
