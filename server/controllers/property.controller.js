@@ -5,7 +5,7 @@ import cloudinary from '../config/cloudinary.js';
 
 
 
-// get all properties for a user
+// get all properties for a user (admin/agent/regular creator)
 export const getPropertiesForUser = asyncHandler(async (req, res) => {
     try {
         const userId = req.user.id;
@@ -23,7 +23,11 @@ export const getPropertiesForUser = asyncHandler(async (req, res) => {
             }
         });
 
-        if(user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
             const allProperties = await prisma.property.findMany({
                 include: {
                     images: true,
@@ -40,7 +44,7 @@ export const getPropertiesForUser = asyncHandler(async (req, res) => {
                 }
             });
             return res.status(200).json(allProperties);
-        } else if(user.role === 'AGENT') {
+        } else if (user.role === 'AGENT') {
             // For agents, get properties from all users assigned to this agent
             const agentUser = await prisma.user.findUnique({
                 where: { id: userId },
@@ -62,7 +66,7 @@ export const getPropertiesForUser = asyncHandler(async (req, res) => {
 
             // Get properties created by users assigned to this agent
             const properties = await prisma.property.findMany({
-                where: { 
+                where: {
                     userId: { in: assignedUserIds }
                 },
                 include: {
@@ -115,6 +119,72 @@ export const getPropertiesForUser = asyncHandler(async (req, res) => {
 
     }
     catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+// get all properties for the logged-in landlord (by landlord_id)
+export const getPropertiesForLandlord = asyncHandler(async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get the logged in user (should have role LANDLORD)
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role !== 'LANDLORD') {
+            return res.status(403).json({ message: 'Access denied. Landlord role required.' });
+        }
+
+        // Find landlord record linked by email (same email used when registering landlord with user)
+        const landlord = await prisma.landlord.findUnique({
+            where: { email: user.email },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            }
+        });
+
+        if (!landlord) {
+            return res.status(404).json({ message: 'Landlord profile not found for this user' });
+        }
+
+        // Fetch properties that belong to this landlord
+        const properties = await prisma.property.findMany({
+            where: { landlord_id: landlord.id },
+            include: {
+                images: true,
+                landlord: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        image: true,
+                    }
+                }
+            },
+            orderBy: [
+                { is_featured: 'desc' },
+                { createdAt: 'desc' }
+            ]
+        });
+
+        return res.status(200).json(properties);
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });

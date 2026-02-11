@@ -1,5 +1,16 @@
 import express from 'express';
-import { getProperties, getPropertyById, createProperty, updateProperty, deleteProperty, deletePropertyImage, getPropertyTypes, getPropertyCountsByCity, getPropertiesForUser } from '../controllers/property.controller.js';
+import { 
+    getProperties, 
+    getPropertyById, 
+    createProperty, 
+    updateProperty, 
+    deleteProperty, 
+    deletePropertyImage, 
+    getPropertyTypes, 
+    getPropertyCountsByCity, 
+    getPropertiesForUser,
+    getPropertiesForLandlord,
+} from '../controllers/property.controller.js';
 import upload from '../middlewares/upload.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
@@ -14,6 +25,9 @@ router.get('/specific', AuthMiddleware, getPropertiesForUser);
 
 // Agent-specific endpoint for properties
 router.get('/agent', AuthMiddleware, getPropertiesForUser);
+
+// Landlord-specific endpoint for properties (uses landlord_id)
+router.get('/landlord', AuthMiddleware, getPropertiesForLandlord);
 
 router.get('/:id', getPropertyById);
 

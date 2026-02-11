@@ -37,6 +37,18 @@ export interface LandlordLoginResponse {
   token: string;
 }
 
+export interface LandlordProperty {
+  id: string;
+  title: string;
+  city: string;
+  address: string;
+  status: string;
+  price: number;
+  currency: string;
+  images?: { id: string; url: string }[];
+  createdAt?: string;
+}
+
 // Register a new landlord (public endpoint)
 export const registerLandlord = async (landlordData: LandlordRegistrationData): Promise<Landlord> => {
   const response = await fetch(`${API_URL}/landlords/auth/register`, {
@@ -68,6 +80,24 @@ export const loginLandlord = async (loginData: LandlordLoginData): Promise<Landl
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to login");
+  }
+
+  return response.json();
+};
+
+// Get properties for the currently logged-in landlord
+export const getLandlordProperties = async (token: string): Promise<LandlordProperty[]> => {
+  const response = await fetch(`${API_URL}/properties/landlord`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch landlord properties");
   }
 
   return response.json();
