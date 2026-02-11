@@ -1,16 +1,49 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, FileText, DollarSign, TrendingUp } from "lucide-react"
+import { getLandlordProperties, type LandlordProperty } from "@/services/landlords.service"
 
 export default function LandlordDashboardPage() {
-  const { user } = useAuthStore()
+  const { user, isLoggedIn } = useAuthStore()
+  const [properties, setProperties] = useState<LandlordProperty[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isLoggedIn || !user?.token) return
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const data = await getLandlordProperties(user.token)
+        setProperties(data)
+      } catch (err: any) {
+        setError(err.message || "Failed to load dashboard data")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [isLoggedIn, user?.token])
+
+  const { totalProperties, activeListings } = useMemo(() => {
+    const total = properties.length
+    // Treat FOR_RENT (and optionally ACTIVE) as active listings
+    const active = properties.filter(
+      (p) => p.status === "FOR_RENT" || p.status === "ACTIVE"
+    ).length
+    return { totalProperties: total, activeListings: active }
+  }, [properties])
 
   const stats = [
     {
       title: "Total Properties",
-      value: "0",
+      value: totalProperties.toString(),
       description: "Properties you own",
       icon: Building2,
       color: "text-blue-600",
@@ -18,7 +51,7 @@ export default function LandlordDashboardPage() {
     },
     {
       title: "Active Listings",
-      value: "0",
+      value: activeListings.toString(),
       description: "Currently listed",
       icon: FileText,
       color: "text-green-600",
@@ -27,7 +60,7 @@ export default function LandlordDashboardPage() {
     {
       title: "Total Revenue",
       value: "KES 0",
-      description: "This month",
+      description: "This month (coming soon)",
       icon: DollarSign,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
@@ -35,7 +68,7 @@ export default function LandlordDashboardPage() {
     {
       title: "Growth Rate",
       value: "0%",
-      description: "Compared to last month",
+      description: "Compared to last month (coming soon)",
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
@@ -52,6 +85,16 @@ export default function LandlordDashboardPage() {
         <p className="text-gray-600">
           Here's an overview of your property portfolio.
         </p>
+        {isLoading && (
+          <p className="text-xs text-gray-400 mt-1">
+            Loading your latest stats...
+          </p>
+        )}
+        {!isLoading && error && (
+          <p className="text-xs text-red-500 mt-1">
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -85,13 +128,44 @@ export default function LandlordDashboardPage() {
             <CardDescription>Your latest property listings</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-sm">No properties yet</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Start by adding your first property
-              </p>
-            </div>
+            {isLoading && (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                Loading recent properties...
+              </div>
+            )}
+
+            {!isLoading && !properties.length && !error && (
+              <div className="text-center py-8 text-gray-500">
+                <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-sm">No properties yet</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Start by adding your first property
+                </p>
+              </div>
+            )}
+
+            {!isLoading && !!properties.length && (
+              <div className="space-y-3">
+                {properties.slice(0, 5).map((property) => (
+                  <div
+                    key={property.id}
+                    className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {property.title}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {property.city} • {property.address}
+                      </p>
+                    </div>
+                    <span className="ml-2 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-700 capitalize">
+                      {property.status.replace("_", " ").toLowerCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
