@@ -102,3 +102,90 @@ export const getLandlordProperties = async (token: string): Promise<LandlordProp
 
   return response.json();
 };
+
+// ─── Property Applications ───────────────────────────────────────────
+
+export interface LandlordApplication {
+  id: string;
+  fullName: string;
+  email?: string;
+  phone: string;
+  message?: string;
+  status: "PENDING" | "CONTACTED" | "APPROVED" | "REJECTED" | "CLOSED";
+  remarks?: string;
+  statusChangedAt?: string | null;
+  emailSent: boolean;
+  isCommunicated: boolean;
+  viewingRequested: boolean;
+  viewingDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tenant?: {
+    id: string;
+    fullName: string;
+    email?: string | null;
+    phone: string;
+    status: string;
+  };
+  property?: {
+    id: string;
+    title: string;
+    price: number;
+    city: string;
+    address: string;
+    status: string;
+    images?: { url: string }[];
+  };
+}
+
+// Get property applications for the logged-in landlord
+export const getLandlordApplications = async (
+  landlordId: string,
+  token: string,
+  status?: string
+): Promise<LandlordApplication[]> => {
+  const params = new URLSearchParams();
+  if (status) params.append("status", status);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+
+  const response = await fetch(
+    `${API_URL}/property-applications/landlord/${landlordId}${qs}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch applications");
+  }
+
+  return response.json();
+};
+
+// Update a property application status
+export const updateLandlordApplication = async (
+  id: string,
+  token: string,
+  data: { status?: string; remarks?: string }
+): Promise<LandlordApplication> => {
+  const response = await fetch(`${API_URL}/property-applications/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to update application");
+  }
+
+  return response.json();
+};
