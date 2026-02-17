@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Users, Plus, Search, Mail, Phone, Calendar, FileText } from "lucide-react"
 import Link from "next/link"
 import { getTenants, type Tenant } from "@/services/tenants.service"
-import { getLandlordIdFromProperties } from "@/services/landlords.service"
 import { useToast } from "@/components/ui/use-toast"
 
 function getStatusStyle(status: string) {
@@ -53,36 +52,17 @@ export default function TenantsPage() {
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [landlordId, setLandlordId] = useState<string | null>(null)
-  const [isLoadingLandlordId, setIsLoadingLandlordId] = useState(true)
-
-  // Fetch landlord ID first
-  useEffect(() => {
-    const fetchLandlordId = async () => {
-      if (!isLoggedIn || !user?.token) return
-      setIsLoadingLandlordId(true)
-      try {
-        const id = await getLandlordIdFromProperties(user.token)
-        setLandlordId(id)
-      } catch (err) {
-        console.error("Failed to get landlord ID:", err)
-        setError("Unable to load your landlord profile")
-      } finally {
-        setIsLoadingLandlordId(false)
-      }
-    }
-    fetchLandlordId()
-  }, [isLoggedIn, user?.token])
 
   const fetchTenants = useCallback(async () => {
-    if (!isLoggedIn || !user?.token || !landlordId) return
+    if (!isLoggedIn || !user?.token) return
     setIsLoading(true)
     setError(null)
 
     try {
       const status = statusFilter === "all" ? undefined : statusFilter
       const search = searchQuery.trim() || undefined
-      const data = await getTenants(user.token, status, search, landlordId)
+      // landlordId is optional - backend will automatically filter by user's landlord profile
+      const data = await getTenants(user.token, status, search)
       setTenants(data)
     } catch (err: any) {
       setError(err.message || "Failed to load tenants")
@@ -94,7 +74,7 @@ export default function TenantsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [isLoggedIn, user?.token, landlordId, statusFilter, searchQuery, toast])
+  }, [isLoggedIn, user?.token, statusFilter, searchQuery, toast])
 
   useEffect(() => {
     fetchTenants()
@@ -180,19 +160,19 @@ export default function TenantsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {(isLoading || isLoadingLandlordId) && (
+          {isLoading && (
             <div className="py-8 text-center text-gray-400 text-sm">
               Loading your tenants...
             </div>
           )}
 
-          {!isLoading && !isLoadingLandlordId && error && (
+          {!isLoading && error && (
             <div className="py-8 text-center text-red-500 text-sm">
               {error}
             </div>
           )}
 
-          {!isLoading && !isLoadingLandlordId && !error && !hasTenants && (
+          {!isLoading && !error && !hasTenants && (
             <div className="text-center py-12 text-gray-400">
               <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p className="text-sm font-medium text-gray-500 mb-1">No tenants yet</p>
@@ -204,7 +184,7 @@ export default function TenantsPage() {
             </div>
           )}
 
-          {!isLoading && !isLoadingLandlordId && !error && hasTenants && (
+          {!isLoading && !error && hasTenants && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tenants.map((tenant) => (
                 <div

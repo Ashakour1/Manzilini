@@ -6,10 +6,36 @@ import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 export const getTenants = asyncHandler(async (req, res) => {
     try {
         const { status, search, landlordId } = req.query;
+        const userId = req.user?.id;
         
         const whereClause = {};
         if (status) whereClause.status = status;
-        if (landlordId) whereClause.landlordId = landlordId;
+        
+        // If landlordId is provided, use it. Otherwise, if user is a landlord, auto-filter by their landlord profile
+        if (landlordId) {
+            whereClause.landlordId = landlordId;
+        } else if (userId) {
+            // Get user to find their landlord profile
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    email: true,
+                    role: true,
+                }
+            });
+
+            // If user has LANDLORD role, find landlord by email and filter
+            if (user && user.role === 'LANDLORD' && user.email) {
+                const landlord = await prisma.landlord.findUnique({
+                    where: { email: user.email },
+                    select: { id: true }
+                });
+                if (landlord) {
+                    whereClause.landlordId = landlord.id;
+                }
+            }
+        }
+        
         if (search) {
             whereClause.OR = [
                 { fullName: { contains: search, mode: 'insensitive' } },
@@ -117,11 +143,36 @@ export const getTenantById = asyncHandler(async (req, res) => {
 export const createTenant = asyncHandler(async (req, res) => {
     try {
         const { fullName, email, phone, status, landlordId } = req.body || {};
+        const userId = req.user?.id;
         
         if (!fullName || !phone) {
             return res.status(400).json({ 
                 message: 'Please provide fullName and phone' 
             });
+        }
+
+        // Get the logged-in user to find their landlord profile
+        let finalLandlordId = landlordId;
+        if (!finalLandlordId && userId) {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                }
+            });
+
+            // If user has LANDLORD role, find landlord by email
+            if (user && user.role === 'LANDLORD' && user.email) {
+                const landlord = await prisma.landlord.findUnique({
+                    where: { email: user.email },
+                    select: { id: true }
+                });
+                if (landlord) {
+                    finalLandlordId = landlord.id;
+                }
+            }
         }
 
         // Check if tenant with phone already exists
@@ -151,17 +202,32 @@ export const createTenant = asyncHandler(async (req, res) => {
         const tenant = await generateUniqueIdAndCreate(
             'Tenant',
             async (tx, uniqueId) => {
+                const tenantData = {
+                    id: uniqueId,
+                    fullName,
+                    email: email || null,
+                    phone,
+                    status: status || 'NEW',
+                    lastActivityAt: new Date(),
+                    applicationsCount: 0,
+                };
+
+                // Add user relation (who created this tenant)
+                if (userId) {
+                    tenantData.createdByUser = {
+                        connect: { id: userId }
+                    };
+                }
+
+                // Add landlord relation if we found a landlordId
+                if (finalLandlordId) {
+                    tenantData.landlord = {
+                        connect: { id: finalLandlordId }
+                    };
+                }
+
                 const createdTenant = await tx.tenant.create({
-                    data: {
-                        id: uniqueId,
-                        fullName,
-                        email: email || null,
-                        phone,
-                        status: status || 'NEW',
-                        lastActivityAt: new Date(),
-                        applicationsCount: 0,
-                        landlordId: landlordId || null
-                    }
+                    data: tenantData
                 });
 
                 // Create activity within the same transaction

@@ -31,6 +31,9 @@ model User {
   // link to expenses
   expenses Expense[]
   incomes Income[]
+
+  // link to tenants created by this user
+  tenants Tenant[]
 }
 
 model Landlord {
@@ -168,6 +171,10 @@ model Tenant {
   // Track which landlord created this tenant
   landlordId        String?
   landlord          Landlord?    @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+
+  // Track which user created this tenant
+  createdBy        String?
+  createdByUser     User?        @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt

@@ -36,6 +36,7 @@ export interface CreateTenantData {
 }
 
 // Get all tenants
+// landlordId is optional - backend will automatically filter by logged-in user's landlord profile
 export const getTenants = async (
   token: string,
   status?: string,
@@ -45,6 +46,7 @@ export const getTenants = async (
   const params = new URLSearchParams();
   if (status) params.append('status', status);
   if (search) params.append('search', search);
+  // landlordId is optional - backend handles it automatically for landlord users
   if (landlordId) params.append('landlordId', landlordId);
 
   const response = await fetch(`${API_URL}/tenants?${params.toString()}`, {

@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createTenant, type CreateTenantData } from "@/services/tenants.service"
-import { getLandlordIdFromProperties } from "@/services/landlords.service"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
 
@@ -34,39 +33,6 @@ export default function CreateTenantPage() {
   const { toast } = useToast()
   const [form, setForm] = useState<TenantFormState>(initialFormState)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [landlordId, setLandlordId] = useState<string | null>(null)
-  const [isLoadingLandlordId, setIsLoadingLandlordId] = useState(true)
-
-  useEffect(() => {
-    const fetchLandlordId = async () => {
-      if (!isLoggedIn || !user?.token) return
-      setIsLoadingLandlordId(true)
-      try {
-        const id = await getLandlordIdFromProperties(user.token)
-        if (id) {
-          setLandlordId(id)
-        } else {
-          // If we can't get landlord ID, show a warning but don't block the form
-          console.warn("Could not find landlord ID. Tenant creation may fail.")
-          toast({
-            title: "Warning",
-            description: "Unable to identify your landlord profile. Please ensure you have a landlord account.",
-            variant: "destructive",
-          })
-        }
-      } catch (err) {
-        console.error("Failed to get landlord ID:", err)
-        toast({
-          title: "Error",
-          description: "Failed to load your landlord profile. Please try refreshing the page.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoadingLandlordId(false)
-      }
-    }
-    fetchLandlordId()
-  }, [isLoggedIn, user?.token, toast])
 
   const handleInputChange = (field: keyof TenantFormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -94,33 +60,13 @@ export default function CreateTenantPage() {
 
     setIsSubmitting(true)
 
-    // Try to get landlord ID if we don't have it yet
-    let finalLandlordId = landlordId
-    if (!finalLandlordId) {
-      try {
-        finalLandlordId = await getLandlordIdFromProperties(user.token)
-      } catch (err) {
-        console.error("Failed to get landlord ID:", err)
-      }
-    }
-
-    if (!finalLandlordId) {
-      toast({
-        title: "Error",
-        description: "Unable to identify your landlord profile. Please ensure you have a landlord account.",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
-      return
-    }
-
     try {
       const tenantData: CreateTenantData = {
         fullName: form.fullName.trim(),
         phone: form.phone.trim(),
         email: form.email.trim() || undefined,
         status: form.status,
-        landlordId: finalLandlordId,
+        // landlordId is optional - backend will automatically get it from user's email
       }
 
       await createTenant(tenantData, user.token)
@@ -242,10 +188,10 @@ export default function CreateTenantPage() {
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                disabled={isSubmitting || isLoadingLandlordId}
+                disabled={isSubmitting}
                 className="bg-[#2a6f97] hover:bg-[#235d7f] text-white shadow-sm text-xs"
               >
-                {isSubmitting ? "Creating..." : isLoadingLandlordId ? "Loading..." : "Create Tenant"}
+                {isSubmitting ? "Creating..." : "Create Tenant"}
               </Button>
               <Link href="/landlords/tenants">
                 <Button type="button" variant="outline" className="text-xs">
