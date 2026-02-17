@@ -318,11 +318,10 @@ export const registerLandlord = asyncHandler(async (req, res) => {
 });
 
 // Upload a landlord document image to Cloudinary and create LandlordDocument
-// All fields (documentType, documentImage/file, notes) are optional
 export const uploadLandlordDocument = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const { documentType, notes, documentImage } = req.body || {};
+        const { documentType, notes } = req.body || {};
 
         const landlord = await prisma.landlord.findUnique({
             where: { id },
@@ -332,31 +331,26 @@ export const uploadLandlordDocument = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: 'Landlord not found' });
         }
 
-        // Handle file upload if provided
-        let finalDocImage = documentImage || null;
-        if (req.file) {
-            const mimeType = req.file.mimetype || 'image/jpeg';
-            const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
-
-            const result = await cloudinary.uploader.upload(encodedImage, {
-                resource_type: "image",
-                quality: "auto:best",
-                fetch_format: "auto",
-                folder: "landlords/documents",
-            });
-
-            if (result && result.secure_url) {
-                finalDocImage = result.secure_url;
-            }
+        if (!req.file) {
+            return res.status(400).json({ message: 'Document file is required' });
         }
 
-        // Create document - all fields are optional
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        const encodedImage = `data:${mimeType};base64,${req.file.buffer.toString("base64")}`;
+
+        const result = await cloudinary.uploader.upload(encodedImage, {
+            resource_type: "image",
+            quality: "auto:best",
+            fetch_format: "auto",
+            folder: "landlords/documents",
+        });
+
         const doc = await prisma.landlordDocument.create({
             data: {
                 landlordId: id,
                 documentType: documentType || null,
-                documentImage: finalDocImage,
-                url: finalDocImage,
+                documentImage: result?.secure_url || null,
+                url: result?.secure_url || null,
                 notes: notes || null,
             },
         });

@@ -248,10 +248,16 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
         nationality: form.nationality.trim() || undefined,
       }
 
-      // Attach document file (if any) so service can send multipart/form-data
+      // Attach document fields (all optional)
       const payload: any = { ...landlordData }
       if (documentFile) {
         payload.documentFile = documentFile
+      }
+      if (form.documentType?.trim()) {
+        payload.documentType = form.documentType.trim()
+      }
+      if (form.documentNotes?.trim()) {
+        payload.documentNotes = form.documentNotes.trim()
       }
 
       let landlordId = effectiveLandlordId
@@ -433,13 +439,13 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
             </div>
 
             <div className="space-y-2 pt-2 border-t border-border/50">
-              <Label htmlFor="documentType">Document type</Label>
+              <Label htmlFor="documentType">Document type <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Select
                 value={form.documentType}
                 onValueChange={(value) => handleInputChange("documentType", value)}
               >
                 <SelectTrigger id="documentType">
-                  <SelectValue placeholder="Select document type" />
+                  <SelectValue placeholder="Select document type (optional)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ID">ID</SelectItem>
@@ -452,7 +458,7 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="documentFile">Document image (file)</Label>
+              <Label htmlFor="documentFile">Document image <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Input
                 id="documentFile"
                 type="file"
@@ -463,17 +469,17 @@ export function LandlordCreatePage({ landlordId }: LandlordCreatePageProps) {
                 }}
               />
               <p className="text-[11px] text-muted-foreground">
-                Upload the landlord’s document image (e.g. ID, passport, lease). It will be stored securely.
+                Upload the landlord's document image (e.g. ID, passport, lease). It will be stored securely. Optional.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="documentNotes">Document notes</Label>
+              <Label htmlFor="documentNotes">Document notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Textarea
                 id="documentNotes"
                 value={form.documentNotes}
                 onChange={(e) => handleInputChange("documentNotes", e.target.value)}
-                placeholder="Notes about this document (e.g. expiry, page, etc.)"
+                placeholder="Notes about this document (e.g. expiry, page, etc.) - optional"
                 rows={2}
               />
             </div>
