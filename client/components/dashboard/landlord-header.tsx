@@ -11,6 +11,7 @@ export function LandlordHeader() {
     const routes: Record<string, string> = {
       '/landlords/dashboard': 'Dashboard',
       '/landlords/properties': 'My Properties',
+      '/landlords/properties/create': 'Create Property',
       '/landlords/applications': 'Applications',
       '/landlords/documents': 'Documents',
       '/landlords/settings': 'Settings',

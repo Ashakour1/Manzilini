@@ -9,6 +9,10 @@ export interface PropertyApplication {
   phone: string;
   message?: string;
   status: "PENDING" | "CONTACTED" | "APPROVED" | "REJECTED" | "CLOSED";
+  isApproved: boolean;
+  adminApprovalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  adminApprovedAt?: string | null;
+  adminApprovedBy?: string | null;
   remarks?: string;
   statusChangedAt?: string | null;
   statusChangedBy?: string | null;
@@ -103,7 +107,9 @@ export const updatePropertyApplication = async (
   isCommunicated?: boolean,
   communicatedAt?: string | null,
   viewingRequested?: boolean,
-  viewingDate?: string | null
+  viewingDate?: string | null,
+  isApproved?: boolean,
+  adminApprovalStatus?: "PENDING" | "APPROVED" | "REJECTED"
 ): Promise<PropertyApplication> => {
   try {
     const body: any = {};
@@ -115,6 +121,8 @@ export const updatePropertyApplication = async (
     if (communicatedAt !== undefined) body.communicatedAt = communicatedAt;
     if (viewingRequested !== undefined) body.viewingRequested = viewingRequested;
     if (viewingDate !== undefined) body.viewingDate = viewingDate;
+    if (isApproved !== undefined) body.isApproved = isApproved;
+    if (adminApprovalStatus !== undefined) body.adminApprovalStatus = adminApprovalStatus;
 
     const response = await fetch(`${API_URL}/property-applications/${id}`, {
       method: "PUT",

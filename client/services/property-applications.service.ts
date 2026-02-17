@@ -19,11 +19,35 @@ export interface PropertyApplication {
   email?: string;
   phone: string;
   message?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'CONTACTED' | 'APPROVED' | 'REJECTED' | 'CLOSED';
+  isApproved: boolean;
+  adminApprovalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  adminApprovedAt?: string | null;
+  adminApprovedBy?: string | null;
   remarks?: string;
+  statusChangedAt?: string | null;
+  emailSent: boolean;
+  isCommunicated: boolean;
+  viewingRequested: boolean;
+  viewingDate?: string | null;
   createdAt: string;
   updatedAt: string;
-  property?: any;
+  tenant?: {
+    id: string;
+    fullName: string;
+    email?: string | null;
+    phone: string;
+    status: string;
+  };
+  property?: {
+    id: string;
+    title: string;
+    price: number;
+    city: string;
+    address: string;
+    status: string;
+    images?: { url: string }[];
+  };
   landlord?: any;
 }
 
@@ -66,6 +90,58 @@ export const getPropertyApplicationById = async (id: string): Promise<PropertyAp
 
   if (!response.ok) {
     throw new Error('Failed to fetch application');
+  }
+
+  return response.json();
+};
+
+// Get property applications by landlord ID
+export const getPropertyApplicationsByLandlord = async (
+  landlordId: string,
+  token: string,
+  status?: string
+): Promise<PropertyApplication[]> => {
+  const params = new URLSearchParams();
+  if (status) params.append("status", status);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+
+  const response = await fetch(
+    `${API_URL}/property-applications/landlord/${landlordId}${qs}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch applications");
+  }
+
+  return response.json();
+};
+
+// Update property application status
+export const updatePropertyApplicationStatus = async (
+  id: string,
+  token: string,
+  data: { status?: string; remarks?: string }
+): Promise<PropertyApplication> => {
+  const response = await fetch(`${API_URL}/property-applications/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to update application");
   }
 
   return response.json();

@@ -22,11 +22,12 @@ import {
   Trash2,
   Mail,
   Phone,
-
   Building2,
   Calendar,
   MessageSquare,
   User,
+  ShieldCheck,
+  EyeOff,
 } from "lucide-react"
 import {
   getPropertyApplications,
@@ -66,12 +67,16 @@ export function PropertyApplicationsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [applicationToDelete, setApplicationToDelete] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [approvingId, setApprovingId] = useState<string | null>(null)
+  const [hidingId, setHidingId] = useState<string | null>(null)
   const [updateStatus, setUpdateStatus] = useState<string>("")
   const [updateRemarks, setUpdateRemarks] = useState<string>("")
   const [updateEmailSent, setUpdateEmailSent] = useState<boolean>(false)
   const [updateIsCommunicated, setUpdateIsCommunicated] = useState<boolean>(false)
   const [updateViewingRequested, setUpdateViewingRequested] = useState<boolean>(false)
   const [updateViewingDate, setUpdateViewingDate] = useState<string>("")
+  const [updateIsApproved, setUpdateIsApproved] = useState<boolean>(false)
+  const [updateAdminApprovalStatus, setUpdateAdminApprovalStatus] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING")
   const itemsPerPage = 10
 
   useEffect(() => {
@@ -185,6 +190,8 @@ export function PropertyApplicationsPage() {
     setUpdateIsCommunicated(application.isCommunicated || false)
     setUpdateViewingRequested(application.viewingRequested || false)
     setUpdateViewingDate(application.viewingDate ? new Date(application.viewingDate).toISOString().split('T')[0] : "")
+    setUpdateIsApproved(application.isApproved || false)
+    setUpdateAdminApprovalStatus(application.adminApprovalStatus || "PENDING")
     setUpdateDialogOpen(true)
   }
 
@@ -202,7 +209,9 @@ export function PropertyApplicationsPage() {
         updateIsCommunicated,
         updateIsCommunicated ? new Date().toISOString() : undefined,
         updateViewingRequested,
-        updateViewingDate || undefined
+        updateViewingDate || undefined,
+        updateIsApproved,
+        updateAdminApprovalStatus
       )
       setApplications((prev) =>
         prev.map((app) => (app.id === updated.id ? updated : app))
@@ -247,6 +256,74 @@ export function PropertyApplicationsPage() {
       })
     } finally {
       setApplicationToDelete(null)
+    }
+  }
+
+  const handleApproveForLandlord = async (applicationId: string) => {
+    setApprovingId(applicationId)
+    try {
+      const updated = await updatePropertyApplication(
+        applicationId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined, // isApproved (legacy)
+        "APPROVED" // adminApprovalStatus = APPROVED
+      )
+      setApplications((prev) =>
+        prev.map((app) => (app.id === updated.id ? updated : app))
+      )
+      toast({
+        title: "Success",
+        description: "Application approved! Landlord can now see this application.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to approve application",
+        variant: "destructive",
+      })
+    } finally {
+      setApprovingId(null)
+    }
+  }
+
+  const handleHideFromLandlord = async (applicationId: string) => {
+    setHidingId(applicationId)
+    try {
+      const updated = await updatePropertyApplication(
+        applicationId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined, // isApproved (legacy)
+        "REJECTED" // adminApprovalStatus = REJECTED (hide from landlord)
+      )
+      setApplications((prev) =>
+        prev.map((app) => (app.id === updated.id ? updated : app))
+      )
+      toast({
+        title: "Success",
+        description: "Application hidden from landlord.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to hide application",
+        variant: "destructive",
+      })
+    } finally {
+      setHidingId(null)
     }
   }
 
@@ -486,20 +563,74 @@ export function PropertyApplicationsPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(application.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {getStatusBadge(application.status)}
+                            {application.adminApprovalStatus === 'APPROVED' ? (
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] w-fit">
+                                <ShieldCheck className="w-2.5 h-2.5 mr-1" />
+                                Admin Approved
+                              </Badge>
+                            ) : application.adminApprovalStatus === 'REJECTED' ? (
+                              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[10px] w-fit">
+                                <XCircle className="w-2.5 h-2.5 mr-1" />
+                                Admin Rejected
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] w-fit">
+                                <Clock className="w-2.5 h-2.5 mr-1" />
+                                Pending Admin Approval
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleView(application)}
+                              title="View Details"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
+                            {application.adminApprovalStatus !== 'APPROVED' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleApproveForLandlord(application.id)}
+                                disabled={approvingId === application.id || hidingId === application.id}
+                                className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                title="Approve for Landlord"
+                              >
+                                {approvingId === application.id ? (
+                                  <Clock className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <ShieldCheck className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
+                            {application.adminApprovalStatus !== 'REJECTED' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleHideFromLandlord(application.id)}
+                                disabled={hidingId === application.id || approvingId === application.id}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Hide from Landlord"
+                              >
+                                {hidingId === application.id ? (
+                                  <Clock className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleUpdateClick(application)}
+                              title="Update Status"
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
@@ -507,6 +638,7 @@ export function PropertyApplicationsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(application.id)}
+                              title="Delete"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -581,6 +713,30 @@ export function PropertyApplicationsPage() {
                 placeholder="Add any remarks or notes..."
                 rows={4}
               />
+            </div>
+            <div className="space-y-4 border-t pt-4">
+              <div className="text-sm font-medium">Admin Approval Status</div>
+              <div>
+                <Label htmlFor="adminApprovalStatus" className="text-xs text-gray-600 mb-1.5 block">
+                  Approval Status for Landlord Visibility
+                </Label>
+                <Select
+                  value={updateAdminApprovalStatus}
+                  onValueChange={(value: "PENDING" | "APPROVED" | "REJECTED") => setUpdateAdminApprovalStatus(value)}
+                >
+                  <SelectTrigger id="adminApprovalStatus">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending - Not visible to landlord</SelectItem>
+                    <SelectItem value="APPROVED">Approved - Visible to landlord</SelectItem>
+                    <SelectItem value="REJECTED">Rejected - Not visible to landlord</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400 mt-1">
+                  This controls whether the landlord can see this application
+                </p>
+              </div>
             </div>
             <div className="space-y-4 border-t pt-4">
               <div className="text-sm font-medium">Communication Tracking</div>

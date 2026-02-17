@@ -28,10 +28,11 @@ import {
   RefreshCw,
 } from "lucide-react"
 import {
-  getLandlordApplications,
-  updateLandlordApplication,
-  type LandlordApplication,
-} from "@/services/landlords.service"
+  getPropertyApplicationsByLandlord,
+  updatePropertyApplicationStatus,
+  type PropertyApplication,
+} from "@/services/property-applications.service"
+import { getLandlordIdFromProperties } from "@/services/landlords.service"
 
 type StatusFilter = "ALL" | "PENDING" | "CONTACTED" | "APPROVED" | "REJECTED" | "CLOSED"
 
@@ -90,32 +91,54 @@ function formatDate(dateStr: string) {
 
 export default function LandlordApplicationsPage() {
   const { user, isLoggedIn } = useAuthStore()
-  const [applications, setApplications] = useState<LandlordApplication[]>([])
+  const [applications, setApplications] = useState<PropertyApplication[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [landlordId, setLandlordId] = useState<string | null>(null)
+  const [isLoadingLandlordId, setIsLoadingLandlordId] = useState(true)
+
+  // Fetch landlord ID first
+  useEffect(() => {
+    const fetchLandlordId = async () => {
+      if (!isLoggedIn || !user?.token) return
+      setIsLoadingLandlordId(true)
+      try {
+        const id = await getLandlordIdFromProperties(user.token)
+        setLandlordId(id)
+      } catch (err) {
+        console.error("Failed to get landlord ID:", err)
+        setError("Unable to load your landlord profile")
+      } finally {
+        setIsLoadingLandlordId(false)
+      }
+    }
+    fetchLandlordId()
+  }, [isLoggedIn, user?.token])
 
   const fetchApplications = useCallback(async () => {
-    if (!isLoggedIn || !user?.token || !user?._id) return
+    if (!isLoggedIn || !user?.token || !landlordId) return
     setIsLoading(true)
     setError(null)
 
     try {
       const filterStatus = statusFilter === "ALL" ? undefined : statusFilter
-      const data = await getLandlordApplications(user._id, user.token, filterStatus)
+      const data = await getPropertyApplicationsByLandlord(landlordId, user.token, filterStatus)
       setApplications(data)
     } catch (err: any) {
       setError(err.message || "Failed to load applications")
     } finally {
       setIsLoading(false)
     }
-  }, [isLoggedIn, user?.token, user?._id, statusFilter])
+  }, [isLoggedIn, user?.token, landlordId, statusFilter])
 
   useEffect(() => {
-    fetchApplications()
-  }, [fetchApplications])
+    if (landlordId && !isLoadingLandlordId) {
+      fetchApplications()
+    }
+  }, [fetchApplications, landlordId, isLoadingLandlordId])
 
   const handleStatusUpdate = async (
     applicationId: string,
@@ -125,7 +148,7 @@ export default function LandlordApplicationsPage() {
     setUpdatingId(applicationId)
 
     try {
-      const updated = await updateLandlordApplication(applicationId, user.token, {
+      const updated = await updatePropertyApplicationStatus(applicationId, user.token, {
         status: newStatus,
       })
       setApplications((prev) =>
@@ -236,15 +259,25 @@ export default function LandlordApplicationsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading && (
+          {(isLoading || isLoadingLandlordId) && (
             <div className="py-8 text-center text-gray-500">
               <RefreshCw className="h-6 w-6 mx-auto mb-2 animate-spin text-gray-400" />
-              Loading applications...
+              {isLoadingLandlordId ? "Loading your profile..." : "Loading applications..."}
             </div>
           )}
 
-          {!isLoading && error && (
+          {!isLoading && !isLoadingLandlordId && error && (
             <div className="py-8 text-center text-red-500 text-sm">{error}</div>
+          )}
+
+          {!isLoading && !isLoadingLandlordId && !landlordId && !error && (
+            <div className="py-8 text-center text-gray-500">
+              <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm font-medium text-gray-500 mb-1">Unable to load applications</p>
+              <p className="text-xs text-gray-400">
+                Please ensure you have created at least one property first
+              </p>
+            </div>
           )}
 
           {!isLoading && !error && !hasApplications && (

@@ -21,21 +21,21 @@ export default function LandlordDashboardPage() {
 
   const fetchData = useCallback(async () => {
     if (!isLoggedIn || !user?.token || !user?._id) return
-    setIsLoading(true)
-    setError(null)
+      setIsLoading(true)
+      setError(null)
 
-    try {
+      try {
       const [propsData, appsData] = await Promise.all([
         getLandlordProperties(user.token),
         getLandlordApplications(user._id, user.token).catch(() => []),
       ])
       setProperties(propsData)
       setApplications(appsData)
-    } catch (err: any) {
-      setError(err.message || "Failed to load dashboard data")
-    } finally {
-      setIsLoading(false)
-    }
+      } catch (err: any) {
+        setError(err.message || "Failed to load dashboard data")
+      } finally {
+        setIsLoading(false)
+      }
   }, [isLoggedIn, user?.token, user?._id])
 
   useEffect(() => {
@@ -254,10 +254,13 @@ export default function LandlordDashboardPage() {
             <div className="space-y-2">
               {quickActions.map((action) => {
                 const Icon = action.icon
+                const href = action.title === "Add New Property" 
+                  ? "/landlords/properties/create"
+                  : action.href
                 return (
                   <Link
                     key={action.title}
-                    href={action.href}
+                    href={href}
                     className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg border border-gray-100 hover:bg-gray-50/80 hover:border-gray-200 transition-all group"
                   >
                     <div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-[#2a6f97]/5 transition-colors">

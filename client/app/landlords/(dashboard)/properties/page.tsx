@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/authStore"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Plus, MapPin } from "lucide-react"
@@ -22,6 +23,7 @@ function getStatusStyle(status: string) {
 }
 
 export default function LandlordPropertiesPage() {
+  const router = useRouter()
   const { user, isLoggedIn } = useAuthStore()
   const [properties, setProperties] = useState<LandlordProperty[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -59,7 +61,10 @@ export default function LandlordPropertiesPage() {
             Manage your property listings
           </p>
         </div>
-        <Button className="bg-[#2a6f97] hover:bg-[#235d7f] text-white shadow-sm text-xs gap-1.5">
+        <Button
+          onClick={() => router.push("/landlords/properties/create")}
+          className="bg-[#2a6f97] hover:bg-[#235d7f] text-white shadow-sm text-xs gap-1.5"
+        >
           <Plus className="h-3.5 w-3.5" />
           Add Property
         </Button>
@@ -147,7 +152,7 @@ export default function LandlordPropertiesPage() {
                       <span className="text-xs text-gray-400 ml-1">/mo</span>
                     </div>
                   </div>
-                </div>
+                      </div>
               ))}
             </div>
           )}

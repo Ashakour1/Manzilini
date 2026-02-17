@@ -1,6 +1,6 @@
 const PRODUCTION_API_URL = "https://manzilline-production-fcab.up.railway.app/api/v1";
 export const DEVELOPMENT_API_URL = "http://localhost:4000/api/v1";
-export const API_URL = PRODUCTION_API_URL;
+export const API_URL = DEVELOPMENT_API_URL;
 
 
 export interface LandlordRegistrationData {
@@ -112,6 +112,10 @@ export interface LandlordApplication {
   phone: string;
   message?: string;
   status: "PENDING" | "CONTACTED" | "APPROVED" | "REJECTED" | "CLOSED";
+  isApproved: boolean;
+  adminApprovalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  adminApprovedAt?: string | null;
+  adminApprovedBy?: string | null;
   remarks?: string;
   statusChangedAt?: string | null;
   emailSent: boolean;
@@ -185,6 +189,114 @@ export const updateLandlordApplication = async (
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || "Failed to update application");
+  }
+
+  return response.json();
+};
+
+// ─── Property Creation ───────────────────────────────────────────
+
+export interface CreatePropertyData {
+  title: string;
+  description: string;
+  property_type: string;
+  status: string;
+  price: string;
+  currency: string;
+  payment_frequency: string;
+  deposit_amount?: string;
+  deposit_type?: "FIXED" | "PERCENTAGE";
+  country: string;
+  city: string;
+  address: string;
+  zip_code: string;
+  latitude: string;
+  longitude: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  garages?: string;
+  size?: string;
+  is_furnished?: boolean;
+  floor?: string;
+  total_floors?: string;
+  balcony?: boolean;
+  amenities?: string[];
+  landlord_id?: string;
+  is_published?: boolean;
+  images?: File[];
+}
+
+// Get landlord ID from existing properties (helper function)
+// The backend returns properties with landlord info, so we extract it
+export const getLandlordIdFromProperties = async (token: string): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_URL}/properties/landlord`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const properties = await response.json();
+    if (properties && properties.length > 0) {
+      // The backend includes landlord info in the response
+      const firstProp = properties[0];
+      return firstProp.landlord?.id || firstProp.landlord_id || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+// Create a new property
+export const createProperty = async (
+  token: string,
+  propertyData: CreatePropertyData
+): Promise<any> => {
+  const formData = new FormData();
+
+  // Append all property fields
+  Object.entries(propertyData).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    
+    if (key === "images" && Array.isArray(value)) {
+      value.forEach((file) => formData.append("images", file));
+      return;
+    }
+    
+    if (key === "amenities" && Array.isArray(value)) {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
+    
+    if (typeof value === "boolean") {
+      formData.append(key, value.toString());
+      return;
+    }
+    
+    formData.append(key, value.toString());
+  });
+
+  // Always set is_published to false for landlord-created properties
+  formData.append("is_published", "false");
+
+  const response = await fetch(`${API_URL}/properties`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to create property");
   }
 
   return response.json();

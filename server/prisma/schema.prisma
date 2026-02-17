@@ -191,10 +191,16 @@ model PropertyApplication {
 
   // Application lifecycle
   status          ApplicationStatus @default(PENDING)
+  isApproved      Boolean           @default(false)
   remarks         String?
 
   statusChangedAt DateTime?
   statusChangedBy String?
+
+  // Admin approval tracking (separate from workflow status)
+  adminApprovalStatus AdminApprovalStatus @default(PENDING)
+  adminApprovedAt     DateTime?
+  adminApprovedBy     String?
 
   // Communication tracking
   emailSent        Boolean   @default(false)
@@ -413,6 +419,12 @@ enum ApplicationStatus {
   APPROVED    // accepted for this property
   REJECTED    // not accepted
   CLOSED      // finished (approved or rejected, no more action)
+}
+
+enum AdminApprovalStatus {
+  PENDING   // waiting for admin approval
+  APPROVED  // admin approved - visible to landlord
+  REJECTED  // admin rejected - not visible to landlord
 }
 
 enum TenantStatus {

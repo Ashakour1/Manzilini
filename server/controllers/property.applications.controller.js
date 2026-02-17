@@ -233,6 +233,8 @@ export const updatePropertyApplication = asyncHandler(async (req, res) => {
         const { id } = req.params;
         const { 
             status, 
+            isApproved,
+            adminApprovalStatus,
             remarks,
             emailSent,
             emailSentAt,
@@ -262,6 +264,7 @@ export const updatePropertyApplication = asyncHandler(async (req, res) => {
         const updateData = {};
         
         // Handle status change tracking
+        // Status and isApproved are independent - status is for workflow, isApproved is for landlord visibility
         if (status !== undefined && status !== existingApplication.status) {
             updateData.status = status;
             updateData.statusChangedAt = new Date();
@@ -286,6 +289,47 @@ export const updatePropertyApplication = asyncHandler(async (req, res) => {
                     where: { id: existingApplication.tenantId },
                     data: { lastActivityAt: new Date() }
                 });
+            }
+        }
+        
+        // Handle admin approval tracking
+        // Support both isApproved (legacy) and adminApprovalStatus (new)
+        if (adminApprovalStatus !== undefined) {
+            const validAdminStatuses = ['PENDING', 'APPROVED', 'REJECTED'];
+            if (!validAdminStatuses.includes(adminApprovalStatus)) {
+                return res.status(400).json({ 
+                    message: `Invalid adminApprovalStatus. Must be one of: ${validAdminStatuses.join(', ')}` 
+                });
+            }
+            updateData.adminApprovalStatus = adminApprovalStatus;
+            
+            // Track approval/rejection with timestamp and user
+            if (adminApprovalStatus === 'APPROVED') {
+                updateData.adminApprovedAt = new Date();
+                updateData.adminApprovedBy = req.user?.id || null;
+                updateData.isApproved = true; // For backward compatibility
+            } else if (adminApprovalStatus === 'REJECTED') {
+                // Keep the timestamp and user for audit trail even when rejected
+                // This shows who rejected it and when
+                updateData.adminApprovedAt = new Date();
+                updateData.adminApprovedBy = req.user?.id || null;
+                updateData.isApproved = false;
+            } else {
+                // PENDING - reset approval tracking
+                updateData.adminApprovedAt = null;
+                updateData.adminApprovedBy = null;
+                updateData.isApproved = false;
+            }
+        } else if (isApproved !== undefined) {
+            // Legacy support: if isApproved is provided, update adminApprovalStatus accordingly
+            updateData.isApproved = isApproved;
+            updateData.adminApprovalStatus = isApproved ? 'APPROVED' : 'PENDING';
+            if (isApproved) {
+                updateData.adminApprovedAt = new Date();
+                updateData.adminApprovedBy = req.user?.id || null;
+            } else {
+                updateData.adminApprovedAt = null;
+                updateData.adminApprovedBy = null;
             }
         }
         
@@ -396,6 +440,7 @@ export const getPropertyApplicationsByTenant = asyncHandler(async (req, res) => 
 });
 
 // Get property applications by landlord
+// Returns all applications for the landlord (no approval filter)
 export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) => {
     try {
         const { landlordId } = req.params;
@@ -405,7 +450,10 @@ export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) =
             return res.status(400).json({ message: 'Landlord ID is required' });
         }
 
-        const whereClause = { landlordId };
+        // Show all applications for this landlord (no approval filter)
+        const whereClause = { 
+            landlordId
+        };
         if (status) whereClause.status = status;
 
         const propertyApplications = await prisma.propertyApplication.findMany({
