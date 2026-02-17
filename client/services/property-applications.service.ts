@@ -95,18 +95,18 @@ export const getPropertyApplicationById = async (id: string): Promise<PropertyAp
   return response.json();
 };
 
-// Get property applications by landlord ID
+// Get property applications by landlord ID (uses general endpoint with query params)
 export const getPropertyApplicationsByLandlord = async (
   landlordId: string,
   token: string,
   status?: string
 ): Promise<PropertyApplication[]> => {
   const params = new URLSearchParams();
+  params.append("landlordId", landlordId);
   if (status) params.append("status", status);
-  const qs = params.toString() ? `?${params.toString()}` : "";
 
   const response = await fetch(
-    `${API_URL}/property-applications/landlord/${landlordId}${qs}`,
+    `${API_URL}/property-applications?${params.toString()}`,
     {
       method: "GET",
       headers: {
