@@ -230,6 +230,7 @@ export interface CreatePropertyData {
 // The backend returns properties with landlord info, so we extract it
 export const getLandlordIdFromProperties = async (token: string): Promise<string | null> => {
   try {
+    // First try to get from properties (if landlord has properties)
     const response = await fetch(`${API_URL}/properties/landlord`, {
       method: "GET",
       headers: {
@@ -238,18 +239,52 @@ export const getLandlordIdFromProperties = async (token: string): Promise<string
       },
     });
 
-    if (!response.ok) {
-      return null;
+    if (response.ok) {
+      const properties = await response.json();
+      if (properties && properties.length > 0) {
+        // The backend includes landlord info in the response
+        const firstProp = properties[0];
+        return firstProp.landlord?.id || firstProp.landlord_id || null;
+      }
     }
 
-    const properties = await response.json();
-    if (properties && properties.length > 0) {
-      // The backend includes landlord info in the response
-      const firstProp = properties[0];
-      return firstProp.landlord?.id || firstProp.landlord_id || null;
+    // If no properties, get landlord ID from user email (same logic as backend)
+    // Get current user to find landlord by email
+    const userResponse = await fetch(`${API_URL}/users/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (userResponse.ok) {
+      const user = await userResponse.json();
+      if (user?.email) {
+        // Get all landlords and find by email
+        const landlordsResponse = await fetch(`${API_URL}/landlords`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (landlordsResponse.ok) {
+          const landlords = await landlordsResponse.json();
+          const landlord = Array.isArray(landlords)
+            ? landlords.find((l: Landlord) => l.email === user.email)
+            : null;
+          if (landlord?.id) {
+            return landlord.id;
+          }
+        }
+      }
     }
+
     return null;
-  } catch {
+  } catch (error) {
+    console.error("Error getting landlord ID:", error);
     return null;
   }
 };

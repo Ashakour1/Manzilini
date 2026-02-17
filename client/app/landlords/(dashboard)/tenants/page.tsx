@@ -13,8 +13,6 @@ import Link from "next/link"
 import { getTenants, type Tenant } from "@/services/tenants.service"
 import { getLandlordIdFromProperties } from "@/services/landlords.service"
 import { useToast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Empty } from "@/components/ui/empty"
 
 function getStatusStyle(status: string) {
   switch (status) {
@@ -112,157 +110,156 @@ export default function TenantsPage() {
     return null
   }
 
+  const hasTenants = tenants && tenants.length > 0
+
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage your tenant information</p>
-          </div>
-          <Link href="/landlords/tenants/create">
-            <Button className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Tenant
-            </Button>
-          </Link>
+    <div className="p-5 md:p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 mb-1">
+            Tenants
+          </h1>
+          <p className="text-sm text-gray-500">
+            Manage your tenant information
+          </p>
         </div>
+        <Button
+          onClick={() => router.push("/landlords/tenants/create")}
+          className="bg-[#2a6f97] hover:bg-[#235d7f] text-white shadow-sm text-xs gap-1.5"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add Tenant
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <Card className="border border-gray-200 bg-white shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <form onSubmit={handleSearch} className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Search by name, email, or phone..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </form>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="NEW">New</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="BLOCKED">Blocked</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Error State */}
-        {error && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-red-700">{error}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Loading State */}
-        {(isLoading || isLoadingLandlordId) && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="border border-gray-200 bg-white shadow-sm">
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-4" />
-                  <Skeleton className="h-3 w-full mb-2" />
-                  <Skeleton className="h-3 w-2/3" />
-                </CardContent>
-              </Card>
-            ))}
+      {/* Filters */}
+      <Card className="border-gray-200/80 shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">Search & Filter</CardTitle>
+          <CardDescription className="text-xs">
+            Find tenants by name, email, or phone
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <form onSubmit={handleSearch} className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 text-sm"
+                />
+              </div>
+            </form>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] text-sm">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="NEW">New</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="BLOCKED">Blocked</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Empty State */}
-        {!isLoading && tenants.length === 0 && (
-          <Card className="border border-gray-200 bg-white shadow-sm">
-            <CardContent className="p-12">
-              <Empty
-                icon={Users}
-                title="No tenants found"
-                description={
-                  searchQuery || statusFilter !== "all"
-                    ? "Try adjusting your search or filters"
-                    : "Get started by adding your first tenant"
-                }
-              />
-            </CardContent>
-          </Card>
-        )}
+      <Card className="border-gray-200/80 shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">Tenants</CardTitle>
+          <CardDescription className="text-xs">
+            {hasTenants
+              ? `${tenants.length} tenant${tenants.length !== 1 ? "s" : ""}`
+              : "Your tenants will appear here"
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(isLoading || isLoadingLandlordId) && (
+            <div className="py-8 text-center text-gray-400 text-sm">
+              Loading your tenants...
+            </div>
+          )}
 
-        {/* Tenants Grid */}
-        {!isLoading && tenants.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {tenants.map((tenant) => (
-              <Card
-                key={tenant.id}
-                className="border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base font-semibold text-gray-900">
+          {!isLoading && !isLoadingLandlordId && error && (
+            <div className="py-8 text-center text-red-500 text-sm">
+              {error}
+            </div>
+          )}
+
+          {!isLoading && !isLoadingLandlordId && !error && !hasTenants && (
+            <div className="text-center py-12 text-gray-400">
+              <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm font-medium text-gray-500 mb-1">No tenants yet</p>
+              <p className="text-xs text-gray-400">
+                {searchQuery || statusFilter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "Start by adding your first tenant"}
+              </p>
+            </div>
+          )}
+
+          {!isLoading && !isLoadingLandlordId && !error && hasTenants && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {tenants.map((tenant) => (
+                <div
+                  key={tenant.id}
+                  className="group rounded-xl border border-gray-200/80 overflow-hidden hover:shadow-md hover:border-gray-300/80 transition-all duration-200 bg-white"
+                >
+                  <div className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">
                         {tenant.fullName}
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs font-medium ${getStatusStyle(tenant.status)}`}
-                        >
-                          {getStatusLabel(tenant.status)}
-                        </Badge>
-                      </CardDescription>
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-semibold capitalize ml-2 ${getStatusStyle(tenant.status)}`}
+                      >
+                        {getStatusLabel(tenant.status)}
+                      </Badge>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2 text-sm">
-                    {tenant.email && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="truncate">{tenant.email}</span>
+                    
+                    <div className="space-y-1.5 text-xs text-gray-600">
+                      {tenant.email && (
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{tenant.email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                        <span>{tenant.phone}</span>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <span>{tenant.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <FileText className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {tenant._count?.applications || tenant.applicationsCount || 0} application
-                        {(tenant._count?.applications || tenant.applicationsCount || 0) !== 1
-                          ? "s"
-                          : ""}
-                      </span>
-                    </div>
-                    {tenant.lastActivityAt && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-xs">
-                          {new Date(tenant.lastActivityAt).toLocaleDateString()}
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                        <span>
+                          {tenant._count?.applications || tenant.applicationsCount || 0} application
+                          {(tenant._count?.applications || tenant.applicationsCount || 0) !== 1
+                            ? "s"
+                            : ""}
                         </span>
                       </div>
-                    )}
+                      {tenant.lastActivityAt && (
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                          <span>
+                            {new Date(tenant.lastActivityAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
