@@ -63,6 +63,8 @@ model Landlord {
   // creator
   createdBy       String?
   creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  // tenants created by this landlord
+  tenants         Tenant[]
 }
 
 model LandlordDocument {
@@ -162,6 +164,10 @@ model Tenant {
 
   lastActivityAt    DateTime?
   applicationsCount Int          @default(0)
+
+  // Track which landlord created this tenant
+  landlordId        String?
+  landlord          Landlord?    @relation(fields: [landlordId], references: [id], onDelete: SetNull)
 
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt

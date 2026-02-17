@@ -5,10 +5,11 @@ import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 // Get all tenants
 export const getTenants = asyncHandler(async (req, res) => {
     try {
-        const { status, search } = req.query;
+        const { status, search, landlordId } = req.query;
         
         const whereClause = {};
         if (status) whereClause.status = status;
+        if (landlordId) whereClause.landlordId = landlordId;
         if (search) {
             whereClause.OR = [
                 { fullName: { contains: search, mode: 'insensitive' } },
@@ -115,7 +116,7 @@ export const getTenantById = asyncHandler(async (req, res) => {
 // Create tenant
 export const createTenant = asyncHandler(async (req, res) => {
     try {
-        const { fullName, email, phone, status } = req.body || {};
+        const { fullName, email, phone, status, landlordId } = req.body || {};
         
         if (!fullName || !phone) {
             return res.status(400).json({ 
@@ -158,7 +159,8 @@ export const createTenant = asyncHandler(async (req, res) => {
                         phone,
                         status: status || 'NEW',
                         lastActivityAt: new Date(),
-                        applicationsCount: 0
+                        applicationsCount: 0,
+                        landlordId: landlordId || null
                     }
                 });
 

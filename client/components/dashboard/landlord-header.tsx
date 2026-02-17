@@ -13,6 +13,8 @@ export function LandlordHeader() {
       '/landlords/properties': 'My Properties',
       '/landlords/properties/create': 'Create Property',
       '/landlords/applications': 'Applications',
+      '/landlords/tenants': 'Tenants',
+      '/landlords/tenants/create': 'Create Tenant',
       '/landlords/documents': 'Documents',
       '/landlords/settings': 'Settings',
     }

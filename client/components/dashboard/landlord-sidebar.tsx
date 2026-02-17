@@ -7,6 +7,7 @@ import {
   Building2, 
   FileText, 
   ClipboardList,
+  Users,
   Settings, 
   LogOut, 
   Menu,
@@ -22,6 +23,7 @@ const menuItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard", href: "/landlords/dashboard" },
   { id: "properties", icon: Building2, label: "My Properties", href: "/landlords/properties" },
   { id: "applications", icon: ClipboardList, label: "Applications", href: "/landlords/applications" },
+  { id: "tenants", icon: Users, label: "Tenants", href: "/landlords/tenants" },
   { id: "documents", icon: FileText, label: "Documents", href: "/landlords/documents" },
   { id: "settings", icon: Settings, label: "Settings", href: "/landlords/settings" },
 ]
