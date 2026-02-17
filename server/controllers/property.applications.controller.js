@@ -165,7 +165,11 @@ export const getPropertyApplications = asyncHandler(async (req, res) => {
         
         const whereClause = {};
         if (propertyId) whereClause.propertyId = propertyId;
-        if (landlordId) whereClause.landlordId = landlordId;
+        if (landlordId) {
+            whereClause.landlordId = landlordId;
+            // Only fetch approved applications when filtering by landlordId
+            whereClause.isApproved = true;
+        }
         if (status) whereClause.status = status;
 
         const propertyApplications = await prisma.propertyApplication.findMany({
@@ -440,7 +444,7 @@ export const getPropertyApplicationsByTenant = asyncHandler(async (req, res) => 
 });
 
 // Get property applications by landlord
-// Returns all applications for the landlord (no approval filter)
+// Only returns applications that have been approved by admin (isApproved: true)
 export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) => {
     try {
         const { landlordId } = req.params;
@@ -450,9 +454,10 @@ export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) =
             return res.status(400).json({ message: 'Landlord ID is required' });
         }
 
-        // Show all applications for this landlord (no approval filter)
+        // Only show applications that have been approved by admin
         const whereClause = { 
-            landlordId
+            landlordId,
+            isApproved: true  // Only fetch applications where isApproved is true
         };
         if (status) whereClause.status = status;
 
