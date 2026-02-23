@@ -33,6 +33,7 @@ const menuItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
   { id: "properties", icon: Building2, label: "Properties", href: "/properties" },
   { id: "property-applications", icon: ClipboardList, label: "Property Applications", href: "/property-applications" },
+  { id: "tasks", icon: ClipboardList, label: "Tasks", href: "/tasks" },
   { id: "landlords", icon: UserCheck, label: "Landlords", href: "/landlords" },
   { id: "tenants", icon: Users, label: "Tenants", href: "/tenants" },
   { id: "field-agents", icon: MapPin, label: "Field Agents", href: "/field-agents" },
@@ -154,10 +155,11 @@ export function DashboardSidebar() {
     
     // Filter based on role
     if (userRole === "ADMIN") {
-      // Admin can only access: dashboard, properties, landlords, users, field-agents, tenants
+      // Admin can only access: dashboard, properties, tasks, landlords, users, field-agents, tenants
       return mappedItems.filter(item => 
         item.id === "dashboard" ||
         item.id === "properties" ||
+        item.id === "tasks" ||
         item.id === "landlords" ||
         item.id === "users" ||
         item.id === "field-agents" ||

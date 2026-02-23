@@ -45,6 +45,7 @@ export const canAccessRoute = (userRole: string | undefined, route: string): boo
     const adminRoutes = [
       '/admin/dashboard',
       '/admin/properties',
+      '/admin/tasks',
       '/admin/landlords',
       '/admin/users',
       '/admin/field-agents',

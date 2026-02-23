@@ -17,6 +17,8 @@ import incomeRoutes from './routes/income.routes.js';
 import expenseRoutes from './routes/expense.routes.js';
 import propertyApplicationsRoutes from './routes/property.applications.routes.js';
 import tenantRoutes from './routes/tenant.routes.js';
+import taskRoutes from './routes/task.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,11 +72,11 @@ app.use('/api/v1/incomes', incomeRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/property-applications', propertyApplicationsRoutes);
 app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/tasks', taskRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-
 

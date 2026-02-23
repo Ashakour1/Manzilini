@@ -34,6 +34,11 @@ model User {
 
   // link to tenants created by this user
   tenants Tenant[]
+
+  // task management
+  assignedTasks  Task[]         @relation("TaskAssignedTo")
+  createdTasks   Task[]         @relation("TaskAssignedBy")
+  notifications  Notification[]
 }
 
 model Landlord {
@@ -387,6 +392,46 @@ model Expense {
   @@index([category])
 }
 
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+
+  assignedToId String      @map("assigned_to")
+  assignedTo   User        @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
+
+  assignedById String      @map("assigned_by")
+  assignedBy   User        @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+
+  priority     TaskPriority
+  status       TaskStatus  @default(PENDING)
+  dueDate      DateTime?   @map("due_date")
+
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@index([assignedToId])
+  @@index([assignedById])
+  @@index([status])
+  @@index([createdAt])
+  @@map("tasks")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(TASK)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
 enum DocumentType {
   ID
   PASSPORT
@@ -518,6 +563,26 @@ enum ContactMethod {
 enum UserStatus {
   ACTIVE
   INACTIVE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  TASK
+  SYSTEM
+  ALERT
 }
 
 enum EmailType {

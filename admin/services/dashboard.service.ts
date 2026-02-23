@@ -1,4 +1,4 @@
-import { API_URL } from "../lib/api";
+import { API_URL, getAuthHeaders } from "../lib/api";
 import { getProperties } from "./properties.service";
 import { getLandlords } from "./landlords.service";
 import { getUsers } from "./users.service";
@@ -54,6 +54,28 @@ export interface RecentActivity {
   amount: string;
   time: string;
   timestamp?: number; // For sorting
+}
+
+export interface DashboardTaskSummaryItem {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  status: string;
+  due_date: string | null;
+  created_at: string;
+  assigned_by_user?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+}
+
+export interface TaskDashboardSummary {
+  total_pending_tasks: number;
+  latest_tasks: DashboardTaskSummaryItem[];
+  unread_notification_count: number;
 }
 
 // Get dashboard statistics
@@ -387,5 +409,27 @@ export const getRecentActivity = async (): Promise<RecentActivity[]> => {
   } catch (error) {
     console.error("Error fetching recent activity:", error);
     return [];
+  }
+};
+
+// Get task summary cards for the current user dashboard
+export const getTaskDashboardSummary = async (): Promise<TaskDashboardSummary> => {
+  try {
+    const response = await fetch(`${API_URL}/tasks/dashboard/summary`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch task dashboard summary");
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching task dashboard summary:", error);
+    return {
+      total_pending_tasks: 0,
+      latest_tasks: [],
+      unread_notification_count: 0,
+    };
   }
 };

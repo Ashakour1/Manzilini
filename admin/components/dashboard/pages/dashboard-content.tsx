@@ -22,9 +22,10 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, FileText, MapPin, Clock, CheckCircle, XCircle, ArrowDownCircle, ArrowUpCircle, Home, Wallet, TrendingDown, Percent, UserCheck } from "lucide-react"
+import { Building2, Users, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, FileText, MapPin, Clock, CheckCircle, XCircle, ArrowDownCircle, ArrowUpCircle, Home, Wallet, TrendingDown, Percent, UserCheck, Bell, CheckCheck } from "lucide-react"
 import { useEffect, useState, useMemo } from "react"
 import { useAuthStore } from "@/store/authStore"
+import { useToast } from "@/components/ui/use-toast"
 import {
   getDashboardStats,
   getRevenueData,
@@ -39,6 +40,12 @@ import {
   type PaymentStatusData,
   type RecentActivity,
 } from "@/services/dashboard.service"
+import {
+  getMyNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  type NotificationItem,
+} from "@/services/notifications.service"
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -59,6 +66,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function DashboardContent() {
   const router = useRouter()
   const { user, isLoggedIn, isHydrated } = useAuthStore()
+  const { toast } = useToast()
   
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
@@ -66,6 +74,10 @@ export function DashboardContent() {
   const [propertyTypes, setPropertyTypes] = useState<PropertyTypeData[]>([])
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusData[]>([])
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
+  const [isMarkingAllNotifications, setIsMarkingAllNotifications] = useState(false)
+  const [markingNotificationId, setMarkingNotificationId] = useState<string | null>(null)
   // Only used for initial auth gate; dashboard widgets load progressively.
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -141,6 +153,16 @@ export function DashboardContent() {
         safe(setRecentActivity, v)
       } catch (err) {
         console.error("Error loading recent activity:", err)
+      }
+    })()
+
+    ;(async () => {
+      try {
+        const v = await getMyNotifications({ limit: 5 })
+        safe(setNotifications, v.notifications || [])
+        safe(setUnreadNotificationCount, v.unread_count || 0)
+      } catch (err) {
+        console.error("Error loading notifications:", err)
       }
     })()
 
@@ -357,6 +379,54 @@ export function DashboardContent() {
   const userName = user?.name?.split(' ')[0] || 'User'
   const userRole = user?.role?.toUpperCase()
   const isAdmin = userRole === "ADMIN"
+  const formatNotificationType = (value: string) =>
+    value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+
+  const reloadNotifications = async () => {
+    const notificationsResponse = await getMyNotifications({ limit: 5 })
+    setNotifications(notificationsResponse.notifications || [])
+    setUnreadNotificationCount(notificationsResponse.unread_count || 0)
+  }
+
+  const handleMarkNotificationRead = async (id: string) => {
+    setMarkingNotificationId(id)
+    try {
+      await markNotificationAsRead(id)
+      await reloadNotifications()
+      toast({
+        title: "Updated",
+        description: "Notification marked as read.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to mark notification as read",
+        variant: "destructive",
+      })
+    } finally {
+      setMarkingNotificationId(null)
+    }
+  }
+
+  const handleMarkAllNotificationsRead = async () => {
+    setIsMarkingAllNotifications(true)
+    try {
+      await markAllNotificationsAsRead()
+      await reloadNotifications()
+      toast({
+        title: "Updated",
+        description: "All notifications marked as read.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to mark all notifications as read",
+        variant: "destructive",
+      })
+    } finally {
+      setIsMarkingAllNotifications(false)
+    }
+  }
   
   return (
     <main className="flex-1 overflow-y-auto bg-white">
@@ -419,6 +489,82 @@ export function DashboardContent() {
             </Card>
           ))}
         </div>
+
+        {/* Dashboard Notifications */}
+        <Card className="border border-gray-200 bg-white animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold text-gray-900">Notifications</CardTitle>
+                <CardDescription className="text-xs text-gray-600">Latest task and system alerts</CardDescription>
+                <p className="mt-1 text-[11px] text-gray-500">Unread: {unreadNotificationCount}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleMarkAllNotificationsRead}
+                disabled={isMarkingAllNotifications || unreadNotificationCount === 0}
+                className="transition-all duration-200 hover:-translate-y-0.5"
+              >
+                <CheckCheck className="mr-2 h-3.5 w-3.5" />
+                {isMarkingAllNotifications ? "Marking..." : "Mark All Read"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {notifications.length ? (
+              <div className="space-y-2">
+                {notifications.map((notification, index) => (
+                  <div
+                    key={notification.id}
+                    className={`rounded-lg border p-3 ${
+                      notification.is_read ? "border-gray-100 bg-white" : "border-blue-100 bg-blue-50/40"
+                    } transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm animate-in fade-in-0 slide-in-from-bottom-2`}
+                    style={{
+                      animationDelay: `${index * 80}ms`,
+                      animationFillMode: "both",
+                    }}
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-3.5 w-3.5 text-blue-600" />
+                          <p className="truncate text-sm font-medium text-gray-900">{notification.title}</p>
+                          <Badge variant="outline" className="text-[10px]">
+                            {formatNotificationType(notification.type)}
+                          </Badge>
+                          {!notification.is_read ? (
+                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 text-[10px] motion-safe:animate-pulse">
+                              Unread
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-600">{notification.message}</p>
+                        <p className="mt-1 text-[11px] text-gray-500">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.is_read ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkNotificationRead(notification.id)}
+                          disabled={markingNotificationId === notification.id}
+                        >
+                          {markingNotificationId === notification.id ? "Saving..." : "Mark Read"}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-200 p-3 text-xs text-gray-500">
+                No notifications yet.
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Activity - Section 2 */}
         <Card className="border border-gray-200 bg-white">
