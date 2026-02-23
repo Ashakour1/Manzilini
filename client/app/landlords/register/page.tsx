@@ -237,7 +237,7 @@ export default function LandlordRegisterPage() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    placeholder="+254 700 000 000"
+                    placeholder="+254118723979"
                     value={formData.phone}
                     onChange={handleChange}
                     className="pl-10 border-gray-300 focus:border-gray-500 focus:ring-gray-500"

@@ -62,8 +62,8 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="terms-of-service" className="text-sm text-muted-foreground hover:text-primary transition">
-                  Terms of Service
+                <a href="/terms-and-conditions" className="text-sm text-muted-foreground hover:text-primary transition">
+                  Terms and Conditions
                 </a>
               </li>
             </ul>
@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                1-800-PROPERTY
+                +254118723979
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />

@@ -174,7 +174,7 @@ export default function PropertyApplicationForm({
                 onChange={handleChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="+254 700 000 000"
+                placeholder="+254118723979"
               />
             </div>
           </div>

@@ -49,9 +49,9 @@ export default function Contact() {
     {
       icon: Phone,
       title: "Call Us",
-      primary: "+254 700 000 000",
-      secondary: "+254 711 000 000",
-      action: "tel:+254700000000",
+      primary: "+254118723979",
+      secondary: "+254118723979",
+      action: "tel:+254118723979",
     },
     {
       icon: MapPin,
@@ -168,7 +168,7 @@ export default function Contact() {
                         value={formData.phone}
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                        placeholder="+254 700 000 000"
+                        placeholder="+254118723979"
                       />
                     </div>
                   </div>

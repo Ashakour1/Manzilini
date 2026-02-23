@@ -54,7 +54,7 @@ export default function CTASection() {
           <div className="flex flex-wrap justify-center gap-8 text-primary-foreground/80">
             <div className="flex items-center gap-2">
               <Phone className="w-5 h-5" />
-              <span className="text-sm md:text-base">+254 700 000 000</span>
+              <span className="text-sm md:text-base">+254118723979</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
@@ -66,4 +66,3 @@ export default function CTASection() {
     </section>
   )
 }
-
