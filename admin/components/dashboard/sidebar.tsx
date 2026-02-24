@@ -20,6 +20,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   ClipboardList,
+  BriefcaseBusiness,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -38,6 +39,7 @@ const menuItems = [
   { id: "tenants", icon: Users, label: "Tenants", href: "/tenants" },
   { id: "field-agents", icon: MapPin, label: "Field Agents", href: "/field-agents" },
   { id: "users", icon: Shield, label: "Users", href: "/users" },
+  { id: "employees", icon: BriefcaseBusiness, label: "Employees", href: "/employees" },
   { id: "payments", icon: CreditCard, label: "Payments", href: "/payments" },
   {
     id: "finance",
@@ -155,7 +157,7 @@ export function DashboardSidebar() {
     
     // Filter based on role
     if (userRole === "ADMIN") {
-      // Admin can only access: dashboard, properties, tasks, landlords, users, field-agents, tenants
+      // Admin can only access: dashboard, properties, tasks, landlords, users, field-agents, tenants, employees
       return mappedItems.filter(item => 
         item.id === "dashboard" ||
         item.id === "properties" ||
@@ -163,7 +165,8 @@ export function DashboardSidebar() {
         item.id === "landlords" ||
         item.id === "users" ||
         item.id === "field-agents" ||
-        item.id === "tenants"
+        item.id === "tenants" ||
+        item.id === "employees"
       )
     }
     

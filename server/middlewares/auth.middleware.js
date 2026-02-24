@@ -53,7 +53,10 @@ export const AuthMiddleware = async (req, res, next) => {
         }
         
         // Token was generated with { id }, so use decoded.id
-        req.user = { id: decoded.id };
+        req.user = {
+            id: user.id,
+            role: user.role
+        };
         
         next();
     } catch (error) {
@@ -62,3 +65,15 @@ export const AuthMiddleware = async (req, res, next) => {
         });
     }
 }
+
+export const AdminMiddleware = (req, res, next) => {
+    const role = req.user?.role;
+
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        return next();
+    }
+
+    return res.status(403).json({
+        message: 'Access denied - Admin privileges required'
+    });
+};

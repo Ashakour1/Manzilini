@@ -69,6 +69,8 @@ export function DashboardHeader() {
       '/tenants': 'Tenants',
       '/field-agents': 'Field Agents',
       '/users': 'User Management',
+      '/employees': 'Employees',
+      '/admin/employees': 'Employees',
       '/payments': 'Payments',
       '/accounts': 'Accounts',
       '/finance': 'Finance',

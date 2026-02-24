@@ -9,20 +9,20 @@ datasource db {
 }
 
 model User {
-  id                    String                @id
-  email                 String                @unique
-  name                  String
-  image                 String?
-  role                  Role                  @default(USER)
-  status                UserStatus            @default(ACTIVE)
-  password              String
-  is_sent_email         Boolean               @default(false)
-  is_sent_at            DateTime?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  id               String     @id
+  email            String     @unique
+  name             String
+  image            String?
+  role             Role       @default(USER)
+  status           UserStatus @default(ACTIVE)
+  password         String
+  is_sent_email    Boolean    @default(false)
+  is_sent_at       DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
   // property_applications PropertyApplication[]
-  properties Property[]
-  createdLandlords      Landlord[]
+  properties       Property[]
+  createdLandlords Landlord[]
 
   // link to agent profile
   agentId String?
@@ -30,107 +30,107 @@ model User {
 
   // link to expenses
   expenses Expense[]
-  incomes Income[]
+  incomes  Income[]
 
   // link to tenants created by this user
   tenants Tenant[]
 
   // task management
-  assignedTasks  Task[]         @relation("TaskAssignedTo")
-  createdTasks   Task[]         @relation("TaskAssignedBy")
-  notifications  Notification[]
+  assignedTasks Task[]         @relation("TaskAssignedTo")
+  createdTasks  Task[]         @relation("TaskAssignedBy")
+  notifications Notification[]
 }
 
 model Landlord {
-  id              String          @id
+  id              String             @id
   name            String
-  email           String          @unique
+  email           String             @unique
   phone           String?
   company_name    String?
   address         String?
   remarks         String?
   nationality     String?
-  isVerified      Boolean         @default(false)
-  status          LandlordStatus  @default(ACTIVE)
+  isVerified      Boolean            @default(false)
+  status          LandlordStatus     @default(ACTIVE)
   rejectionReason String?
   inactiveReason  String?
-  is_sent_email   Boolean         @default(false)
+  is_sent_email   Boolean            @default(false)
   is_sent_at      DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   properties      Property[]
   emailLogs       EmailLog[]
   documents       LandlordDocument[]
-  
+
   // link to expenses
   expenses Expense[]
-  incomes Income[]
+  incomes  Income[]
 
   // link to property applications
   propertyApplications PropertyApplication[]
   // creator
-  createdBy       String?
-  creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdBy            String?
+  creator              User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   // tenants created by this landlord
-  tenants         Tenant[]
+  tenants              Tenant[]
 }
 
 model LandlordDocument {
-  id          String    @id @default(cuid())
-  landlordId  String
-  landlord    Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-
-  documentType String? 
-
-  documentImage String?
-  url          String?
-  notes        String?
-
-  uploadedAt   DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model AgentDocument {
-  id          String    @id @default(cuid())
-  agentId     String
-  agent       FieldAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  landlordId String
+  landlord   Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
 
   documentType String?
 
   documentImage String?
-  notes        String?
+  url           String?
+  notes         String?
 
-  uploadedAt   DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  uploadedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AgentDocument {
+  id      String     @id @default(cuid())
+  agentId String
+  agent   FieldAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  documentType String?
+
+  documentImage String?
+  notes         String?
+
+  uploadedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Property {
-  id                    String                @id
-  title                 String
-  description           String
-  property_type         propertyType          @default(APARTMENT)
-  status                Status                @default(FOR_RENT)
-  price                 Float
-  currency              Currency              @default(KES)
-  payment_frequency     PaymentFrequency      @default(MONTHLY)
-  deposit_amount        Float?
-  deposit_type          DepositType           @default(FIXED)
-  country               String
-  city                  String
-  address               String
-  zip_code              String
-  latitude              Float
-  longitude             Float
-  bedrooms              Int?
-  bathrooms             Int?
-  garages               Int?
-  size                  Float?
-  is_furnished          Boolean?              @default(false)
-  floor                 Int?
-  total_floors          Int?
-  balcony               Boolean?              @default(false)
-  amenities             String[]
-  is_featured           Boolean?              @default(false)
+  id                String           @id
+  title             String
+  description       String
+  property_type     propertyType     @default(APARTMENT)
+  status            Status           @default(FOR_RENT)
+  price             Float
+  currency          Currency         @default(KES)
+  payment_frequency PaymentFrequency @default(MONTHLY)
+  deposit_amount    Float?
+  deposit_type      DepositType      @default(FIXED)
+  country           String
+  city              String
+  address           String
+  zip_code          String
+  latitude          Float
+  longitude         Float
+  bedrooms          Int?
+  bathrooms         Int?
+  garages           Int?
+  size              Float?
+  is_furnished      Boolean?         @default(false)
+  floor             Int?
+  total_floors      Int?
+  balcony           Boolean?         @default(false)
+  amenities         String[]
+  is_featured       Boolean?         @default(false)
 
   landlord_id           String?
   landlord              Landlord?             @relation(fields: [landlord_id], references: [id], onDelete: Restrict)
@@ -141,16 +141,13 @@ model Property {
   payments              Payment[]
 
   // link to expenses
-  expenses Expense[]
-  incomes Income[]
-  is_published           Boolean?              @default(false)
-  
+  expenses     Expense[]
+  incomes      Income[]
+  is_published Boolean?  @default(false)
 
   // creator 
   userId String?
-  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
-
-
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 model PropertyImages {
@@ -162,55 +159,55 @@ model PropertyImages {
 }
 
 model Tenant {
-  id                String       @id
+  id String @id
 
-  fullName          String
-  email             String?      @unique
-  phone             String       @unique
+  fullName String
+  email    String? @unique
+  phone    String  @unique
 
-  status            TenantStatus @default(NEW)
+  status TenantStatus @default(NEW)
 
   lastActivityAt    DateTime?
-  applicationsCount Int          @default(0)
+  applicationsCount Int       @default(0)
 
   // Track which landlord created this tenant
-  landlordId        String?
-  landlord          Landlord?    @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+  landlordId String?
+  landlord   Landlord? @relation(fields: [landlordId], references: [id], onDelete: SetNull)
 
   // Track which user created this tenant
-  createdBy        String?
-  createdByUser     User?        @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdBy     String?
+  createdByUser User?   @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  applications      PropertyApplication[]
-  activities        TenantActivity[]
+  applications PropertyApplication[]
+  activities   TenantActivity[]
 }
 
 model PropertyApplication {
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Tenant snapshot (guest or registered)
-  fullName    String
-  email       String?
-  phone       String
-  message     String?
+  fullName String
+  email    String?
+  phone    String
+  message  String?
 
   // Relations
-  tenantId    String?
-  tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
 
-  propertyId  String
-  property    Property @relation(fields: [propertyId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
 
-  landlordId  String
-  landlord    Landlord @relation(fields: [landlordId], references: [id])
+  landlordId String
+  landlord   Landlord @relation(fields: [landlordId], references: [id])
 
   // Application lifecycle
-  status          ApplicationStatus @default(PENDING)
-  isApproved      Boolean           @default(false)
-  remarks         String?
+  status     ApplicationStatus @default(PENDING)
+  isApproved Boolean           @default(false)
+  remarks    String?
 
   statusChangedAt DateTime?
   statusChangedBy String?
@@ -221,36 +218,35 @@ model PropertyApplication {
   adminApprovedBy     String?
 
   // Communication tracking
-  emailSent        Boolean   @default(false)
-  emailSentAt      DateTime?
+  emailSent   Boolean   @default(false)
+  emailSentAt DateTime?
 
-  isCommunicated   Boolean   @default(false)
-  communicatedAt   DateTime?
+  isCommunicated Boolean   @default(false)
+  communicatedAt DateTime?
 
   viewingRequested Boolean   @default(false)
   viewingDate      DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  activities  TenantActivity[]
+  activities TenantActivity[]
 }
 
 model TenantActivity {
-  id            String             @id @default(uuid())
+  id String @id @default(uuid())
 
-  tenantId      String
-  tenant        Tenant           @relation(fields: [tenantId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   applicationId String?
   application   PropertyApplication? @relation(fields: [applicationId], references: [id])
 
-  type          TenantActivityType
-  description   String?
+  type        TenantActivityType
+  description String?
 
-  createdAt     DateTime           @default(now())
+  createdAt DateTime @default(now())
 }
-
 
 model Payment {
   id            String        @id @default(cuid())
@@ -259,10 +255,10 @@ model Payment {
   amount        Float
   status        PaymentStatus @default(PENDING)
 
-  paymentDate DateTime?           @default(now())
-  createdAt   DateTime            @default(now())
+  paymentDate DateTime? @default(now())
+  createdAt   DateTime  @default(now())
   // application PropertyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  property    Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property    Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model FieldAgent {
@@ -276,8 +272,28 @@ model FieldAgent {
   updatedAt      DateTime @updatedAt
 
   // reverse relation: User can link to this agent
-  users User[]
+  users     User[]
   documents AgentDocument[]
+}
+
+model Employee {
+  id         String         @id
+  companyId  String?        @unique @map("company_id")
+  name       String
+  email      String         @unique
+  phone      String?
+  position   String?
+  department String?
+  status     EmployeeStatus @default(ACTIVE)
+  hiredAt    DateTime?      @map("hired_at")
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([name])
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("employees")
 }
 
 model IdCounter {
@@ -293,19 +309,19 @@ model IdCounter {
 }
 
 model EmailLog {
-  id            String        @id @default(cuid())
+  id             String      @id @default(cuid())
   recipientEmail String
-  recipientName String?
-  subject       String
-  message       String        @db.Text
-  emailType     EmailType
-  status        EmailStatus   @default(SENT)
-  errorMessage  String?       @db.Text
-  landlordId    String?
-  landlord      Landlord?     @relation(fields: [landlordId], references: [id], onDelete: SetNull)
-  metadata      String?       @db.Text // JSON string for additional data
-  resendId      String?       // Resend API message ID
-  createdAt     DateTime      @default(now())
+  recipientName  String?
+  subject        String
+  message        String      @db.Text
+  emailType      EmailType
+  status         EmailStatus @default(SENT)
+  errorMessage   String?     @db.Text
+  landlordId     String?
+  landlord       Landlord?   @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+  metadata       String?     @db.Text // JSON string for additional data
+  resendId       String? // Resend API message ID
+  createdAt      DateTime    @default(now())
 
   @@index([recipientEmail])
   @@index([emailType])
@@ -314,101 +330,103 @@ model EmailLog {
   @@index([createdAt])
   @@map("email_logs")
 }
+
 model Account {
-  id             String   @id
-  name     String
-  balance  Decimal  @db.Decimal(15,2)
+  id      String  @id
+  name    String
+  balance Decimal @db.Decimal(15, 2)
 
   incomes  Income[]
   expenses Expense[]
 }
+
 model Income {
-id            String   @id
-  date          DateTime
-  source        String   // Rent, Commission, Service Fee, Other
+  id     String   @id
+  date   DateTime
+  source String // Rent, Commission, Service Fee, Other
 
-  amount        Decimal  @db.Decimal(15, 2)
+  amount Decimal @db.Decimal(15, 2)
 
-  paymentMethod String   // Cash, Bank, Mobile Money
+  paymentMethod String // Cash, Bank, Mobile Money
 
   // Link to account (uses Account.id which is String)
-  accountId     String
-  account       Account  @relation(fields: [accountId], references: [id])
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
 
-  propertyId    String?
-  property      Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
 
   // tenantId      BigInt?
   // tenant        Tenant?   @relation(fields: [tenantId], references: [id])
 
-  landlordId    String?
-  landlord      Landlord? @relation(fields: [landlordId], references: [id])
+  landlordId String?
+  landlord   Landlord? @relation(fields: [landlordId], references: [id])
 
-  reference     String?
-  description   String?
+  reference   String?
+  description String?
 
-  createdById   String?
-  createdBy     User?     @relation(fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([date])
   @@index([accountId])
 }
 
 model Expense {
-  id            String   @id
+  id String @id
 
-  date          DateTime
-  category      String   // Maintenance, Marketing, Utilities, Salary, Office
+  date     DateTime
+  category String // Maintenance, Marketing, Utilities, Salary, Office
 
-  amount        Decimal  @db.Decimal(15, 2)
+  amount Decimal @db.Decimal(15, 2)
 
-  paymentMethod String   // Cash, Bank, Mobile Money
-  
+  paymentMethod String // Cash, Bank, Mobile Money
+
   // Link to account (uses Account.id which is String)
-  accountId     String
-  account       Account  @relation(fields: [accountId], references: [id])
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
 
-  vendorName    String?
+  vendorName String?
 
-  propertyId    String?
-  property      Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
 
-  landlordId    String?
-  landlord      Landlord? @relation(fields: [landlordId], references: [id])
+  landlordId String?
+  landlord   Landlord? @relation(fields: [landlordId], references: [id])
 
-  reference     String?
-  description   String?
+  reference   String?
+  description String?
 
-  createdById   String?
-  createdBy     User?     @relation(fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([date])
   @@index([category])
 }
 
 model Task {
-  id          String       @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
   description String?
 
-  assignedToId String      @map("assigned_to")
-  assignedTo   User        @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedToId String @map("assigned_to")
+  assignedTo   User   @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
 
-  assignedById String      @map("assigned_by")
-  assignedBy   User        @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  assignedById String @map("assigned_by")
+  assignedBy   User   @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
 
-  priority     TaskPriority
-  status       TaskStatus  @default(PENDING)
-  dueDate      DateTime?   @map("due_date")
+  priority TaskPriority
+  status   TaskStatus   @default(PENDING)
+  dueDate  DateTime?    @map("due_date")
 
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([assignedToId])
   @@index([assignedById])
@@ -439,6 +457,7 @@ enum DocumentType {
   CERTIFICATE
   OTHER
 }
+
 enum PaymentMethod {
   CASH
   BANK
@@ -465,6 +484,7 @@ enum LandlordStatus {
   ACTIVE
   INACTIVE
 }
+
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -472,17 +492,17 @@ enum PaymentStatus {
 }
 
 enum ApplicationStatus {
-  PENDING     // application submitted, not reviewed yet
-  CONTACTED   // landlord/agent contacted tenant
-  APPROVED    // accepted for this property
-  REJECTED    // not accepted
-  CLOSED      // finished (approved or rejected, no more action)
+  PENDING // application submitted, not reviewed yet
+  CONTACTED // landlord/agent contacted tenant
+  APPROVED // accepted for this property
+  REJECTED // not accepted
+  CLOSED // finished (approved or rejected, no more action)
 }
 
 enum AdminApprovalStatus {
-  PENDING   // waiting for admin approval
-  APPROVED  // admin approved - visible to landlord
-  REJECTED  // admin rejected - not visible to landlord
+  PENDING // waiting for admin approval
+  APPROVED // admin approved - visible to landlord
+  REJECTED // admin rejected - not visible to landlord
 }
 
 enum TenantStatus {
@@ -500,7 +520,6 @@ enum TenantActivityType {
   VIEWING_REQUESTED
   STATUS_CHANGED
 }
-
 
 enum Role {
   USER
@@ -561,6 +580,11 @@ enum ContactMethod {
 }
 
 enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EmployeeStatus {
   ACTIVE
   INACTIVE
 }

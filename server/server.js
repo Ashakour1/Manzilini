@@ -13,6 +13,7 @@ import reportsRoutes from './routes/reports.routes.js';
 import emailLogsRoutes from './routes/email-logs.routes.js';
 import emailRoutes from './routes/email.routes.js';
 import accountRoutes from './routes/account.routes.js';
+import employeesRoutes from './routes/employees.routes.js';
 import incomeRoutes from './routes/income.routes.js';
 import expenseRoutes from './routes/expense.routes.js';
 import propertyApplicationsRoutes from './routes/property.applications.routes.js';
@@ -68,6 +69,7 @@ app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/email-logs', emailLogsRoutes);
 app.use('/api/v1/email', emailRoutes);
 app.use('/api/v1/accounts', accountRoutes);
+app.use('/api/v1/employees', employeesRoutes);
 app.use('/api/v1/incomes', incomeRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/property-applications', propertyApplicationsRoutes);
@@ -79,4 +81,3 @@ app.use(errorHandler);
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
