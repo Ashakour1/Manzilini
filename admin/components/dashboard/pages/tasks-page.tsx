@@ -4,19 +4,39 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Bell, CalendarClock, CheckCircle2, ClipboardList, Plus, RefreshCw } from "lucide-react";
+import { Bell, CalendarClock, CheckCircle2, ClipboardList, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import {
   createTask,
+  deleteTask,
   getAssignableActiveUsers,
   getMyTasks,
   getTaskDashboardSummary,
   getTasksAssignedToUser,
+  updateTask,
   updateTaskStatus,
   type TaskDashboardSummary,
   type TaskItem,
@@ -42,6 +62,13 @@ const formatDateTime = (value?: string | null) =>
       })
     : "No due date";
 
+const toDateTimeLocalInput = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  const timezoneOffset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+};
+
 const priorityTone = (priority: TaskPriority) => {
   if (priority === "urgent") return "bg-rose-50 text-rose-700 border border-rose-100";
   if (priority === "high") return "bg-amber-50 text-amber-700 border border-amber-100";
@@ -56,6 +83,40 @@ const statusTone = (status: TaskStatus) => {
   return "bg-amber-50 text-amber-700 border border-amber-100";
 };
 
+type TaskFormState = {
+  title: string;
+  description: string;
+  assigned_to: string;
+  priority: TaskPriority;
+  due_date: string;
+};
+
+type EditTaskFormState = {
+  title: string;
+  description: string;
+  assigned_to: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_date: string;
+};
+
+const initialTaskForm: TaskFormState = {
+  title: "",
+  description: "",
+  assigned_to: "",
+  priority: "medium",
+  due_date: "",
+};
+
+const initialEditForm: EditTaskFormState = {
+  title: "",
+  description: "",
+  assigned_to: "",
+  priority: "medium",
+  status: "pending",
+  due_date: "",
+};
+
 export function TasksPage() {
   const { toast } = useToast();
 
@@ -63,6 +124,7 @@ export function TasksPage() {
   const [myTasks, setMyTasks] = useState<TaskItem[]>([]);
   const [selectedUserTasks, setSelectedUserTasks] = useState<TaskItem[]>([]);
   const [taskSummary, setTaskSummary] = useState<TaskDashboardSummary | null>(null);
+  const [canManageTasks, setCanManageTasks] = useState(true);
 
   const [selectedUserId, setSelectedUserId] = useState("");
   const [statusDrafts, setStatusDrafts] = useState<Record<string, TaskStatus>>({});
@@ -73,19 +135,22 @@ export function TasksPage() {
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
+  const [isSavingTaskEdit, setIsSavingTaskEdit] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    assigned_to: "",
-    priority: "medium" as TaskPriority,
-    due_date: "",
-  });
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<TaskItem | null>(null);
+
+  const [formData, setFormData] = useState<TaskFormState>(initialTaskForm);
+  const [editForm, setEditForm] = useState<EditTaskFormState>(initialEditForm);
 
   const loadAssignableUsers = async () => {
     setIsLoadingUsers(true);
     try {
       const users = await getAssignableActiveUsers();
+      setCanManageTasks(true);
       setAssignableUsers(users);
 
       const firstUserId = users[0]?.id || "";
@@ -95,9 +160,16 @@ export function TasksPage() {
         assigned_to: users.some((user) => user.id === prev.assigned_to) ? prev.assigned_to : firstUserId,
       }));
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load assignable users";
+      if (message.toLowerCase().includes("access denied")) {
+        setCanManageTasks(false);
+        setAssignableUsers([]);
+        setSelectedUserId("");
+        setSelectedUserTasks([]);
+      }
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to load assignable users",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -172,12 +244,23 @@ export function TasksPage() {
     }
   };
 
+  const refreshAfterMutation = async () => {
+    await Promise.all([
+      loadMyTasks(),
+      loadSummary(),
+      selectedUserId ? loadSelectedUserTasks(selectedUserId) : Promise.resolve(),
+    ]);
+  };
+
   useEffect(() => {
     refreshAll();
   }, []);
 
   useEffect(() => {
-    if (!selectedUserId) return;
+    if (!selectedUserId) {
+      setSelectedUserTasks([]);
+      return;
+    }
     loadSelectedUserTasks(selectedUserId);
   }, [selectedUserId]);
 
@@ -212,17 +295,12 @@ export function TasksPage() {
       });
 
       setFormData((prev) => ({
-        ...prev,
-        title: "",
-        description: "",
-        due_date: "",
+        ...initialTaskForm,
+        assigned_to: prev.assigned_to,
+        priority: prev.priority,
       }));
 
-      await Promise.all([
-        loadMyTasks(),
-        loadSummary(),
-        selectedUserId ? loadSelectedUserTasks(selectedUserId) : Promise.resolve(),
-      ]);
+      await refreshAfterMutation();
     } catch (error) {
       toast({
         title: "Error",
@@ -254,11 +332,7 @@ export function TasksPage() {
         description: "Task status updated successfully.",
       });
 
-      await Promise.all([
-        loadMyTasks(),
-        loadSummary(),
-        selectedUserId ? loadSelectedUserTasks(selectedUserId) : Promise.resolve(),
-      ]);
+      await refreshAfterMutation();
     } catch (error) {
       toast({
         title: "Error",
@@ -270,9 +344,98 @@ export function TasksPage() {
     }
   };
 
+  const openEditDialog = (task: TaskItem) => {
+    setEditingTask(task);
+    setEditForm({
+      title: task.title,
+      description: task.description || "",
+      assigned_to: task.assigned_to,
+      priority: task.priority,
+      status: task.status,
+      due_date: toDateTimeLocalInput(task.due_date),
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editingTask) return;
+
+    if (!editForm.title.trim() || !editForm.assigned_to || !editForm.priority) {
+      toast({
+        title: "Validation Error",
+        description: "Title, assigned user, and priority are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingTaskEdit(true);
+    setUpdatingTaskId(editingTask.id);
+
+    try {
+      await updateTask(editingTask.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        assigned_to: editForm.assigned_to,
+        priority: editForm.priority,
+        status: editForm.status,
+        due_date: editForm.due_date ? editForm.due_date : null,
+      });
+
+      toast({
+        title: "Task Updated",
+        description: "Task details updated successfully.",
+      });
+
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+      await refreshAfterMutation();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update task",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingTaskEdit(false);
+      setUpdatingTaskId(null);
+    }
+  };
+
+  const openDeleteDialog = (task: TaskItem) => {
+    setTaskToDelete(task);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return;
+
+    setDeletingTaskId(taskToDelete.id);
+    try {
+      await deleteTask(taskToDelete.id);
+
+      toast({
+        title: "Task Deleted",
+        description: "Task deleted successfully.",
+      });
+
+      setIsDeleteDialogOpen(false);
+      setTaskToDelete(null);
+      await refreshAfterMutation();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete task",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingTaskId(null);
+    }
+  };
+
   return (
     <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-5">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in fade-in-0 slide-in-from-top-1 duration-500">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Tasks</h1>
           <p className="text-xs text-gray-600">Assign tasks, track progress, and manage work status.</p>
@@ -284,7 +447,7 @@ export function TasksPage() {
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Card className="border border-amber-100 bg-amber-50">
+        <Card className="border border-amber-100 bg-amber-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4 text-amber-700" />
@@ -296,7 +459,7 @@ export function TasksPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-blue-100 bg-blue-50">
+        <Card className="border border-blue-100 bg-blue-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-blue-700" />
@@ -308,7 +471,7 @@ export function TasksPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-emerald-100 bg-emerald-50">
+        <Card className="border border-emerald-100 bg-emerald-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-700" />
@@ -321,166 +484,201 @@ export function TasksPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-gray-900">Assign New Task</CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              Title, assigned user, and priority are required.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="task-title">Title</Label>
-              <Input
-                id="task-title"
-                value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Prepare monthly landlord report"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="task-description">Description</Label>
-              <Textarea
-                id="task-description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Include occupancy trends and pending payments."
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {canManageTasks ? (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <Card className="border border-gray-200 bg-white animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold text-gray-900">Assign New Task</CardTitle>
+              <CardDescription className="text-xs text-gray-600">
+                Create and assign as many tasks as needed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Assign To</Label>
-                <Select
-                  value={formData.assigned_to}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, assigned_to: value }))}
-                  disabled={!assignableUsers.length || isLoadingUsers}
-                >
+                <Label htmlFor="task-title">Title</Label>
+                <Input
+                  id="task-title"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Prepare monthly landlord report"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="task-description">Description</Label>
+                <Textarea
+                  id="task-description"
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Include occupancy trends and pending payments."
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Assign To</Label>
+                  <Select
+                    value={formData.assigned_to}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, assigned_to: value }))}
+                    disabled={!assignableUsers.length || isLoadingUsers}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assignableUsers.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name} ({user.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as TaskPriority }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIORITY_OPTIONS.map((priority) => (
+                        <SelectItem key={priority} value={priority}>
+                          {formatLabel(priority)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="task-due-date">Due Date (optional)</Label>
+                <Input
+                  id="task-due-date"
+                  type="datetime-local"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+
+              <Button onClick={handleCreateTask} disabled={isCreatingTask || isLoadingUsers}>
+                <Plus className="mr-2 h-4 w-4" />
+                {isCreatingTask ? "Assigning..." : "Assign Task"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 bg-white animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold text-gray-900">Tasks By User</CardTitle>
+              <CardDescription className="text-xs text-gray-600">
+                Edit or delete tasks assigned to a user (newest first).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label>Select User</Label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={!assignableUsers.length || isLoadingUsers}>
                   <SelectTrigger>
                     <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
                   </SelectTrigger>
                   <SelectContent>
                     {assignableUsers.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.name} ({user.role})
+                        {user.name} ({user.email})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as TaskPriority }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITY_OPTIONS.map((priority) => (
-                      <SelectItem key={priority} value={priority}>
-                        {formatLabel(priority)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="task-due-date">Due Date (optional)</Label>
-              <Input
-                id="task-due-date"
-                type="datetime-local"
-                value={formData.due_date}
-                onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
-              />
-            </div>
-
-            <Button onClick={handleCreateTask} disabled={isCreatingTask || isLoadingUsers}>
-              <Plus className="mr-2 h-4 w-4" />
-              {isCreatingTask ? "Assigning..." : "Assign Task"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-gray-900">Tasks By User</CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              View tasks assigned to a specific user (newest first).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <Label>Select User</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={!assignableUsers.length || isLoadingUsers}>
-                <SelectTrigger>
-                  <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {assignableUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {isLoadingSelectedUserTasks ? (
-              <p className="text-sm text-gray-500">Loading tasks...</p>
-            ) : selectedUserTasks.length ? (
-              <div className="max-h-[340px] overflow-auto rounded-md border border-gray-100">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedUserTasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell>
-                          <p className="font-medium text-gray-900">{task.title}</p>
-                          <p className="text-xs text-gray-500">{task.description || "No description"}</p>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={priorityTone(task.priority)}>
-                            {formatLabel(task.priority)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusTone(task.status)}>
-                            {formatLabel(task.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-gray-500">{formatDateTime(task.created_at)}</TableCell>
+              {isLoadingSelectedUserTasks ? (
+                <p className="text-sm text-gray-500">Loading tasks...</p>
+              ) : selectedUserTasks.length ? (
+                <div className="max-h-[340px] overflow-auto rounded-md border border-gray-100">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Due</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="w-[96px]">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-gray-500">
-                {selectedUserId
-                  ? `${selectedUserName} has no assigned tasks.`
-                  : "Select a user to view tasks."}
-              </div>
-            )}
+                    </TableHeader>
+                    <TableBody>
+                      {selectedUserTasks.map((task) => (
+                        <TableRow key={task.id}>
+                          <TableCell>
+                            <p className="font-medium text-gray-900">{task.title}</p>
+                            <p className="text-xs text-gray-500">{task.description || "No description"}</p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={priorityTone(task.priority)}>
+                              {formatLabel(task.priority)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={statusTone(task.status)}>
+                              {formatLabel(task.status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs text-gray-500">{formatDateTime(task.due_date)}</TableCell>
+                          <TableCell className="text-xs text-gray-500">{formatDateTime(task.created_at)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => openEditDialog(task)}
+                                disabled={isSavingTaskEdit || deletingTaskId === task.id}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit task</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-rose-600 hover:text-rose-700"
+                                onClick={() => openDeleteDialog(task)}
+                                disabled={isSavingTaskEdit || deletingTaskId === task.id}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Delete task</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-gray-500">
+                  {selectedUserId
+                    ? `${selectedUserName} has no assigned tasks.`
+                    : "Select a user to view tasks."}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card className="border border-gray-200 bg-white animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+          <CardContent className="p-4 text-sm text-gray-600">
+            You can view your task summary and update only your own task status.
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      <Card className="mt-4 border border-gray-200 bg-white">
+      <Card className="mt-4 border border-gray-200 bg-white animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
         <CardHeader>
           <CardTitle className="text-base font-semibold text-gray-900">My Tasks</CardTitle>
           <CardDescription className="text-xs text-gray-600">
@@ -569,6 +767,138 @@ export function TasksPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>Update task details, assignee, priority, and status.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-title">Title</Label>
+              <Input
+                id="edit-task-title"
+                value={editForm.title}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-description">Description</Label>
+              <Textarea
+                id="edit-task-description"
+                rows={3}
+                value={editForm.description}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Assign To</Label>
+                <Select
+                  value={editForm.assigned_to}
+                  onValueChange={(value) => setEditForm((prev) => ({ ...prev, assigned_to: value }))}
+                  disabled={!assignableUsers.length}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <Select
+                  value={editForm.priority}
+                  onValueChange={(value) => setEditForm((prev) => ({ ...prev, priority: value as TaskPriority }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_OPTIONS.map((priority) => (
+                      <SelectItem key={priority} value={priority}>
+                        {formatLabel(priority)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(value) => setEditForm((prev) => ({ ...prev, status: value as TaskStatus }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {formatLabel(status)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-task-due-date">Due Date</Label>
+                <Input
+                  id="edit-task-due-date"
+                  type="datetime-local"
+                  value={editForm.due_date}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleUpdateTask} disabled={isSavingTaskEdit}>
+              {isSavingTaskEdit ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{taskToDelete?.title || "this task"}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              disabled={deletingTaskId === taskToDelete?.id}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              {deletingTaskId === taskToDelete?.id ? "Deleting..." : "Delete Task"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

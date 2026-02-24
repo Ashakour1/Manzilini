@@ -41,6 +41,15 @@ export interface CreateTaskPayload {
   due_date?: string | null;
 }
 
+export interface UpdateTaskPayload {
+  title?: string;
+  description?: string | null;
+  assigned_to?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  due_date?: string | null;
+}
+
 const parseApiError = async (response: Response, fallbackMessage: string) => {
   try {
     const payload = await response.json();
@@ -75,6 +84,40 @@ export const createTask = async (payload: CreateTaskPayload): Promise<{ message:
 
   if (!response.ok) {
     throw new Error(await parseApiError(response, "Failed to create task"));
+  }
+
+  return response.json();
+};
+
+// Edit task details (authorization enforced by backend)
+export const updateTask = async (
+  taskId: string,
+  payload: UpdateTaskPayload
+): Promise<{ message: string; task: TaskItem }> => {
+  const response = await fetch(`${TASKS_API_URL}/${taskId}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, "Failed to update task"));
+  }
+
+  return response.json();
+};
+
+// Delete task (authorization enforced by backend)
+export const deleteTask = async (taskId: string): Promise<{ message: string }> => {
+  const response = await fetch(`${TASKS_API_URL}/${taskId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, "Failed to delete task"));
   }
 
   return response.json();

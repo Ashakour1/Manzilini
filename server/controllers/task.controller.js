@@ -124,6 +124,45 @@ const getCurrentUser = async (userId) => {
   });
 };
 
+const getActiveAssignableUserById = async (userId) => {
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true
+    }
+  });
+
+  if (!user || user.status !== 'ACTIVE') {
+    return null;
+  }
+
+  return user;
+};
+
+const parseOptionalDueDate = (rawValue) => {
+  if (rawValue === undefined) {
+    return { hasValue: false, value: null, error: null };
+  }
+
+  if (rawValue === null || String(rawValue).trim() === '') {
+    return { hasValue: true, value: null, error: null };
+  }
+
+  const parsedDate = new Date(rawValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return { hasValue: true, value: null, error: 'due_date must be a valid datetime value' };
+  }
+
+  return { hasValue: true, value: parsedDate, error: null };
+};
+
 const buildTaskAssignmentEmail = ({
   assigneeName,
   assignerName,
@@ -189,6 +228,58 @@ const buildTaskAssignmentEmail = ({
   `;
 };
 
+const createTaskNotification = async ({ tx, userId, taskTitle }) =>
+  tx.notification.create({
+    data: {
+      userId,
+      title: 'New Task Assigned',
+      message: `You have been assigned a new task: ${taskTitle}`,
+      type: 'TASK'
+    }
+  });
+
+const sendTaskAssignmentEmail = async ({
+  assignedUser,
+  assigner,
+  taskTitle,
+  description,
+  priority,
+  dueDate,
+  taskId
+}) => {
+  const dashboardLoginUrl = getDashboardLoginUrl();
+
+  try {
+    const taskAssignmentHtml = buildTaskAssignmentEmail({
+      assigneeName: assignedUser.name,
+      assignerName: assigner.name,
+      taskTitle,
+      description,
+      priority,
+      dueDate,
+      dashboardLoginUrl
+    });
+
+    await sendNotificationEmail(
+      assignedUser.email,
+      `New Task Assigned: ${taskTitle}`,
+      taskAssignmentHtml,
+      assignedUser.name,
+      null,
+      {
+        type: 'task_assignment',
+        taskId,
+        assignedBy: assigner.id,
+        priority: PRIORITY_OUTPUT_MAP[priority] || String(priority || '').toLowerCase(),
+        dueDate: dueDate ? dueDate.toISOString() : null
+      }
+    );
+  } catch (emailError) {
+    // Keep task mutations successful even when email delivery fails.
+    console.error('Failed to send task assignment email:', emailError);
+  }
+};
+
 // GET /api/v1/tasks/assignable-users
 export const getAssignableActiveUsers = asyncHandler(async (req, res) => {
   const currentUser = await getCurrentUser(req.user?.id);
@@ -249,35 +340,17 @@ export const createTask = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Priority is required and must be one of: low, medium, high, urgent' });
   }
 
-  const dueDateInput = due_date ?? dueDate;
-  let parsedDueDate = null;
+  const parsedDueDateResult = parseOptionalDueDate(due_date ?? dueDate);
 
-  if (dueDateInput !== undefined && dueDateInput !== null && String(dueDateInput).trim() !== '') {
-    const date = new Date(dueDateInput);
-
-    if (Number.isNaN(date.getTime())) {
-      return res.status(400).json({ message: 'due_date must be a valid datetime value' });
-    }
-
-    parsedDueDate = date;
+  if (parsedDueDateResult.error) {
+    return res.status(400).json({ message: parsedDueDateResult.error });
   }
 
-  const assignedUser = await prisma.user.findUnique({
-    where: { id: assignedToId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      status: true
-    }
-  });
+  const parsedDueDate = parsedDueDateResult.value;
+
+  const assignedUser = await getActiveAssignableUserById(assignedToId);
 
   if (!assignedUser) {
-    return res.status(404).json({ message: 'Assigned user not found' });
-  }
-
-  if (assignedUser.status !== 'ACTIVE') {
     return res.status(400).json({ message: 'Task can only be assigned to active users' });
   }
 
@@ -295,54 +368,203 @@ export const createTask = asyncHandler(async (req, res) => {
       include: TASK_WITH_USERS_INCLUDE
     });
 
-    await tx.notification.create({
-      data: {
-        userId: assignedToId,
-        title: 'New Task Assigned',
-        message: `You have been assigned a new task: ${normalizedTitle}`,
-        type: 'TASK'
-      }
+    await createTaskNotification({
+      tx,
+      userId: assignedToId,
+      taskTitle: normalizedTitle
     });
 
     return task;
   });
 
-  const dashboardLoginUrl = getDashboardLoginUrl();
-
-  try {
-    const taskAssignmentHtml = buildTaskAssignmentEmail({
-      assigneeName: assignedUser.name,
-      assignerName: currentUser.name,
-      taskTitle: normalizedTitle,
-      description: descriptionValue,
-      priority: createdTask.priority,
-      dueDate: parsedDueDate,
-      dashboardLoginUrl
-    });
-
-    await sendNotificationEmail(
-      assignedUser.email,
-      `New Task Assigned: ${normalizedTitle}`,
-      taskAssignmentHtml,
-      assignedUser.name,
-      null,
-      {
-        type: 'task_assignment',
-        taskId: createdTask.id,
-        assignedBy: currentUser.id,
-        priority: PRIORITY_OUTPUT_MAP[createdTask.priority] || normalizedPriority,
-        dueDate: parsedDueDate ? parsedDueDate.toISOString() : null
-      }
-    );
-  } catch (emailError) {
-    // Keep task creation successful even when email delivery fails.
-    console.error('Failed to send task assignment email:', emailError);
-  }
+  await sendTaskAssignmentEmail({
+    assignedUser,
+    assigner: currentUser,
+    taskTitle: normalizedTitle,
+    description: descriptionValue,
+    priority: createdTask.priority,
+    dueDate: parsedDueDate,
+    taskId: createdTask.id
+  });
 
   return res.status(201).json({
     message: 'Task created and assigned successfully',
     task: serializeTask(createdTask)
   });
+});
+
+// PATCH /api/v1/tasks/:id
+export const updateTask = asyncHandler(async (req, res) => {
+  const currentUser = await getCurrentUser(req.user?.id);
+
+  if (!currentUser) {
+    return res.status(401).json({ message: 'User authentication required' });
+  }
+
+  if (!isTaskAssignmentRole(currentUser.role)) {
+    return res.status(403).json({ message: 'Access denied. Only authorized users can edit tasks.' });
+  }
+
+  const { id } = req.params;
+  const payload = req.body || {};
+  const existingTask = await prisma.task.findUnique({
+    where: { id },
+    include: TASK_WITH_USERS_INCLUDE
+  });
+
+  if (!existingTask) {
+    return res.status(404).json({ message: 'Task not found' });
+  }
+
+  const hasTitle = Object.prototype.hasOwnProperty.call(payload, 'title');
+  const hasDescription = Object.prototype.hasOwnProperty.call(payload, 'description');
+  const hasPriority = Object.prototype.hasOwnProperty.call(payload, 'priority');
+  const hasStatus = Object.prototype.hasOwnProperty.call(payload, 'status');
+  const hasAssignedTo =
+    Object.prototype.hasOwnProperty.call(payload, 'assigned_to') ||
+    Object.prototype.hasOwnProperty.call(payload, 'assignedTo');
+  const hasDueDate =
+    Object.prototype.hasOwnProperty.call(payload, 'due_date') ||
+    Object.prototype.hasOwnProperty.call(payload, 'dueDate');
+
+  const updateData = {};
+  let updatedAssignedUser = null;
+
+  if (hasTitle) {
+    const normalizedTitle = typeof payload.title === 'string' ? payload.title.trim() : '';
+    if (!normalizedTitle) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+    updateData.title = normalizedTitle;
+  }
+
+  if (hasDescription) {
+    if (payload.description === null || payload.description === undefined) {
+      updateData.description = null;
+    } else if (typeof payload.description === 'string') {
+      const normalizedDescription = payload.description.trim();
+      updateData.description = normalizedDescription || null;
+    } else {
+      return res.status(400).json({ message: 'description must be a string or null' });
+    }
+  }
+
+  if (hasPriority) {
+    const normalizedPriority = typeof payload.priority === 'string' ? payload.priority.toLowerCase().trim() : '';
+    const priorityEnum = PRIORITY_INPUT_MAP[normalizedPriority];
+    if (!priorityEnum) {
+      return res.status(400).json({ message: 'priority must be one of: low, medium, high, urgent' });
+    }
+    updateData.priority = priorityEnum;
+  }
+
+  if (hasStatus) {
+    const normalizedStatus = typeof payload.status === 'string' ? payload.status.toLowerCase().trim() : '';
+    const statusEnum = STATUS_INPUT_MAP[normalizedStatus];
+    if (!statusEnum) {
+      return res.status(400).json({
+        message: 'status must be one of: pending, in_progress, completed, cancelled'
+      });
+    }
+    updateData.status = statusEnum;
+  }
+
+  if (hasAssignedTo) {
+    const assignedToIdRaw = payload.assigned_to ?? payload.assignedTo;
+    const assignedToId = typeof assignedToIdRaw === 'string' ? assignedToIdRaw.trim() : '';
+
+    if (!assignedToId) {
+      return res.status(400).json({ message: 'assigned_to is required when updating task assignee' });
+    }
+
+    updatedAssignedUser = await getActiveAssignableUserById(assignedToId);
+    if (!updatedAssignedUser) {
+      return res.status(400).json({ message: 'Task can only be assigned to active users' });
+    }
+
+    updateData.assignedToId = assignedToId;
+  }
+
+  if (hasDueDate) {
+    const parsedDueDateResult = parseOptionalDueDate(payload.due_date ?? payload.dueDate);
+    if (parsedDueDateResult.error) {
+      return res.status(400).json({ message: parsedDueDateResult.error });
+    }
+    updateData.dueDate = parsedDueDateResult.value;
+  }
+
+  if (!Object.keys(updateData).length) {
+    return res.status(400).json({ message: 'At least one valid field is required to update a task' });
+  }
+
+  const reassignedUserId =
+    updateData.assignedToId && updateData.assignedToId !== existingTask.assignedToId
+      ? updateData.assignedToId
+      : null;
+
+  const updatedTask = await prisma.$transaction(async (tx) => {
+    const task = await tx.task.update({
+      where: { id },
+      data: updateData,
+      include: TASK_WITH_USERS_INCLUDE
+    });
+
+    if (reassignedUserId) {
+      await createTaskNotification({
+        tx,
+        userId: reassignedUserId,
+        taskTitle: task.title
+      });
+    }
+
+    return task;
+  });
+
+  if (reassignedUserId && updatedAssignedUser) {
+    await sendTaskAssignmentEmail({
+      assignedUser: updatedAssignedUser,
+      assigner: currentUser,
+      taskTitle: updatedTask.title,
+      description: updatedTask.description,
+      priority: updatedTask.priority,
+      dueDate: updatedTask.dueDate,
+      taskId: updatedTask.id
+    });
+  }
+
+  return res.status(200).json({
+    message: 'Task updated successfully',
+    task: serializeTask(updatedTask)
+  });
+});
+
+// DELETE /api/v1/tasks/:id
+export const deleteTask = asyncHandler(async (req, res) => {
+  const currentUser = await getCurrentUser(req.user?.id);
+
+  if (!currentUser) {
+    return res.status(401).json({ message: 'User authentication required' });
+  }
+
+  if (!isTaskAssignmentRole(currentUser.role)) {
+    return res.status(403).json({ message: 'Access denied. Only authorized users can delete tasks.' });
+  }
+
+  const { id } = req.params;
+  const existingTask = await prisma.task.findUnique({
+    where: { id },
+    select: { id: true }
+  });
+
+  if (!existingTask) {
+    return res.status(404).json({ message: 'Task not found' });
+  }
+
+  await prisma.task.delete({
+    where: { id }
+  });
+
+  return res.status(200).json({ message: 'Task deleted successfully' });
 });
 
 // GET /api/v1/tasks/assigned/:userId

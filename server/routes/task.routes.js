@@ -3,6 +3,8 @@ import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 import {
   getAssignableActiveUsers,
   createTask,
+  updateTask,
+  deleteTask,
   getTasksAssignedToUser,
   getMyAssignedTasks,
   updateOwnTaskStatus,
@@ -17,5 +19,7 @@ router.get('/dashboard/summary', AuthMiddleware, getTaskDashboardSummary);
 router.get('/mine', AuthMiddleware, getMyAssignedTasks);
 router.get('/assigned/:userId', AuthMiddleware, getTasksAssignedToUser);
 router.patch('/:id/status', AuthMiddleware, updateOwnTaskStatus);
+router.patch('/:id', AuthMiddleware, updateTask);
+router.delete('/:id', AuthMiddleware, deleteTask);
 
 export default router;
