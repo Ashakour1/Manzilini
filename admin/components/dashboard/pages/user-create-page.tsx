@@ -1,7 +1,7 @@
 "use client"
 
 import { FormEvent, useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, usePathname, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,10 +39,13 @@ type UserCreatePageProps = {
 
 export function UserCreatePage({ userId }: UserCreatePageProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const params = useParams()
   const paramId = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined
   const effectiveUserId = userId ?? paramId
   const isEditMode = !!effectiveUserId
+  const isAdminRoute = pathname?.startsWith("/admin/users")
+  const basePath = isAdminRoute ? "/admin/users" : "/users"
 
   const { toast } = useToast()
   const [form, setForm] = useState<UserFormState>(initialFormState)
@@ -113,7 +116,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
         description: err instanceof Error ? err.message : "Failed to load user",
         variant: "destructive",
       })
-      router.push("/admin/users")
+      router.push(basePath)
     } finally {
       setIsLoadingUser(false)
     }
@@ -194,7 +197,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
           title: "Success",
           description: "User updated successfully",
         })
-        router.push("/admin/users")
+        router.push(basePath)
       } else {
         await createUser({
           name: form.name,
@@ -208,7 +211,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
           title: "Success",
           description: "User created successfully",
         })
-        router.push("/admin/users")
+        router.push(basePath)
       }
     } catch (err) {
       toast({
@@ -239,7 +242,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/admin/users")}
+            onClick={() => router.push(basePath)}
             className="h-8 w-8 p-0"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -413,7 +416,7 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
               type="button" 
               variant="outline" 
               className="border-border text-foreground" 
-              onClick={() => router.push("/admin/users")}
+              onClick={() => router.push(basePath)}
             >
               Cancel
             </Button>
@@ -428,4 +431,3 @@ export function UserCreatePage({ userId }: UserCreatePageProps) {
     </main>
   )
 }
-
