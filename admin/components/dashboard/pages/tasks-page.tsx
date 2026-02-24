@@ -31,6 +31,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Bell, CalendarClock, CheckCircle2, ClipboardList, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import {
   createTask,
+  createTasksBulk,
   deleteTask,
   getAssignableActiveUsers,
   getMyTasks,
@@ -91,6 +92,10 @@ type TaskFormState = {
   due_date: string;
 };
 
+type BulkTaskRow = TaskFormState & {
+  id: string;
+};
+
 type EditTaskFormState = {
   title: string;
   description: string;
@@ -107,6 +112,16 @@ const initialTaskForm: TaskFormState = {
   priority: "medium",
   due_date: "",
 };
+
+const buildBulkTaskRow = (defaults: Partial<TaskFormState> = {}): BulkTaskRow => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+  title: "",
+  description: "",
+  assigned_to: "",
+  priority: "medium",
+  due_date: "",
+  ...defaults,
+});
 
 const initialEditForm: EditTaskFormState = {
   title: "",
@@ -134,6 +149,7 @@ export function TasksPage() {
   const [isLoadingSelectedUserTasks, setIsLoadingSelectedUserTasks] = useState(false);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isCreatingBulkTasks, setIsCreatingBulkTasks] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [isSavingTaskEdit, setIsSavingTaskEdit] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
@@ -143,7 +159,9 @@ export function TasksPage() {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<TaskItem | null>(null);
 
+  const [assignmentMode, setAssignmentMode] = useState<"single" | "bulk">("single");
   const [formData, setFormData] = useState<TaskFormState>(initialTaskForm);
+  const [bulkTasks, setBulkTasks] = useState<BulkTaskRow[]>([buildBulkTaskRow()]);
   const [editForm, setEditForm] = useState<EditTaskFormState>(initialEditForm);
 
   const loadAssignableUsers = async () => {
@@ -159,6 +177,12 @@ export function TasksPage() {
         ...prev,
         assigned_to: users.some((user) => user.id === prev.assigned_to) ? prev.assigned_to : firstUserId,
       }));
+      setBulkTasks((prev) => {
+        const rows = prev.length ? prev : [buildBulkTaskRow()];
+        return rows.map((row) =>
+          users.some((user) => user.id === row.assigned_to) ? row : { ...row, assigned_to: firstUserId }
+        );
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load assignable users";
       if (message.toLowerCase().includes("access denied")) {
@@ -166,6 +190,7 @@ export function TasksPage() {
         setAssignableUsers([]);
         setSelectedUserId("");
         setSelectedUserTasks([]);
+        setBulkTasks([buildBulkTaskRow()]);
       }
       toast({
         title: "Error",
@@ -309,6 +334,101 @@ export function TasksPage() {
       });
     } finally {
       setIsCreatingTask(false);
+    }
+  };
+
+  const handleBulkTaskChange = <K extends keyof TaskFormState>(
+    rowId: string,
+    field: K,
+    value: TaskFormState[K]
+  ) => {
+    setBulkTasks((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, [field]: value } : row))
+    );
+  };
+
+  const addBulkTaskRow = () => {
+    const defaultAssignee = formData.assigned_to || assignableUsers[0]?.id || "";
+    setBulkTasks((prev) => [...prev, buildBulkTaskRow({ assigned_to: defaultAssignee })]);
+  };
+
+  const removeBulkTaskRow = (rowId: string) => {
+    setBulkTasks((prev) => (prev.length > 1 ? prev.filter((row) => row.id !== rowId) : prev));
+  };
+
+  const handleCreateBulkTasks = async () => {
+    const nonEmptyRows = bulkTasks.filter(
+      (row) => row.title.trim() || row.description.trim() || row.assigned_to || row.due_date
+    );
+
+    if (!nonEmptyRows.length) {
+      toast({
+        title: "Validation Error",
+        description: "Add at least one task row before assigning.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    for (let index = 0; index < nonEmptyRows.length; index += 1) {
+      const row = nonEmptyRows[index];
+      if (!row.title.trim()) {
+        toast({
+          title: "Validation Error",
+          description: `Task ${index + 1}: Title is required.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!row.assigned_to) {
+        toast({
+          title: "Validation Error",
+          description: `Task ${index + 1}: Assigned user is required.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!row.priority) {
+        toast({
+          title: "Validation Error",
+          description: `Task ${index + 1}: Priority is required.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setIsCreatingBulkTasks(true);
+    try {
+      const response = await createTasksBulk({
+        tasks: nonEmptyRows.map((row) => ({
+          title: row.title.trim(),
+          description: row.description.trim() || undefined,
+          assigned_to: row.assigned_to,
+          priority: row.priority,
+          due_date: row.due_date ? row.due_date : null,
+        })),
+      });
+
+      toast({
+        title: "Tasks Created",
+        description: `${response.count || nonEmptyRows.length} tasks assigned successfully.`,
+      });
+
+      const defaultAssignee = formData.assigned_to || assignableUsers[0]?.id || "";
+      setBulkTasks([buildBulkTaskRow({ assigned_to: defaultAssignee })]);
+
+      await refreshAfterMutation();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create tasks",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingBulkTasks(false);
     }
   };
 
@@ -490,86 +610,230 @@ export function TasksPage() {
             <CardHeader>
               <CardTitle className="text-base font-semibold text-gray-900">Assign New Task</CardTitle>
               <CardDescription className="text-xs text-gray-600">
-                Create and assign as many tasks as needed.
+                Use single mode or bulk mode to assign multiple tasks at once.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="task-title">Title</Label>
-                <Input
-                  id="task-title"
-                  value={formData.title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Prepare monthly landlord report"
-                />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={assignmentMode === "single" ? "default" : "outline"}
+                  onClick={() => setAssignmentMode("single")}
+                >
+                  Single Task
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={assignmentMode === "bulk" ? "default" : "outline"}
+                  onClick={() => setAssignmentMode("bulk")}
+                >
+                  Bulk Tasks
+                </Button>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="task-description">Description</Label>
-                <Textarea
-                  id="task-description"
-                  value={formData.description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Include occupancy trends and pending payments."
-                  rows={4}
-                />
-              </div>
+              {assignmentMode === "single" ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="task-title">Title</Label>
+                    <Input
+                      id="task-title"
+                      value={formData.title}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                      placeholder="Prepare monthly landlord report"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Assign To</Label>
-                  <Select
-                    value={formData.assigned_to}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, assigned_to: value }))}
-                    disabled={!assignableUsers.length || isLoadingUsers}
+                  <div className="space-y-2">
+                    <Label htmlFor="task-description">Description</Label>
+                    <Textarea
+                      id="task-description"
+                      value={formData.description}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                      placeholder="Include occupancy trends and pending payments."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Assign To</Label>
+                      <Select
+                        value={formData.assigned_to}
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, assigned_to: value }))}
+                        disabled={!assignableUsers.length || isLoadingUsers}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {assignableUsers.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name} ({user.role})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Priority</Label>
+                      <Select
+                        value={formData.priority}
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as TaskPriority }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRIORITY_OPTIONS.map((priority) => (
+                            <SelectItem key={priority} value={priority}>
+                              {formatLabel(priority)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-due-date">Due Date (optional)</Label>
+                    <Input
+                      id="task-due-date"
+                      type="datetime-local"
+                      value={formData.due_date}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleCreateTask}
+                    disabled={isCreatingTask || isLoadingUsers || isCreatingBulkTasks}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {assignableUsers.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name} ({user.role})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {isCreatingTask ? "Assigning..." : "Assign Task"}
+                  </Button>
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  {bulkTasks.map((taskRow, index) => (
+                    <div key={taskRow.id} className="rounded-xl border border-gray-200 p-3">
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-700">Task {index + 1}</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => removeBulkTaskRow(taskRow.id)}
+                          disabled={bulkTasks.length === 1 || isCreatingBulkTasks}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="sr-only">Remove task row</span>
+                        </Button>
+                      </div>
 
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as TaskPriority }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRIORITY_OPTIONS.map((priority) => (
-                        <SelectItem key={priority} value={priority}>
-                          {formatLabel(priority)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor={`bulk-title-${taskRow.id}`}>Title</Label>
+                          <Input
+                            id={`bulk-title-${taskRow.id}`}
+                            value={taskRow.title}
+                            onChange={(e) => handleBulkTaskChange(taskRow.id, "title", e.target.value)}
+                            placeholder="Prepare monthly landlord report"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor={`bulk-description-${taskRow.id}`}>Description</Label>
+                          <Textarea
+                            id={`bulk-description-${taskRow.id}`}
+                            rows={2}
+                            value={taskRow.description}
+                            onChange={(e) => handleBulkTaskChange(taskRow.id, "description", e.target.value)}
+                            placeholder="Optional details"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Assign To</Label>
+                            <Select
+                              value={taskRow.assigned_to}
+                              onValueChange={(value) => handleBulkTaskChange(taskRow.id, "assigned_to", value)}
+                              disabled={!assignableUsers.length || isLoadingUsers}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select user"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {assignableUsers.map((user) => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.name} ({user.role})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Priority</Label>
+                            <Select
+                              value={taskRow.priority}
+                              onValueChange={(value) =>
+                                handleBulkTaskChange(taskRow.id, "priority", value as TaskPriority)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {PRIORITY_OPTIONS.map((priority) => (
+                                  <SelectItem key={priority} value={priority}>
+                                    {formatLabel(priority)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor={`bulk-due-date-${taskRow.id}`}>Due Date (optional)</Label>
+                          <Input
+                            id={`bulk-due-date-${taskRow.id}`}
+                            type="datetime-local"
+                            value={taskRow.due_date}
+                            onChange={(e) => handleBulkTaskChange(taskRow.id, "due_date", e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addBulkTaskRow}
+                      disabled={isCreatingBulkTasks || isLoadingUsers}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Task Row
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleCreateBulkTasks}
+                      disabled={isCreatingBulkTasks || isLoadingUsers}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      {isCreatingBulkTasks ? "Assigning..." : `Assign ${bulkTasks.length} Tasks`}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="task-due-date">Due Date (optional)</Label>
-                <Input
-                  id="task-due-date"
-                  type="datetime-local"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
-                />
-              </div>
-
-              <Button onClick={handleCreateTask} disabled={isCreatingTask || isLoadingUsers}>
-                <Plus className="mr-2 h-4 w-4" />
-                {isCreatingTask ? "Assigning..." : "Assign Task"}
-              </Button>
+              )}
             </CardContent>
           </Card>
 

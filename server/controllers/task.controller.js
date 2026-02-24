@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { sendNotificationEmail } from '../services/email.service.js';
+import { buildTaskAssignmentEmailTemplate } from '../services/email-template.js';
 
 const TASK_ASSIGNMENT_ROLES = new Set(['ADMIN', 'SUPER_ADMIN']);
 
@@ -52,31 +53,6 @@ const TASK_WITH_USERS_INCLUDE = {
 };
 
 const isTaskAssignmentRole = (role) => TASK_ASSIGNMENT_ROLES.has(role);
-
-const escapeHtml = (value = '') =>
-  String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-
-const formatDateForEmail = (date) =>
-  date
-    ? new Date(date).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : 'Not specified';
-
-const formatPriorityForEmail = (priority) => {
-  const normalized = PRIORITY_OUTPUT_MAP[priority] || '';
-  if (!normalized) return '';
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-};
 
 const getDashboardLoginUrl = () =>
   process.env.ADMIN_LOGIN_URL ||
@@ -163,69 +139,44 @@ const parseOptionalDueDate = (rawValue) => {
   return { hasValue: true, value: parsedDate, error: null };
 };
 
-const buildTaskAssignmentEmail = ({
-  assigneeName,
-  assignerName,
-  taskTitle,
-  description,
-  priority,
-  dueDate,
-  dashboardLoginUrl
-}) => {
-  const safeTaskTitle = escapeHtml(taskTitle);
-  const safeDescription = description ? escapeHtml(description) : 'No description provided';
-  const safeAssigneeName = escapeHtml(assigneeName || 'there');
-  const safeAssignerName = escapeHtml(assignerName || 'A team member');
-  const safePriority = escapeHtml(formatPriorityForEmail(priority));
-  const safeDueDate = escapeHtml(formatDateForEmail(dueDate));
-  const safeLoginUrl = escapeHtml(dashboardLoginUrl);
+const normalizeTaskCreatePayload = (payload = {}) => {
+  const { title, description, assigned_to, assignedTo, priority, due_date, dueDate } = payload || {};
 
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 0; padding: 40px 20px; background-color: #ffffff; }
-          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-          .content { padding: 40px 30px; }
-          .logo { font-size: 24px; font-weight: 600; color: #1a1a1a; margin-bottom: 24px; }
-          h1 { font-size: 24px; font-weight: 600; color: #1a1a1a; margin: 0 0 16px 0; }
-          p { font-size: 16px; color: #4a4a4a; margin: 0 0 14px 0; }
-          .details { margin: 22px 0; padding: 18px; border: 1px solid #e5e5e5; border-radius: 6px; background: #fafafa; }
-          .details p { margin: 8px 0; font-size: 15px; }
-          .button { display: inline-block; padding: 12px 24px; background-color: #1a1a1a; color: #ffffff !important; text-decoration: none; border-radius: 4px; margin: 12px 0 18px 0; font-weight: 500; }
-          .footer { margin-top: 36px; padding-top: 22px; border-top: 1px solid #e5e5e5; text-align: center; color: #8a8a8a; font-size: 13px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="content">
-            <div class="logo">Manzilini</div>
-            <h1>New Task Assigned</h1>
-            <p>Hello ${safeAssigneeName},</p>
-            <p>${safeAssignerName} assigned a new task to you.</p>
+  const normalizedTitle = typeof title === 'string' ? title.trim() : '';
+  const assignedToValue = assigned_to ?? assignedTo;
+  const assignedToId = typeof assignedToValue === 'string' ? String(assignedToValue).trim() : '';
+  const normalizedPriority = typeof priority === 'string' ? priority.toLowerCase().trim() : '';
+  const priorityEnum = PRIORITY_INPUT_MAP[normalizedPriority];
+  const descriptionValue = typeof description === 'string' ? description.trim() : null;
 
-            <div class="details">
-              <p><strong>Task:</strong> ${safeTaskTitle}</p>
-              <p><strong>Description:</strong> ${safeDescription}</p>
-              <p><strong>Priority:</strong> ${safePriority}</p>
-              <p><strong>Due Date:</strong> ${safeDueDate}</p>
-              <p><strong>Assigned By:</strong> ${safeAssignerName}</p>
-            </div>
+  if (!normalizedTitle) {
+    return { error: 'Title is required' };
+  }
 
-            <a href="${safeLoginUrl}" class="button">Log in to Dashboard</a>
+  if (!assignedToId) {
+    return { error: 'assigned_to is required' };
+  }
 
-            <p>Best regards,<br>The Manzilini Team</p>
+  if (!priorityEnum) {
+    return { error: 'Priority is required and must be one of: low, medium, high, urgent' };
+  }
 
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Manzilini. All rights reserved.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const parsedDueDateResult = parseOptionalDueDate(due_date ?? dueDate);
+
+  if (parsedDueDateResult.error) {
+    return { error: parsedDueDateResult.error };
+  }
+
+  return {
+    error: null,
+    value: {
+      title: normalizedTitle,
+      description: descriptionValue || null,
+      assignedToId,
+      priority: priorityEnum,
+      dueDate: parsedDueDateResult.value
+    }
+  };
 };
 
 const createTaskNotification = async ({ tx, userId, taskTitle }) =>
@@ -247,15 +198,18 @@ const sendTaskAssignmentEmail = async ({
   dueDate,
   taskId
 }) => {
+  if (!assignedUser?.email) return;
+
   const dashboardLoginUrl = getDashboardLoginUrl();
+  const normalizedPriority = PRIORITY_OUTPUT_MAP[priority] || String(priority || '').toLowerCase();
 
   try {
-    const taskAssignmentHtml = buildTaskAssignmentEmail({
+    const taskAssignmentHtml = buildTaskAssignmentEmailTemplate({
       assigneeName: assignedUser.name,
       assignerName: assigner.name,
       taskTitle,
       description,
-      priority,
+      priority: normalizedPriority,
       dueDate,
       dashboardLoginUrl
     });
@@ -320,33 +274,18 @@ export const createTask = asyncHandler(async (req, res) => {
     return res.status(403).json({ message: 'Access denied. Only authorized users can assign tasks.' });
   }
 
-  const { title, description, assigned_to, assignedTo, priority, due_date, dueDate } = req.body || {};
-
-  const normalizedTitle = typeof title === 'string' ? title.trim() : '';
-  const assignedToId = assigned_to || assignedTo;
-  const normalizedPriority = typeof priority === 'string' ? priority.toLowerCase().trim() : '';
-  const priorityEnum = PRIORITY_INPUT_MAP[normalizedPriority];
-  const descriptionValue = typeof description === 'string' ? description.trim() : null;
-
-  if (!normalizedTitle) {
-    return res.status(400).json({ message: 'Title is required' });
+  const normalized = normalizeTaskCreatePayload(req.body || {});
+  if (normalized.error) {
+    return res.status(400).json({ message: normalized.error });
   }
 
-  if (!assignedToId) {
-    return res.status(400).json({ message: 'assigned_to is required' });
-  }
-
-  if (!priorityEnum) {
-    return res.status(400).json({ message: 'Priority is required and must be one of: low, medium, high, urgent' });
-  }
-
-  const parsedDueDateResult = parseOptionalDueDate(due_date ?? dueDate);
-
-  if (parsedDueDateResult.error) {
-    return res.status(400).json({ message: parsedDueDateResult.error });
-  }
-
-  const parsedDueDate = parsedDueDateResult.value;
+  const {
+    title: normalizedTitle,
+    description: descriptionValue,
+    assignedToId,
+    priority: priorityEnum,
+    dueDate: parsedDueDate
+  } = normalized.value;
 
   const assignedUser = await getActiveAssignableUserById(assignedToId);
 
@@ -390,6 +329,115 @@ export const createTask = asyncHandler(async (req, res) => {
   return res.status(201).json({
     message: 'Task created and assigned successfully',
     task: serializeTask(createdTask)
+  });
+});
+
+// POST /api/v1/tasks/bulk
+export const createBulkTasks = asyncHandler(async (req, res) => {
+  const currentUser = await getCurrentUser(req.user?.id);
+
+  if (!currentUser) {
+    return res.status(401).json({ message: 'User authentication required' });
+  }
+
+  if (!isTaskAssignmentRole(currentUser.role)) {
+    return res.status(403).json({ message: 'Access denied. Only authorized users can assign tasks.' });
+  }
+
+  const rawTasks = Array.isArray(req.body?.tasks) ? req.body.tasks : Array.isArray(req.body) ? req.body : null;
+
+  if (!rawTasks || !rawTasks.length) {
+    return res.status(400).json({ message: 'tasks is required and must contain at least one task' });
+  }
+
+  if (rawTasks.length > 100) {
+    return res.status(400).json({ message: 'A maximum of 100 tasks can be assigned per request' });
+  }
+
+  const normalizedTasks = [];
+  const assigneeIds = new Set();
+
+  for (let index = 0; index < rawTasks.length; index += 1) {
+    const normalized = normalizeTaskCreatePayload(rawTasks[index]);
+    if (normalized.error) {
+      return res.status(400).json({ message: `Task ${index + 1}: ${normalized.error}` });
+    }
+
+    normalizedTasks.push(normalized.value);
+    assigneeIds.add(normalized.value.assignedToId);
+  }
+
+  const assignedUsers = await prisma.user.findMany({
+    where: {
+      id: { in: Array.from(assigneeIds) },
+      status: 'ACTIVE'
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true
+    }
+  });
+
+  const assignedUsersMap = new Map(assignedUsers.map((user) => [user.id, user]));
+
+  for (let index = 0; index < normalizedTasks.length; index += 1) {
+    if (!assignedUsersMap.has(normalizedTasks[index].assignedToId)) {
+      return res
+        .status(400)
+        .json({ message: `Task ${index + 1}: Task can only be assigned to active users` });
+    }
+  }
+
+  const createdTasks = await prisma.$transaction(async (tx) => {
+    const results = [];
+
+    for (const taskInput of normalizedTasks) {
+      const task = await tx.task.create({
+        data: {
+          title: taskInput.title,
+          description: taskInput.description,
+          assignedToId: taskInput.assignedToId,
+          assignedById: currentUser.id,
+          priority: taskInput.priority,
+          status: 'PENDING',
+          dueDate: taskInput.dueDate
+        },
+        include: TASK_WITH_USERS_INCLUDE
+      });
+
+      await createTaskNotification({
+        tx,
+        userId: taskInput.assignedToId,
+        taskTitle: taskInput.title
+      });
+
+      results.push(task);
+    }
+
+    return results;
+  });
+
+  await Promise.all(
+    createdTasks.map((task) =>
+      sendTaskAssignmentEmail({
+        assignedUser: assignedUsersMap.get(task.assignedToId),
+        assigner: currentUser,
+        taskTitle: task.title,
+        description: task.description,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        taskId: task.id
+      })
+    )
+  );
+
+  return res.status(201).json({
+    message: `${createdTasks.length} tasks created and assigned successfully`,
+    count: createdTasks.length,
+    tasks: createdTasks.map(serializeTask)
   });
 });
 

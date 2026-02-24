@@ -41,6 +41,10 @@ export interface CreateTaskPayload {
   due_date?: string | null;
 }
 
+export interface BulkCreateTasksPayload {
+  tasks: CreateTaskPayload[];
+}
+
 export interface UpdateTaskPayload {
   title?: string;
   description?: string | null;
@@ -84,6 +88,25 @@ export const createTask = async (payload: CreateTaskPayload): Promise<{ message:
 
   if (!response.ok) {
     throw new Error(await parseApiError(response, "Failed to create task"));
+  }
+
+  return response.json();
+};
+
+// Create and assign multiple tasks in one request
+export const createTasksBulk = async (
+  payload: BulkCreateTasksPayload
+): Promise<{ message: string; count: number; tasks: TaskItem[] }> => {
+  const response = await fetch(`${TASKS_API_URL}/bulk`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, "Failed to create tasks"));
   }
 
   return response.json();

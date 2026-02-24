@@ -3,6 +3,7 @@ import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 import {
   getAssignableActiveUsers,
   createTask,
+  createBulkTasks,
   updateTask,
   deleteTask,
   getTasksAssignedToUser,
@@ -14,6 +15,7 @@ import {
 const router = express.Router();
 
 router.get('/assignable-users', AuthMiddleware, getAssignableActiveUsers);
+router.post('/bulk', AuthMiddleware, createBulkTasks);
 router.post('/', AuthMiddleware, createTask);
 router.get('/dashboard/summary', AuthMiddleware, getTaskDashboardSummary);
 router.get('/mine', AuthMiddleware, getMyAssignedTasks);
