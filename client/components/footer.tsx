@@ -102,7 +102,7 @@ export default function Footer() {
             <a href="https://www.instagram.com/manzilinihq/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition" aria-label="Instagram">
               <Instagram className="w-5 h-5" />
             </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition" aria-label="LinkedIn">
+            <a href="" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition" aria-label="LinkedIn">
               <Linkedin className="w-5 h-5" />
             </a>
           </div>

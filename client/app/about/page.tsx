@@ -1,345 +1,396 @@
 "use client"
 
-import { CheckCircle, Users, Lightbulb, Globe, Shield, Target, Heart, Award, ArrowRight, Wrench, Sparkles, Bug, Truck, Paintbrush, Settings, Key } from "lucide-react"
-import Image from "next/image"
+import {
+  ArrowRight,
+  Award,
+  Bug,
+  CheckCircle,
+  Globe,
+  Heart,
+  Key,
+  Settings,
+  Shield,
+  Sparkles,
+  Target,
+  Truck,
+  Users,
+  Wrench,
+} from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
+const highlights = [
+  { value: "2025", label: "Founded" },
+  { value: "1 Platform", label: "All-In-One Experience" },
+  { value: "Verified", label: "Property Listings" },
+  { value: "24/7", label: "Support" },
+]
+
+const values = [
+  {
+    icon: CheckCircle,
+    title: "Convenience",
+    description:
+      "Everything you need in one place, from property search to trusted home services.",
+  },
+  {
+    icon: Shield,
+    title: "Transparency",
+    description:
+      "Clear pricing, verified listings, and honest communication at every step.",
+  },
+  {
+    icon: Award,
+    title: "Reliability",
+    description:
+      "Vetted providers, secure interactions, and consistent quality standards.",
+  },
+  {
+    icon: Users,
+    title: "Community Focused",
+    description:
+      "Built to support renters, landlords, and homeowners with practical tools.",
+  },
+]
+
+const services = [
+  {
+    icon: Truck,
+    title: "House Moving",
+    description: "Professional moving services for a smooth and stress-free relocation.",
+  },
+  {
+    icon: Bug,
+    title: "Fumigation",
+    description: "Expert pest control to keep your property clean and protected.",
+  },
+  {
+    icon: Sparkles,
+    title: "Interior Design",
+    description: "Design support to transform your space into a functional home.",
+  },
+  {
+    icon: Settings,
+    title: "House Management",
+    description: "Property management support for landlords and homeowners.",
+  },
+  {
+    icon: Wrench,
+    title: "Installations",
+    description: "Reliable installation services for appliances and fixtures.",
+  },
+  {
+    icon: Key,
+    title: "Airbnb Support",
+    description: "Operational support to help hosts manage and scale listings.",
+  },
+]
+
+const commitments = [
+  {
+    icon: Shield,
+    title: "Verified Listings",
+    description: "Every listing is reviewed for authenticity and listing accuracy.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Transparent Pricing",
+    description: "Clear fees and costs with no hidden surprises.",
+  },
+  {
+    icon: Heart,
+    title: "Reliable Support",
+    description: "Fast, responsive support when users need help.",
+  },
+  {
+    icon: Award,
+    title: "Quality Standards",
+    description: "We continuously improve service quality and user trust.",
+  },
+]
+
+const journey = [
+  {
+    title: "The Problem",
+    description:
+      "Property search and housing services were fragmented, manual, and difficult to trust.",
+  },
+  {
+    title: "The Solution",
+    description:
+      "Manzilini was built as a centralized digital platform connecting listings, communication, and services.",
+  },
+  {
+    title: "The Impact",
+    description:
+      "Users can discover homes faster, manage listings better, and access vetted services in one place.",
+  },
+]
+
 export default function About() {
-  const values = [
-    {
-      icon: CheckCircle,
-      title: "Convenience",
-      description: "Everything you need in one place. From property search to home services, we eliminate the need to juggle multiple platforms and manual processes.",
-    },
-    {
-      icon: Shield,
-      title: "Transparency",
-      description: "Clear pricing, verified listings, and honest communication. We believe in complete transparency at every step of your property journey.",
-    },
-    {
-      icon: Award,
-      title: "Reliability",
-      description: "Vetted service providers, verified properties, and secure communication. You can trust us to deliver quality services every time.",
-    },
-    {
-      icon: Users,
-      title: "Community Focused",
-      description: "Building a trustworthy community of tenants, landlords, and homeowners across Kenya. We foster connections that go beyond transactions.",
-    },
-  ]
-
-  const services = [
-    {
-      icon: Truck,
-      title: "House Moving",
-      description: "Professional moving services to help you relocate smoothly and safely.",
-    },
-    {
-      icon: Bug,
-      title: "Fumigation",
-      description: "Expert pest control services to keep your home clean and pest-free.",
-    },
-    {
-      icon: Sparkles,
-      title: "Interior Design",
-      description: "Transform your space with professional interior design services.",
-    },
-    {
-      icon: Settings,
-      title: "House Management",
-      description: "Comprehensive property management solutions for landlords and homeowners.",
-    },
-    {
-      icon: Wrench,
-      title: "Installations",
-      description: "Professional installation services for appliances, fixtures, and more.",
-    },
-    {
-      icon: Key,
-      title: "Airbnb Support",
-      description: "Complete support services to help you manage and optimize your Airbnb listings.",
-    },
-  ]
-
-  const commitments = [
-    {
-      icon: Shield,
-      title: "Verified Listings",
-      description: "Every property on our platform is verified for authenticity. We conduct thorough checks to ensure listings are legitimate and accurately represented.",
-    },
-    {
-      icon: CheckCircle,
-      title: "Transparent Pricing",
-      description: "No hidden fees, no surprises. We believe in complete transparency when it comes to pricing, so you know exactly what you're paying for.",
-    },
-    {
-      icon: Heart,
-      title: "24/7 Support",
-      description: "Our dedicated support team is available around the clock to assist you with any questions or concerns. Your peace of mind is our priority.",
-    },
-    {
-      icon: Award,
-      title: "Quality Guarantee",
-      description: "We stand behind the quality of our listings. If something doesn't match our standards, we'll work to make it right.",
-    },
-  ]
-
   return (
     <>
-        {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-gradient-to-b from-background to-card">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className=" text-start">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">About Manzilini</h1>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-4 max-w-5xl">
-                An integrated digital platform designed to address the challenges faced by tenants, landlords, and homeowners 
-                in the real estate and housing services market.
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
-                Manzilini provides a centralized solution where users can search for rental properties, manage listings, 
-                communicate securely, and access a wide range of home-related services without the limitations of traditional, 
-                manual processes. Through our mobile and web-based applications, we enable tenants to explore verified property 
-                listings remotely while allowing landlords to efficiently advertise and manage their properties.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Our Story Section */}
-        <section className="py-20 md:py-28 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Our Story</h2>
-                <p className="text-muted-foreground mb-4 leading-relaxed text-lg">
-                  Founded in 2025, Manzilini was created to address the real challenges faced by tenants, landlords, 
-                  and homeowners in Kenya's real estate market. We recognized that the traditional property search and 
-                  housing services process was fragmented, time-consuming, and often unreliable.
-                </p>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
-                  Many renters struggled with unverified listings, hidden fees, and lack of transparency. Landlords found 
-                  it challenging to reach genuine tenants and manage their properties efficiently. Homeowners needed reliable 
-                  access to quality home services but had to navigate multiple platforms and service providers.
-                </p>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
-                  Manzilini is built on the principles of convenience, transparency, and reliability. By leveraging 
-                  modern technology and a user-centered design approach, we've created an integrated platform that brings 
-                  together property search, listing management, secure communication, and a comprehensive ecosystem of 
-                  home-related services.
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  Beyond property rentals, our platform offers essential services including house moving, fumigation, 
-                  interior design, house management, installations, and Airbnb support—all delivered by vetted service 
-                  providers. Our goal is to improve living standards, reduce inefficiencies in the housing process, 
-                  and contribute to the digital transformation of the real estate sector in Kenya.
-                </p>
-              </div>
-              <div className="relative bg-primary/10 rounded-xl h-96 md:h-[500px] border border-border overflow-hidden">
-                <Image
-                  src="/about.png"
-                  alt="Manzilini team"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-            </div>
-
-            {/* Mission & Vision */}
-            <div className="grid md:grid-cols-2 gap-8 mb-20">
-              <div className="p-8 rounded-xl border border-border bg-card">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Target className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">Our Mission</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  To provide an integrated digital platform that addresses the challenges faced by tenants, landlords, and 
-                  homeowners in Kenya's real estate market. We aim to create a centralized solution where users can search 
-                  for rental properties, manage listings, communicate securely, and access a wide range of home-related 
-                  services—all without the limitations of traditional, manual processes.
-                </p>
-              </div>
-              <div className="p-8 rounded-xl border border-border bg-card">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Globe className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">Our Vision</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  To become Kenya's leading integrated real estate and housing services platform, where finding a home 
-                  and accessing quality home services is seamless and efficient. We envision a future where technology 
-                  improves living standards, reduces inefficiencies in the housing process, and contributes to the digital 
-                  transformation of the real estate sector—making quality housing and services accessible to everyone.
-                </p>
-              </div>
-            </div>
-
-            {/* Core Values */}
-            <div className="mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-center">Our Core Values</h2>
-              <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-                These principles guide everything we do and shape how we serve our community of renters and property owners.
-              </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {values.map((value, index) => {
-                  const Icon = value.icon
-                  return (
-                    <div
-                      key={index}
-                      className="p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-all duration-300"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">{value.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
+      <section className="bg-background py-16 md:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl p-6 md:p-10">
+            <div className="grid items-start gap-8 lg:grid-cols-[1fr_340px]">
+              <div className="max-w-4xl">
+                <div className="flex items-start gap-4 md:gap-5">
+                  <div>
+                    <h1 className="text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
+                      About Manzilini
+                    </h1>
+                    <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
+                      Manzilini is an integrated digital platform built for tenants, landlords, and homeowners. We bring
+                      verified property discovery, secure communication, and trusted home services into one practical
+                      experience.
+                    </p>
+                    <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                      <Button size="lg" asChild className="gap-2">
+                        <Link href="/properties">
+                          Browse Properties
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button size="lg" variant="outline" asChild>
+                        <Link href="/contact">Contact Us</Link>
+                      </Button>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
 
-            {/* Our Commitment */}
-            <div className="bg-card rounded-2xl p-8 md:p-12 border border-border">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-center">Our Commitment to You</h2>
-              <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-                We're committed to providing you with the best possible experience. Here's what you can expect from us:
-              </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {commitments.map((commitment, index) => {
-                  const Icon = commitment.icon
-                  return (
-                    <div
-                      key={index}
-                      className="p-6 rounded-xl border border-border bg-background hover:border-primary/50 transition-all duration-300"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">{commitment.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{commitment.description}</p>
+                    <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {highlights.map((item) => (
+                        <div key={item.label} className="rounded-xl bg-background p-3">
+                          <p className="text-sm font-bold text-foreground">{item.value}</p>
+                          <p className="text-xs text-muted-foreground">{item.label}</p>
+                        </div>
+                      ))}
                     </div>
-                  )
-                })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mx-auto w-full max-w-sm lg:max-w-none" aria-hidden="true">
+                <svg
+                  viewBox="0 0 320 360"
+                  className="h-auto w-full text-primary"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M18 332H302" stroke="currentColor" strokeWidth="4" strokeLinecap="round" opacity="0.35" />
+                  <rect x="34" y="120" width="90" height="212" rx="8" stroke="currentColor" strokeWidth="4" opacity="0.9" />
+                  <rect x="120" y="84" width="84" height="248" rx="8" stroke="currentColor" strokeWidth="4" opacity="0.95" />
+                  <rect x="198" y="148" width="88" height="184" rx="8" stroke="currentColor" strokeWidth="4" opacity="0.8" />
+                  <rect x="150" y="260" width="24" height="72" stroke="currentColor" strokeWidth="4" opacity="0.95" />
+                  <g opacity="0.65" fill="currentColor">
+                    <rect x="52" y="142" width="14" height="14" rx="2" />
+                    <rect x="80" y="142" width="14" height="14" rx="2" />
+                    <rect x="52" y="170" width="14" height="14" rx="2" />
+                    <rect x="80" y="170" width="14" height="14" rx="2" />
+                    <rect x="52" y="198" width="14" height="14" rx="2" />
+                    <rect x="80" y="198" width="14" height="14" rx="2" />
+                    <rect x="138" y="108" width="14" height="14" rx="2" />
+                    <rect x="164" y="108" width="14" height="14" rx="2" />
+                    <rect x="138" y="136" width="14" height="14" rx="2" />
+                    <rect x="164" y="136" width="14" height="14" rx="2" />
+                    <rect x="138" y="164" width="14" height="14" rx="2" />
+                    <rect x="164" y="164" width="14" height="14" rx="2" />
+                    <rect x="138" y="192" width="14" height="14" rx="2" />
+                    <rect x="164" y="192" width="14" height="14" rx="2" />
+                    <rect x="138" y="220" width="14" height="14" rx="2" />
+                    <rect x="164" y="220" width="14" height="14" rx="2" />
+                    <rect x="218" y="168" width="14" height="14" rx="2" />
+                    <rect x="246" y="168" width="14" height="14" rx="2" />
+                    <rect x="218" y="196" width="14" height="14" rx="2" />
+                    <rect x="246" y="196" width="14" height="14" rx="2" />
+                    <rect x="218" y="224" width="14" height="14" rx="2" />
+                    <rect x="246" y="224" width="14" height="14" rx="2" />
+                  </g>
+                </svg>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Services Ecosystem */}
-        <section className="py-20 md:py-28 bg-card">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-6xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-center">Complete Home Services Ecosystem</h2>
-              <p className="text-muted-foreground text-center mb-12 max-w-3xl mx-auto">
-                Beyond property rentals, Manzilini offers a comprehensive ecosystem of essential home-related services, 
-                all delivered by vetted service providers. Everything you need for your home, all in one place.
-              </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {services.map((service, index) => {
-                  const Icon = service.icon
-                  return (
-                    <div
-                      key={index}
-                      className="p-6 rounded-xl border border-border bg-background hover:border-primary/50 transition-all duration-300"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">{service.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+      <section className="py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-10 max-w-3xl text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Our Story
+            </span>
+            <h2 className="mt-4 text-3xl font-bold text-foreground md:text-4xl">From Challenge to Impact</h2>
+            <p className="mt-3 text-muted-foreground">
+              Manzilini was built to solve real housing friction and make the full property journey more trusted and efficient.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-5xl">
+            <div className="relative pl-8 sm:pl-12">
+              <div className="absolute  left-2 top-2 w-px bg-border sm:left-4" />
+              <div className="space-y-4 md:space-y-5">
+                {journey.map((item, index) => (
+                  <article
+                    key={item.title}
+                    className="relative pl-6 sm:pl-8 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-4 motion-safe:duration-700"
+                    style={{ animationDelay: `${index * 120}ms` }}
+                  >
+                    <span className="absolute -left-0.5 top-4 inline-flex h-6 w-6 items-center justify-center rounded-full border border-primary/20 bg-primary/15 text-xs font-semibold text-primary sm:-left-1">
+                      {index + 1}
+                    </span>
+                    <div className="rounded-2xl border border-border bg-card/70 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm">
+                      <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
                     </div>
-                  )
-                })}
+                  </article>
+                ))}
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* What Makes Us Different
-        <section className="py-20 md:py-28 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6 text-center">What Makes Us Different</h2>
-              <div className="space-y-6">
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Integrated Digital Platform</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Unlike traditional platforms that focus on just one aspect, Manzilini is a comprehensive solution 
-                    that addresses all your real estate and housing needs. Search properties, manage listings, communicate 
-                    securely, and access home services—all from one centralized platform.
-                  </p>
+      <section className="bg-card py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-10 max-w-3xl text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Mission & Vision
+            </span>
+            <h2 className="mt-4 text-3xl font-bold text-foreground md:text-4xl">Where We Are Going</h2>
+          </div>
+
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-background p-8 transition-all duration-300 hover:border-primary/40 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-6 motion-safe:duration-700 motion-safe:delay-100">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                  <Target className="h-5 w-5 text-primary" />
                 </div>
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Verified Property Listings</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Every property on our platform goes through a verification process. We verify property ownership, 
-                    check listing accuracy, and ensure all information is up-to-date. Tenants can explore verified 
-                    listings remotely with confidence, while landlords can efficiently advertise and manage their properties.
-                  </p>
+                <h3 className="text-2xl font-bold text-foreground">Our Mission</h3>
+                <p className="mt-3 text-muted-foreground leading-relaxed">
+                  To provide an integrated digital platform where users can find properties, manage listings, and
+                  access essential housing services without the inefficiencies of manual workflows.
+                </p>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-background p-8 transition-all duration-300 hover:border-primary/40 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-6 motion-safe:duration-700 motion-safe:delay-200">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                  <Globe className="h-5 w-5 text-primary" />
                 </div>
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Mobile & Web Accessibility</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Access Manzilini from anywhere, anytime. Our mobile and web-based applications are designed 
-                    for convenience, allowing you to search properties, manage listings, and book services on the go. 
-                    No more limitations of traditional, manual processes.
-                  </p>
-                </div>
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Vetted Service Providers</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    All our service providers—from movers to interior designers, fumigation experts to installation 
-                    specialists—are carefully vetted to ensure quality and reliability. You can trust that every service 
-                    in our ecosystem meets our high standards.
-                  </p>
-                </div>
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Secure Communication</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Built-in secure communication tools allow tenants and landlords to connect safely, schedule viewings, 
-                    and discuss property details without compromising privacy or security. All interactions are protected 
-                    and transparent.
-                  </p>
-                </div>
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Digital Transformation Focus</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    We're committed to improving living standards and reducing inefficiencies in the housing process. 
-                    By leveraging modern technology and user-centered design, we're contributing to the digital 
-                    transformation of Kenya's real estate sector.
-                  </p>
-                </div>
-              </div>
+                <h3 className="text-2xl font-bold text-foreground">Our Vision</h3>
+                <p className="mt-3 text-muted-foreground leading-relaxed">
+                  To become Kenya's leading real estate and housing services ecosystem where finding a home and
+                  managing it is efficient, transparent, and dependable for everyone.
+                </p>
             </div>
           </div>
-        </section> */}
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <section className="py-20 md:py-28 bg-gradient-to-br from-primary/10 to-primary/5  p-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center ">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Ready to Experience the Future of Real Estate?</h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                Join thousands of satisfied users who have found their dream homes and accessed quality home services through Manzilini. 
-                Start your property search today and discover the convenience of an integrated platform.
+      <section className="bg-card py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <h2 className="text-3xl font-bold text-foreground md:text-4xl">Our Core Values</h2>
+            <p className="mt-3 text-muted-foreground">
+              The principles that guide how we build, operate, and support our users.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {values.map((value) => {
+              const Icon = value.icon
+              return (
+                <div
+                  key={value.title}
+                  className="rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
+                >
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{value.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{value.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <h2 className="text-3xl font-bold text-foreground md:text-4xl">Complete Home Services Ecosystem</h2>
+            <p className="mt-3 text-muted-foreground">
+              Beyond rentals, we connect users with practical services delivered by vetted providers.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => {
+              const Icon = service.icon
+              return (
+                <div
+                  key={service.title}
+                  className="rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/40"
+                >
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{service.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-card py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-card p-8 md:p-12">
+            <div className="mx-auto mb-10 max-w-3xl text-center">
+              <h2 className="text-3xl font-bold text-foreground md:text-4xl">Our Commitment to You</h2>
+              <p className="mt-3 text-muted-foreground">
+                Every decision we make is focused on trust, transparency, and a better user experience.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" asChild className="gap-2">
-                  <Link href="/properties">
-                    Browse Properties
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/contact">
-                    Contact Us
-                  </Link>
-                </Button>
-              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {commitments.map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} className="rounded-2xl border border-border bg-card p-6">
+                    <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
+
+      <section className="bg-background py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-card to-primary/5 p-10 text-center md:p-14">
+            <h2 className="text-3xl font-bold text-foreground md:text-4xl">Ready to Experience Better Real Estate?</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              Start your search with verified listings, connect securely, and access trusted home services from one platform.
+            </p>
+            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+              <Button size="lg" asChild className="gap-2">
+                <Link href="/properties">
+                  Browse Properties
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/contact">Contact Us</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   )
 }
