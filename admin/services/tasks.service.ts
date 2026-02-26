@@ -21,6 +21,7 @@ export interface TaskItem {
   priority: TaskPriority;
   status: TaskStatus;
   due_date: string | null;
+  reminder_at: string | null;
   created_at: string;
   updated_at: string;
   assigned_user?: TaskUser | null;
@@ -39,6 +40,7 @@ export interface CreateTaskPayload {
   assigned_to: string;
   priority: TaskPriority;
   due_date?: string | null;
+  reminder_at?: string | null;
 }
 
 export interface BulkCreateTasksPayload {
@@ -52,6 +54,7 @@ export interface UpdateTaskPayload {
   priority?: TaskPriority;
   status?: TaskStatus;
   due_date?: string | null;
+  reminder_at?: string | null;
 }
 
 const parseApiError = async (response: Response, fallbackMessage: string) => {

@@ -421,9 +421,10 @@ model Task {
   assignedById String @map("assigned_by")
   assignedBy   User   @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
 
-  priority TaskPriority
-  status   TaskStatus   @default(PENDING)
-  dueDate  DateTime?    @map("due_date")
+  priority   TaskPriority
+  status     TaskStatus   @default(PENDING)
+  dueDate    DateTime?    @map("due_date")
+  reminderAt DateTime?    @map("reminder_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

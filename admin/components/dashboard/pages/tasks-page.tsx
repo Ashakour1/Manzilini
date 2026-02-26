@@ -52,7 +52,7 @@ const STATUS_OPTIONS: TaskStatus[] = ["pending", "in_progress", "completed", "ca
 const formatLabel = (value: string) =>
   value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
-const formatDateTime = (value?: string | null) =>
+const formatDateTime = (value?: string | null, emptyLabel = "No due date") =>
   value
     ? new Date(value).toLocaleString("en-US", {
         month: "short",
@@ -61,7 +61,7 @@ const formatDateTime = (value?: string | null) =>
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "No due date";
+    : emptyLabel;
 
 const toDateTimeLocalInput = (value?: string | null) => {
   if (!value) return "";
@@ -90,6 +90,7 @@ type TaskFormState = {
   assigned_to: string;
   priority: TaskPriority;
   due_date: string;
+  reminder_at: string;
 };
 
 type BulkTaskRow = TaskFormState & {
@@ -103,6 +104,7 @@ type EditTaskFormState = {
   priority: TaskPriority;
   status: TaskStatus;
   due_date: string;
+  reminder_at: string;
 };
 
 const initialTaskForm: TaskFormState = {
@@ -111,6 +113,7 @@ const initialTaskForm: TaskFormState = {
   assigned_to: "",
   priority: "medium",
   due_date: "",
+  reminder_at: "",
 };
 
 const buildBulkTaskRow = (defaults: Partial<TaskFormState> = {}): BulkTaskRow => ({
@@ -120,6 +123,7 @@ const buildBulkTaskRow = (defaults: Partial<TaskFormState> = {}): BulkTaskRow =>
   assigned_to: "",
   priority: "medium",
   due_date: "",
+  reminder_at: "",
   ...defaults,
 });
 
@@ -130,6 +134,7 @@ const initialEditForm: EditTaskFormState = {
   priority: "medium",
   status: "pending",
   due_date: "",
+  reminder_at: "",
 };
 
 export function TasksPage() {
@@ -312,6 +317,7 @@ export function TasksPage() {
         assigned_to: formData.assigned_to,
         priority: formData.priority,
         due_date: formData.due_date ? formData.due_date : null,
+        reminder_at: formData.reminder_at ? formData.reminder_at : null,
       });
 
       toast({
@@ -358,7 +364,12 @@ export function TasksPage() {
 
   const handleCreateBulkTasks = async () => {
     const nonEmptyRows = bulkTasks.filter(
-      (row) => row.title.trim() || row.description.trim() || row.assigned_to || row.due_date
+      (row) =>
+        row.title.trim() ||
+        row.description.trim() ||
+        row.assigned_to ||
+        row.due_date ||
+        row.reminder_at
     );
 
     if (!nonEmptyRows.length) {
@@ -409,6 +420,7 @@ export function TasksPage() {
           assigned_to: row.assigned_to,
           priority: row.priority,
           due_date: row.due_date ? row.due_date : null,
+          reminder_at: row.reminder_at ? row.reminder_at : null,
         })),
       });
 
@@ -473,6 +485,7 @@ export function TasksPage() {
       priority: task.priority,
       status: task.status,
       due_date: toDateTimeLocalInput(task.due_date),
+      reminder_at: toDateTimeLocalInput(task.reminder_at),
     });
     setIsEditDialogOpen(true);
   };
@@ -500,6 +513,7 @@ export function TasksPage() {
         priority: editForm.priority,
         status: editForm.status,
         due_date: editForm.due_date ? editForm.due_date : null,
+        reminder_at: editForm.reminder_at ? editForm.reminder_at : null,
       });
 
       toast({
@@ -697,14 +711,26 @@ export function TasksPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="task-due-date">Due Date (optional)</Label>
-                    <Input
-                      id="task-due-date"
-                      type="datetime-local"
-                      value={formData.due_date}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
-                    />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="task-due-date">Due Date (optional)</Label>
+                      <Input
+                        id="task-due-date"
+                        type="datetime-local"
+                        value={formData.due_date}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, due_date: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="task-reminder-at">Reminder (optional)</Label>
+                      <Input
+                        id="task-reminder-at"
+                        type="datetime-local"
+                        value={formData.reminder_at}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, reminder_at: e.target.value }))}
+                      />
+                    </div>
                   </div>
 
                   <Button
@@ -800,14 +826,26 @@ export function TasksPage() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor={`bulk-due-date-${taskRow.id}`}>Due Date (optional)</Label>
-                          <Input
-                            id={`bulk-due-date-${taskRow.id}`}
-                            type="datetime-local"
-                            value={taskRow.due_date}
-                            onChange={(e) => handleBulkTaskChange(taskRow.id, "due_date", e.target.value)}
-                          />
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor={`bulk-due-date-${taskRow.id}`}>Due Date (optional)</Label>
+                            <Input
+                              id={`bulk-due-date-${taskRow.id}`}
+                              type="datetime-local"
+                              value={taskRow.due_date}
+                              onChange={(e) => handleBulkTaskChange(taskRow.id, "due_date", e.target.value)}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`bulk-reminder-at-${taskRow.id}`}>Reminder (optional)</Label>
+                            <Input
+                              id={`bulk-reminder-at-${taskRow.id}`}
+                              type="datetime-local"
+                              value={taskRow.reminder_at}
+                              onChange={(e) => handleBulkTaskChange(taskRow.id, "reminder_at", e.target.value)}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -872,6 +910,7 @@ export function TasksPage() {
                         <TableHead>Priority</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Due</TableHead>
+                        <TableHead>Reminder</TableHead>
                         <TableHead>Created</TableHead>
                         <TableHead className="w-[96px]">Actions</TableHead>
                       </TableRow>
@@ -894,6 +933,9 @@ export function TasksPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-xs text-gray-500">{formatDateTime(task.due_date)}</TableCell>
+                          <TableCell className="text-xs text-gray-500">
+                            {formatDateTime(task.reminder_at, "No reminder")}
+                          </TableCell>
                           <TableCell className="text-xs text-gray-500">{formatDateTime(task.created_at)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
@@ -960,6 +1002,7 @@ export function TasksPage() {
                     <TableHead>Task</TableHead>
                     <TableHead>Priority</TableHead>
                     <TableHead>Due Date</TableHead>
+                    <TableHead>Reminder</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-[180px]">Action</TableHead>
                   </TableRow>
@@ -987,6 +1030,12 @@ export function TasksPage() {
                           <div className="flex items-center gap-1">
                             <CalendarClock className="h-3.5 w-3.5" />
                             {formatDateTime(task.due_date)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Bell className="h-3.5 w-3.5" />
+                            {formatDateTime(task.reminder_at, "No reminder")}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -1100,7 +1149,7 @@ export function TasksPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
@@ -1127,6 +1176,16 @@ export function TasksPage() {
                   type="datetime-local"
                   value={editForm.due_date}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-task-reminder-at">Reminder</Label>
+                <Input
+                  id="edit-task-reminder-at"
+                  type="datetime-local"
+                  value={editForm.reminder_at}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, reminder_at: e.target.value }))}
                 />
               </div>
             </div>

@@ -79,6 +79,7 @@ const serializeTask = (task) => ({
   priority: PRIORITY_OUTPUT_MAP[task.priority] || task.priority?.toLowerCase(),
   status: STATUS_OUTPUT_MAP[task.status] || task.status?.toLowerCase(),
   due_date: task.dueDate,
+  reminder_at: task.reminderAt,
   created_at: task.createdAt,
   updated_at: task.updatedAt,
   assigned_user: serializeUser(task.assignedTo),
@@ -121,7 +122,7 @@ const getActiveAssignableUserById = async (userId) => {
   return user;
 };
 
-const parseOptionalDueDate = (rawValue) => {
+const parseOptionalDateTime = (rawValue, fieldName) => {
   if (rawValue === undefined) {
     return { hasValue: false, value: null, error: null };
   }
@@ -133,14 +134,24 @@ const parseOptionalDueDate = (rawValue) => {
   const parsedDate = new Date(rawValue);
 
   if (Number.isNaN(parsedDate.getTime())) {
-    return { hasValue: true, value: null, error: 'due_date must be a valid datetime value' };
+    return { hasValue: true, value: null, error: `${fieldName} must be a valid datetime value` };
   }
 
   return { hasValue: true, value: parsedDate, error: null };
 };
 
 const normalizeTaskCreatePayload = (payload = {}) => {
-  const { title, description, assigned_to, assignedTo, priority, due_date, dueDate } = payload || {};
+  const {
+    title,
+    description,
+    assigned_to,
+    assignedTo,
+    priority,
+    due_date,
+    dueDate,
+    reminder_at,
+    reminderAt
+  } = payload || {};
 
   const normalizedTitle = typeof title === 'string' ? title.trim() : '';
   const assignedToValue = assigned_to ?? assignedTo;
@@ -161,10 +172,16 @@ const normalizeTaskCreatePayload = (payload = {}) => {
     return { error: 'Priority is required and must be one of: low, medium, high, urgent' };
   }
 
-  const parsedDueDateResult = parseOptionalDueDate(due_date ?? dueDate);
+  const parsedDueDateResult = parseOptionalDateTime(due_date ?? dueDate, 'due_date');
 
   if (parsedDueDateResult.error) {
     return { error: parsedDueDateResult.error };
+  }
+
+  const parsedReminderAtResult = parseOptionalDateTime(reminder_at ?? reminderAt, 'reminder_at');
+
+  if (parsedReminderAtResult.error) {
+    return { error: parsedReminderAtResult.error };
   }
 
   return {
@@ -174,7 +191,8 @@ const normalizeTaskCreatePayload = (payload = {}) => {
       description: descriptionValue || null,
       assignedToId,
       priority: priorityEnum,
-      dueDate: parsedDueDateResult.value
+      dueDate: parsedDueDateResult.value,
+      reminderAt: parsedReminderAtResult.value
     }
   };
 };
@@ -284,7 +302,8 @@ export const createTask = asyncHandler(async (req, res) => {
     description: descriptionValue,
     assignedToId,
     priority: priorityEnum,
-    dueDate: parsedDueDate
+    dueDate: parsedDueDate,
+    reminderAt: parsedReminderAt
   } = normalized.value;
 
   const assignedUser = await getActiveAssignableUserById(assignedToId);
@@ -302,7 +321,8 @@ export const createTask = asyncHandler(async (req, res) => {
         assignedById: currentUser.id,
         priority: priorityEnum,
         status: 'PENDING',
-        dueDate: parsedDueDate
+        dueDate: parsedDueDate,
+        reminderAt: parsedReminderAt
       },
       include: TASK_WITH_USERS_INCLUDE
     });
@@ -403,7 +423,8 @@ export const createBulkTasks = asyncHandler(async (req, res) => {
           assignedById: currentUser.id,
           priority: taskInput.priority,
           status: 'PENDING',
-          dueDate: taskInput.dueDate
+          dueDate: taskInput.dueDate,
+          reminderAt: taskInput.reminderAt
         },
         include: TASK_WITH_USERS_INCLUDE
       });
@@ -474,6 +495,9 @@ export const updateTask = asyncHandler(async (req, res) => {
   const hasDueDate =
     Object.prototype.hasOwnProperty.call(payload, 'due_date') ||
     Object.prototype.hasOwnProperty.call(payload, 'dueDate');
+  const hasReminderAt =
+    Object.prototype.hasOwnProperty.call(payload, 'reminder_at') ||
+    Object.prototype.hasOwnProperty.call(payload, 'reminderAt');
 
   const updateData = {};
   let updatedAssignedUser = null;
@@ -534,11 +558,22 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
 
   if (hasDueDate) {
-    const parsedDueDateResult = parseOptionalDueDate(payload.due_date ?? payload.dueDate);
+    const parsedDueDateResult = parseOptionalDateTime(payload.due_date ?? payload.dueDate, 'due_date');
     if (parsedDueDateResult.error) {
       return res.status(400).json({ message: parsedDueDateResult.error });
     }
     updateData.dueDate = parsedDueDateResult.value;
+  }
+
+  if (hasReminderAt) {
+    const parsedReminderAtResult = parseOptionalDateTime(
+      payload.reminder_at ?? payload.reminderAt,
+      'reminder_at'
+    );
+    if (parsedReminderAtResult.error) {
+      return res.status(400).json({ message: parsedReminderAtResult.error });
+    }
+    updateData.reminderAt = parsedReminderAtResult.value;
   }
 
   if (!Object.keys(updateData).length) {
