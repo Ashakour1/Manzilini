@@ -710,17 +710,14 @@ export const sendTaskReminder = asyncHandler(async (req, res) => {
     });
   }
 
-  let taskForReminder = existingTask;
-
-  if (!existingTask.reminderAt) {
-    taskForReminder = await prisma.task.update({
-      where: { id: existingTask.id },
-      data: {
-        reminderAt: new Date()
-      },
-      include: TASK_WITH_USERS_INCLUDE
-    });
-  }
+  const reminderSentTimestamp = new Date();
+  const taskForReminder = await prisma.task.update({
+    where: { id: existingTask.id },
+    data: {
+      reminderAt: reminderSentTimestamp
+    },
+    include: TASK_WITH_USERS_INCLUDE
+  });
 
   await sendTaskReminderEmail({
     assignedUser: taskForReminder.assignedTo,
