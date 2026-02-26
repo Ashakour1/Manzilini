@@ -103,6 +103,7 @@ export const buildTaskReminderEmailTemplate = ({
   const safePriority = escapeHtml(formatPriorityForEmail(priority));
   const safeDueDate = escapeHtml(formatDateForEmail(dueDate));
   const safeReminderAt = escapeHtml(formatDateForEmail(reminderAt));
+  const safeReminderTimestamp = escapeHtml(reminderAt ? new Date(reminderAt).toISOString() : 'Not specified');
   const safeLoginUrl = escapeHtml(dashboardLoginUrl || '');
 
   return `
@@ -136,6 +137,7 @@ export const buildTaskReminderEmailTemplate = ({
               <p><strong>Description:</strong> ${safeDescription}</p>
               <p><strong>Priority:</strong> ${safePriority}</p>
               <p><strong>Reminder Time:</strong> ${safeReminderAt}</p>
+              <p><strong>Reminder Timestamp:</strong> ${safeReminderTimestamp}</p>
               <p><strong>Due Date:</strong> ${safeDueDate}</p>
             </div>
 

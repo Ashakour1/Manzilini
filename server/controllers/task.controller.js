@@ -260,6 +260,7 @@ const sendTaskReminderEmail = async ({ assignedUser, task }) => {
 
   const dashboardLoginUrl = getDashboardLoginUrl();
   const normalizedPriority = PRIORITY_OUTPUT_MAP[task.priority] || String(task.priority || '').toLowerCase();
+  const reminderTimestamp = task.reminderAt || new Date();
 
   const taskReminderHtml = buildTaskReminderEmailTemplate({
     assigneeName: assignedUser.name,
@@ -267,7 +268,7 @@ const sendTaskReminderEmail = async ({ assignedUser, task }) => {
     description: task.description,
     priority: normalizedPriority,
     dueDate: task.dueDate,
-    reminderAt: task.reminderAt,
+    reminderAt: reminderTimestamp,
     dashboardLoginUrl
   });
 
@@ -283,7 +284,7 @@ const sendTaskReminderEmail = async ({ assignedUser, task }) => {
       assignedBy: task.assignedById,
       priority: normalizedPriority,
       dueDate: task.dueDate ? task.dueDate.toISOString() : null,
-      reminderAt: task.reminderAt ? task.reminderAt.toISOString() : null
+      reminderAt: reminderTimestamp.toISOString()
     }
   );
 };
