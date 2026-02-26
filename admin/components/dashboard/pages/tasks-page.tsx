@@ -35,6 +35,7 @@ import {
   deleteTask,
   getAssignableActiveUsers,
   getMyTasks,
+  sendTaskReminder as sendTaskReminderRequest,
   getTaskDashboardSummary,
   getTasksAssignedToUser,
   updateTask,
@@ -158,6 +159,7 @@ export function TasksPage() {
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [isSavingTaskEdit, setIsSavingTaskEdit] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [sendingReminderTaskId, setSendingReminderTaskId] = useState<string | null>(null);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -541,6 +543,26 @@ export function TasksPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleSendReminder = async (task: TaskItem) => {
+    setSendingReminderTaskId(task.id);
+    try {
+      await sendTaskReminderRequest(task.id);
+      toast({
+        title: "Reminder Sent",
+        description: "Task reminder email sent successfully.",
+      });
+      await refreshAfterMutation();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send reminder",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReminderTaskId(null);
+    }
+  };
+
   const handleDeleteTask = async () => {
     if (!taskToDelete) return;
 
@@ -912,7 +934,7 @@ export function TasksPage() {
                         <TableHead>Due</TableHead>
                         <TableHead>Reminder</TableHead>
                         <TableHead>Created</TableHead>
-                        <TableHead className="w-[96px]">Actions</TableHead>
+                        <TableHead className="w-[132px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -942,9 +964,29 @@ export function TasksPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 text-blue-600 hover:text-blue-700"
+                                onClick={() => handleSendReminder(task)}
+                                disabled={
+                                  isSavingTaskEdit ||
+                                  deletingTaskId === task.id ||
+                                  sendingReminderTaskId === task.id ||
+                                  task.status === "completed" ||
+                                  task.status === "cancelled"
+                                }
+                              >
+                                <Bell className="h-4 w-4" />
+                                <span className="sr-only">Send reminder</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => openEditDialog(task)}
-                                disabled={isSavingTaskEdit || deletingTaskId === task.id}
+                                disabled={
+                                  isSavingTaskEdit ||
+                                  deletingTaskId === task.id ||
+                                  sendingReminderTaskId === task.id
+                                }
                               >
                                 <Pencil className="h-4 w-4" />
                                 <span className="sr-only">Edit task</span>
@@ -954,7 +996,11 @@ export function TasksPage() {
                                 size="icon"
                                 className="h-8 w-8 text-rose-600 hover:text-rose-700"
                                 onClick={() => openDeleteDialog(task)}
-                                disabled={isSavingTaskEdit || deletingTaskId === task.id}
+                                disabled={
+                                  isSavingTaskEdit ||
+                                  deletingTaskId === task.id ||
+                                  sendingReminderTaskId === task.id
+                                }
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Delete task</span>

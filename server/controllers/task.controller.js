@@ -1,9 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import prisma from '../db/prisma.js';
 import { sendNotificationEmail } from '../services/email.service.js';
-import { buildTaskAssignmentEmailTemplate } from '../services/email-template.js';
+import { buildTaskAssignmentEmailTemplate, buildTaskReminderEmailTemplate } from '../services/email-template.js';
 
 const TASK_ASSIGNMENT_ROLES = new Set(['ADMIN', 'SUPER_ADMIN']);
+const TASK_REMINDER_ALLOWED_STATUSES = new Set(['PENDING', 'IN_PROGRESS']);
 
 const PRIORITY_INPUT_MAP = {
   low: 'LOW',
@@ -250,6 +251,41 @@ const sendTaskAssignmentEmail = async ({
     // Keep task mutations successful even when email delivery fails.
     console.error('Failed to send task assignment email:', emailError);
   }
+};
+
+const sendTaskReminderEmail = async ({ assignedUser, task }) => {
+  if (!assignedUser?.email) {
+    throw new Error('Selected task assignee does not have an email');
+  }
+
+  const dashboardLoginUrl = getDashboardLoginUrl();
+  const normalizedPriority = PRIORITY_OUTPUT_MAP[task.priority] || String(task.priority || '').toLowerCase();
+
+  const taskReminderHtml = buildTaskReminderEmailTemplate({
+    assigneeName: assignedUser.name,
+    taskTitle: task.title,
+    description: task.description,
+    priority: normalizedPriority,
+    dueDate: task.dueDate,
+    reminderAt: task.reminderAt,
+    dashboardLoginUrl
+  });
+
+  await sendNotificationEmail(
+    assignedUser.email,
+    `Task Reminder: ${task.title}`,
+    taskReminderHtml,
+    assignedUser.name,
+    null,
+    {
+      type: 'task_reminder',
+      taskId: task.id,
+      assignedBy: task.assignedById,
+      priority: normalizedPriority,
+      dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+      reminderAt: task.reminderAt ? task.reminderAt.toISOString() : null
+    }
+  );
 };
 
 // GET /api/v1/tasks/assignable-users
@@ -618,6 +654,60 @@ export const updateTask = asyncHandler(async (req, res) => {
   return res.status(200).json({
     message: 'Task updated successfully',
     task: serializeTask(updatedTask)
+  });
+});
+
+// POST /api/v1/tasks/:id/reminder
+export const sendTaskReminder = asyncHandler(async (req, res) => {
+  const currentUser = await getCurrentUser(req.user?.id);
+
+  if (!currentUser) {
+    return res.status(401).json({ message: 'User authentication required' });
+  }
+
+  if (!isTaskAssignmentRole(currentUser.role)) {
+    return res.status(403).json({ message: 'Access denied. Only authorized users can send reminders.' });
+  }
+
+  const { id } = req.params;
+  const existingTask = await prisma.task.findUnique({
+    where: { id },
+    include: TASK_WITH_USERS_INCLUDE
+  });
+
+  if (!existingTask) {
+    return res.status(404).json({ message: 'Task not found' });
+  }
+
+  if (!TASK_REMINDER_ALLOWED_STATUSES.has(existingTask.status)) {
+    return res.status(400).json({
+      message: 'Reminder can only be sent for pending or in-progress tasks'
+    });
+  }
+
+  if (!existingTask.assignedTo?.email) {
+    return res.status(400).json({
+      message: 'Task assignee does not have an email address configured'
+    });
+  }
+
+  await sendTaskReminderEmail({
+    assignedUser: existingTask.assignedTo,
+    task: existingTask
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: existingTask.assignedToId,
+      title: 'Task Reminder',
+      message: `Reminder sent for task: ${existingTask.title}`,
+      type: 'TASK'
+    }
+  });
+
+  return res.status(200).json({
+    message: 'Task reminder sent successfully',
+    task: serializeTask(existingTask)
   });
 });
 

@@ -5,6 +5,7 @@ import {
   createTask,
   createBulkTasks,
   updateTask,
+  sendTaskReminder,
   deleteTask,
   getTasksAssignedToUser,
   getMyAssignedTasks,
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get('/assignable-users', AuthMiddleware, getAssignableActiveUsers);
 router.post('/bulk', AuthMiddleware, createBulkTasks);
 router.post('/', AuthMiddleware, createTask);
+router.post('/:id/reminder', AuthMiddleware, sendTaskReminder);
 router.get('/dashboard/summary', AuthMiddleware, getTaskDashboardSummary);
 router.get('/mine', AuthMiddleware, getMyAssignedTasks);
 router.get('/assigned/:userId', AuthMiddleware, getTasksAssignedToUser);

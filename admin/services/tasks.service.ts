@@ -149,6 +149,20 @@ export const deleteTask = async (taskId: string): Promise<{ message: string }> =
   return response.json();
 };
 
+// Send reminder email for a task (admin only)
+export const sendTaskReminder = async (taskId: string): Promise<{ message: string; task: TaskItem }> => {
+  const response = await fetch(`${TASKS_API_URL}/${taskId}/reminder`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, "Failed to send task reminder"));
+  }
+
+  return response.json();
+};
+
 // Current user's tasks
 export const getMyTasks = async (): Promise<TaskItem[]> => {
   const response = await fetch(`${TASKS_API_URL}/mine`, {
