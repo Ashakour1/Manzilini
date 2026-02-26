@@ -150,10 +150,18 @@ export const deleteTask = async (taskId: string): Promise<{ message: string }> =
 };
 
 // Send reminder email for a task (admin only)
-export const sendTaskReminder = async (taskId: string): Promise<{ message: string; task: TaskItem }> => {
+export const sendTaskReminder = async (
+  taskId: string,
+  timezone?: string
+): Promise<{ message: string; task: TaskItem }> => {
   const response = await fetch(`${TASKS_API_URL}/${taskId}/reminder`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify({
+      timezone: timezone || null,
+    }),
   });
 
   if (!response.ok) {

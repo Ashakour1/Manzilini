@@ -6,16 +6,32 @@ const escapeHtml = (value = '') =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const formatDateForEmail = (date) =>
-  date
-    ? new Date(date).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : 'Not specified';
+const normalizeTimeZone = (timeZone) => {
+  if (typeof timeZone !== 'string' || !timeZone.trim()) return null;
+
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: timeZone.trim() }).format(new Date());
+    return timeZone.trim();
+  } catch (_error) {
+    return null;
+  }
+};
+
+const formatDateForEmail = (date, timeZone = null) => {
+  if (!date) return 'Not specified';
+
+  const normalizedTimeZone = normalizeTimeZone(timeZone);
+  const formatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    ...(normalizedTimeZone ? { timeZone: normalizedTimeZone, timeZoneName: 'short' } : {})
+  };
+
+  return new Date(date).toLocaleString('en-US', formatOptions);
+};
 
 const formatPriorityForEmail = (priority) => {
   const normalized = typeof priority === 'string' ? priority.toLowerCase().trim() : '';
@@ -95,15 +111,18 @@ export const buildTaskReminderEmailTemplate = ({
   priority,
   dueDate,
   reminderAt,
+  timeZone,
   dashboardLoginUrl
 }) => {
+  const normalizedTimeZone = normalizeTimeZone(timeZone);
   const safeTaskTitle = escapeHtml(taskTitle || '');
   const safeDescription = description ? escapeHtml(description) : 'No description provided';
   const safeAssigneeName = escapeHtml(assigneeName || 'there');
   const safePriority = escapeHtml(formatPriorityForEmail(priority));
-  const safeDueDate = escapeHtml(formatDateForEmail(dueDate));
-  const safeReminderAt = escapeHtml(formatDateForEmail(reminderAt));
+  const safeDueDate = escapeHtml(formatDateForEmail(dueDate, normalizedTimeZone));
+  const safeReminderAt = escapeHtml(formatDateForEmail(reminderAt, normalizedTimeZone));
   const safeReminderTimestamp = escapeHtml(reminderAt ? new Date(reminderAt).toISOString() : 'Not specified');
+  const safeTimeZone = escapeHtml(normalizedTimeZone || 'Server default');
   const safeLoginUrl = escapeHtml(dashboardLoginUrl || '');
 
   return `
@@ -138,6 +157,7 @@ export const buildTaskReminderEmailTemplate = ({
               <p><strong>Priority:</strong> ${safePriority}</p>
               <p><strong>Reminder Time:</strong> ${safeReminderAt}</p>
               <p><strong>Reminder Timestamp:</strong> ${safeReminderTimestamp}</p>
+              <p><strong>Time Zone:</strong> ${safeTimeZone}</p>
               <p><strong>Due Date:</strong> ${safeDueDate}</p>
             </div>
 

@@ -546,7 +546,8 @@ export function TasksPage() {
   const handleSendReminder = async (task: TaskItem) => {
     setSendingReminderTaskId(task.id);
     try {
-      await sendTaskReminderRequest(task.id);
+      const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      await sendTaskReminderRequest(task.id, browserTimeZone);
       toast({
         title: "Reminder Sent",
         description: "Task reminder email sent successfully.",

@@ -141,6 +141,21 @@ const parseOptionalDateTime = (rawValue, fieldName) => {
   return { hasValue: true, value: parsedDate, error: null };
 };
 
+const normalizeTimeZone = (rawValue) => {
+  if (typeof rawValue !== 'string' || !rawValue.trim()) {
+    return null;
+  }
+
+  const candidate = rawValue.trim();
+
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch (_error) {
+    return null;
+  }
+};
+
 const normalizeTaskCreatePayload = (payload = {}) => {
   const {
     title,
@@ -253,7 +268,7 @@ const sendTaskAssignmentEmail = async ({
   }
 };
 
-const sendTaskReminderEmail = async ({ assignedUser, task }) => {
+const sendTaskReminderEmail = async ({ assignedUser, task, timeZone = null }) => {
   if (!assignedUser?.email) {
     throw new Error('Selected task assignee does not have an email');
   }
@@ -269,6 +284,7 @@ const sendTaskReminderEmail = async ({ assignedUser, task }) => {
     priority: normalizedPriority,
     dueDate: task.dueDate,
     reminderAt: reminderTimestamp,
+    timeZone,
     dashboardLoginUrl
   });
 
@@ -284,7 +300,8 @@ const sendTaskReminderEmail = async ({ assignedUser, task }) => {
       assignedBy: task.assignedById,
       priority: normalizedPriority,
       dueDate: task.dueDate ? task.dueDate.toISOString() : null,
-      reminderAt: reminderTimestamp.toISOString()
+      reminderAt: reminderTimestamp.toISOString(),
+      timeZone
     }
   );
 };
@@ -671,6 +688,7 @@ export const sendTaskReminder = asyncHandler(async (req, res) => {
   }
 
   const { id } = req.params;
+  const preferredTimeZone = normalizeTimeZone(req.body?.timezone);
   const existingTask = await prisma.task.findUnique({
     where: { id },
     include: TASK_WITH_USERS_INCLUDE
@@ -692,23 +710,36 @@ export const sendTaskReminder = asyncHandler(async (req, res) => {
     });
   }
 
+  let taskForReminder = existingTask;
+
+  if (!existingTask.reminderAt) {
+    taskForReminder = await prisma.task.update({
+      where: { id: existingTask.id },
+      data: {
+        reminderAt: new Date()
+      },
+      include: TASK_WITH_USERS_INCLUDE
+    });
+  }
+
   await sendTaskReminderEmail({
-    assignedUser: existingTask.assignedTo,
-    task: existingTask
+    assignedUser: taskForReminder.assignedTo,
+    task: taskForReminder,
+    timeZone: preferredTimeZone
   });
 
   await prisma.notification.create({
     data: {
-      userId: existingTask.assignedToId,
+      userId: taskForReminder.assignedToId,
       title: 'Task Reminder',
-      message: `Reminder sent for task: ${existingTask.title}`,
+      message: `Reminder sent for task: ${taskForReminder.title}`,
       type: 'TASK'
     }
   });
 
   return res.status(200).json({
     message: 'Task reminder sent successfully',
-    task: serializeTask(existingTask)
+    task: serializeTask(taskForReminder)
   });
 });
 
