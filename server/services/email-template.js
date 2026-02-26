@@ -121,8 +121,6 @@ export const buildTaskReminderEmailTemplate = ({
   const safePriority = escapeHtml(formatPriorityForEmail(priority));
   const safeDueDate = escapeHtml(formatDateForEmail(dueDate, normalizedTimeZone));
   const safeReminderAt = escapeHtml(formatDateForEmail(reminderAt, normalizedTimeZone));
-  const safeReminderTimestamp = escapeHtml(reminderAt ? new Date(reminderAt).toISOString() : 'Not specified');
-  const safeTimeZone = escapeHtml(normalizedTimeZone || 'Server default');
   const safeLoginUrl = escapeHtml(dashboardLoginUrl || '');
 
   return `
@@ -156,8 +154,6 @@ export const buildTaskReminderEmailTemplate = ({
               <p><strong>Description:</strong> ${safeDescription}</p>
               <p><strong>Priority:</strong> ${safePriority}</p>
               <p><strong>Reminder Time:</strong> ${safeReminderAt}</p>
-              <p><strong>Reminder Timestamp:</strong> ${safeReminderTimestamp}</p>
-              <p><strong>Time Zone:</strong> ${safeTimeZone}</p>
               <p><strong>Due Date:</strong> ${safeDueDate}</p>
             </div>
 
