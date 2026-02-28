@@ -21,7 +21,7 @@ export const getExpenses = asyncHandler(async (req, res) => {
           : undefined,
     };
 
-    const expenses = await prisma.expense.findMany({
+    const expenses = await prisma.companyExpense.findMany({
       where,
       include: {
         account: true,
@@ -68,7 +68,7 @@ export const createExpense = asyncHandler(async (req, res) => {
       return res.status(401).json({ message: 'User authentication required' });
     }
 
-    const account = await prisma.account.findUnique({
+    const account = await prisma.companyAccount.findUnique({
       where: { id: accountId },
     });
     if (!account) {
@@ -77,9 +77,9 @@ export const createExpense = asyncHandler(async (req, res) => {
 
     // Generate unique ID and create expense in a single transaction
     const expense = await generateUniqueIdAndCreate(
-      'Expense',
+      'CompanyExpense',
       async (tx, uniqueId) => {
-        const created = await tx.expense.create({
+        const created = await tx.companyExpense.create({
           data: {
             id: uniqueId,
             date: new Date(date),
@@ -96,7 +96,7 @@ export const createExpense = asyncHandler(async (req, res) => {
           },
         });
 
-        await tx.account.update({
+        await tx.companyAccount.update({
           where: { id: accountId },
           data: {
             balance: {
@@ -115,12 +115,100 @@ export const createExpense = asyncHandler(async (req, res) => {
   }
 });
 
+// Update expense and adjust account balance if amount or account changed
+export const updateExpense = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      date,
+      category,
+      amount,
+      paymentMethod,
+      accountId,
+      vendorName,
+      propertyId,
+      landlordId,
+      reference,
+      description,
+    } = req.body || {};
+
+    const existing = await prisma.companyExpense.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    const updateData = {};
+    if (date !== undefined) updateData.date = new Date(date);
+    if (category !== undefined) updateData.category = category;
+    if (amount !== undefined) updateData.amount = amount;
+    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
+    if (accountId !== undefined) updateData.accountId = accountId;
+    if (vendorName !== undefined) updateData.vendorName = vendorName || null;
+    if (propertyId !== undefined) updateData.propertyId = propertyId || null;
+    if (landlordId !== undefined) updateData.landlordId = landlordId || null;
+    if (reference !== undefined) updateData.reference = reference || null;
+    if (description !== undefined) updateData.description = description || null;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const oldAccountId = existing.accountId;
+      const newAccountId = accountId ?? existing.accountId;
+      const oldAmount = Number(existing.amount);
+      const newAmount = amount !== undefined ? Number(amount) : oldAmount;
+
+      if (oldAccountId !== newAccountId || oldAmount !== newAmount) {
+        if (oldAccountId === newAccountId) {
+          const diff = oldAmount - newAmount;
+          await tx.companyAccount.update({
+            where: { id: oldAccountId },
+            data: { balance: { increment: diff } },
+          });
+        } else {
+          await tx.companyAccount.update({
+            where: { id: oldAccountId },
+            data: { balance: { increment: oldAmount } },
+          });
+          const targetAccount = await tx.companyAccount.findUnique({
+            where: { id: newAccountId },
+          });
+          if (!targetAccount) {
+            throw new Error('Target account not found');
+          }
+          await tx.companyAccount.update({
+            where: { id: newAccountId },
+            data: { balance: { decrement: newAmount } },
+          });
+        }
+      }
+
+      return tx.companyExpense.update({
+        where: { id },
+        data: updateData,
+        include: {
+          account: true,
+          property: true,
+          landlord: true,
+          createdBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+    });
+
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Delete expense and adjust account balance
 export const deleteExpense = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = await prisma.expense.findUnique({
+    const existing = await prisma.companyExpense.findUnique({
       where: { id },
     });
 
@@ -129,11 +217,11 @@ export const deleteExpense = asyncHandler(async (req, res) => {
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.expense.delete({
+      await tx.companyExpense.delete({
         where: { id: existing.id },
       });
 
-      await tx.account.update({
+      await tx.companyAccount.update({
         where: { id: existing.accountId },
         data: {
           balance: {

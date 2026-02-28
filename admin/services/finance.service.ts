@@ -91,6 +91,19 @@ export const createAccount = async (data: CreateAccountDto): Promise<AccountSumm
   return res.json();
 };
 
+export const deleteAccount = async (id: string) => {
+  const res = await fetch(`${API_URL}/accounts/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to delete account");
+  }
+  return res.json();
+};
+
 export const getIncomes = async (accountId?: string) => {
   const url = new URL(`${API_URL}/incomes`);
   if (accountId) url.searchParams.set("accountId", accountId);
@@ -118,6 +131,35 @@ export const createIncome = async (data: CreateIncomeDto) => {
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || "Failed to create income");
+  }
+  return res.json();
+};
+
+export interface UpdateIncomeDto {
+  date?: string;
+  source?: string;
+  amount?: number;
+  paymentMethod?: string;
+  accountId?: string;
+  propertyId?: string;
+  landlordId?: string;
+  reference?: string;
+  description?: string;
+}
+
+export const updateIncome = async (id: bigint | number | string, data: UpdateIncomeDto) => {
+  const res = await fetch(`${API_URL}/incomes/${id.toString()}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to update income");
   }
   return res.json();
 };
@@ -162,6 +204,36 @@ export const createExpense = async (data: CreateExpenseDto) => {
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || "Failed to create expense");
+  }
+  return res.json();
+};
+
+export interface UpdateExpenseDto {
+  date?: string;
+  category?: string;
+  amount?: number;
+  paymentMethod?: string;
+  accountId?: string;
+  vendorName?: string;
+  propertyId?: string;
+  landlordId?: string;
+  reference?: string;
+  description?: string;
+}
+
+export const updateExpense = async (id: bigint | number | string, data: UpdateExpenseDto) => {
+  const res = await fetch(`${API_URL}/expenses/${id.toString()}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to update expense");
   }
   return res.json();
 };

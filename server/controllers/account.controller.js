@@ -5,7 +5,7 @@ import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 // Get all accounts with basic aggregates
 export const getAccounts = asyncHandler(async (req, res) => {
   try {
-    const accounts = await prisma.account.findMany({
+    const accounts = await prisma.companyAccount.findMany({
       include: {
         incomes: true,
         expenses: true,
@@ -44,7 +44,7 @@ export const getAccountById = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const account = await prisma.account.findUnique({
+    const account = await prisma.companyAccount.findUnique({
       where: { id },
       include: {
         incomes: {
@@ -78,9 +78,9 @@ export const createAccount = asyncHandler(async (req, res) => {
     const initialBalance = balance != null ? Number(balance) : 0;
 
     const account = await generateUniqueIdAndCreate(
-      'Account',
+      'CompanyAccount',
       async (tx, uniqueId) => {
-        return await tx.account.create({
+        return await tx.companyAccount.create({
           data: {
             id: uniqueId,
             name,
@@ -102,7 +102,7 @@ export const updateAccount = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, balance } = req.body || {};
 
-    const existing = await prisma.account.findUnique({ where: { id } });
+    const existing = await prisma.companyAccount.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ message: 'Account not found' });
     }
@@ -111,7 +111,7 @@ export const updateAccount = asyncHandler(async (req, res) => {
     if (name !== undefined) data.name = name;
     if (balance !== undefined) data.balance = Number(balance);
 
-    const account = await prisma.account.update({
+    const account = await prisma.companyAccount.update({
       where: { id },
       data,
     });
@@ -127,7 +127,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    const account = await prisma.account.findUnique({
+    const account = await prisma.companyAccount.findUnique({
       where: { id },
       include: { incomes: true, expenses: true },
     });
@@ -143,7 +143,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
       });
     }
 
-    await prisma.account.delete({ where: { id } });
+    await prisma.companyAccount.delete({ where: { id } });
 
     res.status(200).json({ message: 'Account deleted successfully', id });
   } catch (error) {

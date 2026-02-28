@@ -16,10 +16,13 @@ import accountRoutes from './routes/account.routes.js';
 import employeesRoutes from './routes/employees.routes.js';
 import incomeRoutes from './routes/income.routes.js';
 import expenseRoutes from './routes/expense.routes.js';
+import landlordIncomeRoutes from './routes/landlord-income.routes.js';
+import landlordExpenseRoutes from './routes/landlord-expense.routes.js';
 import propertyApplicationsRoutes from './routes/property.applications.routes.js';
 import tenantRoutes from './routes/tenant.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import staffRoutes from './routes/staff.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +35,7 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors(
 {
-     origin:[ "http://localhost:3000" , "http://localhost:3001","https://panel.manzilini.com", "https://manzilini.com"],
+     origin:[ "http://localhost:3000" , "http://localhost:3001", "http://localhost:3002", "https://panel.manzilini.com", "https://manzilini.com", "https://landlord.manzilini.com"],
      credentials: true,
       allowedHeaders: [
       "Content-Type",
@@ -72,10 +75,13 @@ app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/employees', employeesRoutes);
 app.use('/api/v1/incomes', incomeRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/property-incomes', landlordIncomeRoutes);
+app.use('/api/v1/property-expenses', landlordExpenseRoutes);
 app.use('/api/v1/property-applications', propertyApplicationsRoutes);
 app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/staff', staffRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

@@ -50,7 +50,10 @@ export const canAccessRoute = (userRole: string | undefined, route: string): boo
       '/admin/users',
       '/admin/field-agents',
       '/admin/tenants',
-      '/admin/employees'
+      '/admin/employees',
+      '/admin/accounts',
+      '/admin/incomes',
+      '/admin/expenses'
     ]
     return adminRoutes.some(adminRoute => route.startsWith(adminRoute))
   }

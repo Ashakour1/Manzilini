@@ -157,7 +157,7 @@ export function DashboardSidebar() {
     
     // Filter based on role
     if (userRole === "ADMIN") {
-      // Admin can only access: dashboard, properties, tasks, landlords, users, field-agents, tenants, employees
+      // Admin can only access: dashboard, properties, tasks, landlords, users, field-agents, tenants, employees, finance
       return mappedItems.filter(item => 
         item.id === "dashboard" ||
         item.id === "properties" ||
@@ -166,7 +166,8 @@ export function DashboardSidebar() {
         item.id === "users" ||
         item.id === "field-agents" ||
         item.id === "tenants" ||
-        item.id === "employees"
+        item.id === "employees" ||
+        item.id === "finance"
       )
     }
     

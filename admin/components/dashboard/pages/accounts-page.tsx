@@ -10,8 +10,24 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
-import { Banknote, BarChart3, DollarSign, Plus, RefreshCw } from "lucide-react"
-import { AccountSummary, createAccount, getAccounts } from "@/services/finance.service"
+import { Banknote, BarChart3, DollarSign, MoreVertical, Plus, RefreshCw, Trash2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { AccountSummary, createAccount, deleteAccount, getAccounts } from "@/services/finance.service"
 
 export function AccountsPage() {
   const { toast } = useToast()
@@ -22,6 +38,8 @@ export function AccountsPage() {
   const [name, setName] = useState("")
   const [initialBalance, setInitialBalance] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const loadAccounts = async () => {
     setIsLoading(true)
@@ -88,6 +106,26 @@ export function AccountsPage() {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteAccountId) return
+    try {
+      await deleteAccount(deleteAccountId)
+      setDeleteAccountId(null)
+      setDeleteDialogOpen(false)
+      await loadAccounts()
+      toast({
+        title: "Account deleted",
+        description: "The account has been removed.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete account",
+        variant: "destructive",
+      })
     }
   }
 
@@ -195,6 +233,9 @@ export function AccountsPage() {
                     <TableHead className="text-xs font-semibold text-foreground text-right">Total Income</TableHead>
                     <TableHead className="text-xs font-semibold text-foreground text-right">Total Expense</TableHead>
                     <TableHead className="text-xs font-semibold text-foreground text-right">Net</TableHead>
+                    <TableHead className="text-xs font-semibold text-foreground text-right w-12">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -232,6 +273,27 @@ export function AccountsPage() {
                           >
                             {account.net.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                           </span>
+                        </TableCell>
+                        <TableCell className="py-3 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => {
+                                  setDeleteAccountId(account.id)
+                                  setDeleteDialogOpen(true)
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     )
@@ -283,6 +345,32 @@ export function AccountsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open)
+          if (!open) setDeleteAccountId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the account. Accounts with existing income or expense records cannot be deleted—please remove those records first.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -443,6 +443,28 @@ export const getPropertyApplicationsByTenant = asyncHandler(async (req, res) => 
     }
 });
 
+// Get property applications for the current landlord (user email → landlord)
+export const getPropertyApplicationsForCurrentLandlord = asyncHandler(async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { email: true, role: true }
+        });
+        if (!user || user.role !== 'LANDLORD') {
+            return res.status(403).json({ message: 'Access denied. Landlord role required.' });
+        }
+        const landlord = await prisma.landlord.findUnique({
+            where: { email: user.email },
+            select: { id: true }
+        });
+        if (!landlord) return res.status(404).json({ message: 'Landlord profile not found' });
+        req.params.landlordId = landlord.id;
+        return getPropertyApplicationsByLandlord(req, res);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Get property applications by landlord
 // Only returns applications that have been approved by admin (isApproved: true)
 export const getPropertyApplicationsByLandlord = asyncHandler(async (req, res) => {

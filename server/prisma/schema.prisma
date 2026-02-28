@@ -28,9 +28,10 @@ model User {
   agentId String?
   agent   FieldAgent? @relation(fields: [agentId], references: [id])
 
-  // link to expenses
-  expenses Expense[]
-  incomes  Income[]
+  // link to expenses for company finances
+  companyExpenses CompanyExpense[]
+  companyIncomes  CompanyIncome[]
+  companyAccounts CompanyAccount[]
 
   // link to tenants created by this user
   tenants Tenant[]
@@ -39,6 +40,9 @@ model User {
   assignedTasks Task[]         @relation("TaskAssignedTo")
   createdTasks  Task[]         @relation("TaskAssignedBy")
   notifications Notification[]
+  // link to landlord property management finances
+  expenses Expense[]
+  incomes Income[]
 }
 
 model Landlord {
@@ -62,9 +66,9 @@ model Landlord {
   emailLogs       EmailLog[]
   documents       LandlordDocument[]
 
-  // link to expenses
-  expenses Expense[]
-  incomes  Income[]
+  // link to company finances
+  companyIncomes  CompanyIncome[]
+  companyExpenses CompanyExpense[]
 
   // link to property applications
   propertyApplications PropertyApplication[]
@@ -73,6 +77,7 @@ model Landlord {
   creator              User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   // tenants created by this landlord
   tenants              Tenant[]
+  staff                Staff[]
 }
 
 model LandlordDocument {
@@ -141,13 +146,18 @@ model Property {
   payments              Payment[]
 
   // link to expenses
-  expenses     Expense[]
-  incomes      Income[]
-  is_published Boolean?  @default(false)
+  expenses       Expense[]
+  incomes        Income[]
+  companyIncomes CompanyIncome[]
+  companyExpenses CompanyExpense[]
+  is_published   Boolean?  @default(false)
 
   // creator 
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  tenants Tenant[]
+  staff   Staff[] @relation("StaffAssignedProperties")
 }
 
 model PropertyImages {
@@ -167,6 +177,13 @@ model Tenant {
 
   status TenantStatus @default(NEW)
 
+  // Assigned property, rent, and lease info
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  rentAmount Float?
+  leaseStart DateTime?
+  leaseEnd   DateTime?
+
   lastActivityAt    DateTime?
   applicationsCount Int       @default(0)
 
@@ -183,6 +200,8 @@ model Tenant {
 
   applications PropertyApplication[]
   activities   TenantActivity[]
+
+  incomes Income[] @relation("TenantIncomes")
 }
 
 model PropertyApplication {
@@ -296,6 +315,37 @@ model Employee {
   @@map("employees")
 }
 
+model Staff {
+  id    String @id
+  firstName  String
+  lastName  String
+  email String @unique
+  phone String?
+  id_number String?
+
+
+  role   StaffRole   @default(CARETAKER)
+  status StaffStatus @default(ACTIVE)
+  hireDate DateTime?
+  assgnmentType AssgnmentType @default(ALL_PROPERTIES)
+  
+
+
+  password String?
+
+  
+  assignedProperties Property[]   @relation("StaffAssignedProperties")
+
+  landlordId String
+  landlord   Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([landlordId])
+  @@index([status])
+}
+
 model IdCounter {
   key       String   @id
   tableName String
@@ -331,16 +381,22 @@ model EmailLog {
   @@map("email_logs")
 }
 
-model Account {
+model CompanyAccount {
   id      String  @id
   name    String
   balance Decimal @db.Decimal(15, 2)
 
-  incomes  Income[]
-  expenses Expense[]
+  incomes  CompanyIncome[]
+  expenses CompanyExpense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
 }
 
-model Income {
+model CompanyIncome {
   id     String   @id
   date   DateTime
   source String // Rent, Commission, Service Fee, Other
@@ -351,7 +407,7 @@ model Income {
 
   // Link to account (uses Account.id which is String)
   accountId String
-  account   Account @relation(fields: [accountId], references: [id])
+  account   CompanyAccount @relation(fields: [accountId], references: [id])
 
   propertyId String?
   property   Property? @relation(fields: [propertyId], references: [id])
@@ -375,7 +431,7 @@ model Income {
   @@index([accountId])
 }
 
-model Expense {
+model CompanyExpense {
   id String @id
 
   date     DateTime
@@ -387,7 +443,7 @@ model Expense {
 
   // Link to account (uses Account.id which is String)
   accountId String
-  account   Account @relation(fields: [accountId], references: [id])
+  account   CompanyAccount @relation(fields: [accountId], references: [id])
 
   vendorName String?
 
@@ -451,6 +507,69 @@ model Notification {
   @@map("notifications")
 }
 
+// Landlord property management finances
+model Expense {
+  id          String   @id @default(cuid())
+
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // landlordId  String
+  // landlord    Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  amount      Decimal  @db.Decimal(15, 2)
+  expenseDate DateTime
+
+  category    String   // Maintenance, Utilities, Security, Cleaning, etc.
+  paymentMethod String // Cash, Bank, Mpesa
+
+  vendorName   String?
+  reference    String?
+  description  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  // @@index([landlordId])
+  @@index([expenseDate])
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+}
+
+
+model Income {
+  id         String   @id @default(cuid())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // landlordId String
+  // landlord   Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  amount     Decimal  @db.Decimal(15, 2)
+  incomeDate DateTime
+
+  source     String   // Rent, Deposit, Other
+  paymentMethod String // Cash, Bank, Mpesa
+
+  reference   String?
+  description String?
+
+  tenantId String?
+  tenant   Tenant? @relation("TenantIncomes", fields: [tenantId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  // @@index([landlordId])
+  @@index([incomeDate])
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+}
 enum DocumentType {
   ID
   PASSPORT
@@ -522,6 +641,11 @@ enum TenantActivityType {
   STATUS_CHANGED
 }
 
+enum AssgnmentType {
+  ALL_PROPERTIES
+  SPECIFIC_PROPERTIES
+}
+
 enum Role {
   USER
   ADMIN
@@ -537,6 +661,7 @@ enum propertyType {
   STUDIO
   OFFICE
   LAND
+  COMMERCIAL
 }
 
 enum Status {
@@ -586,6 +711,26 @@ enum UserStatus {
 }
 
 enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StaffRole {
+  MANAGER
+  CARETAKER
+  ACCOUNTANT
+  CLEANER
+  SECURITY
+  ELECTRICIAN
+  PLUMBER
+  MAINTENANCE_TECHNICIAN
+  GARDENER
+  RECEPTIONIST
+
+  
+}
+
+enum StaffStatus {
   ACTIVE
   INACTIVE
 }

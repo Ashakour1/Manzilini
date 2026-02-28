@@ -361,6 +361,30 @@ export const uploadLandlordDocument = asyncHandler(async (req, res) => {
     }
 });
 
+// Get current user's landlord profile (LANDLORD role only; matches by email)
+export const getLandlordMe = asyncHandler(async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { id: true, email: true, role: true }
+        });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (user.role !== 'LANDLORD') return res.status(403).json({ message: 'Access denied. Landlord role required.' });
+
+        const landlord = await prisma.landlord.findUnique({
+            where: { email: user.email },
+            include: {
+                properties: { select: { id: true, title: true } },
+                _count: { select: { properties: true, tenants: true, staff: true, propertyApplications: true } }
+            }
+        });
+        if (!landlord) return res.status(404).json({ message: 'Landlord profile not found for this user' });
+        res.status(200).json(landlord);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Get all landlords
 export const getLandlords = asyncHandler(async (req, res) => {
     try {

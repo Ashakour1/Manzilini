@@ -18,20 +18,42 @@ import {
   ArrowUpCircle,
   ArrowUpRight,
   Banknote,
-  Calendar,
   DollarSign,
+  MoreVertical,
+  Pencil,
   Plus,
   RefreshCw,
+  Trash2,
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   AccountSummary,
   CreateExpenseDto,
   CreateIncomeDto,
   createExpense,
   createIncome,
+  deleteExpense,
+  deleteIncome,
   getAccounts,
   getExpenses,
   getIncomes,
+  updateExpense,
+  updateIncome,
 } from "@/services/finance.service"
 
 type FinanceMode = "all" | "income" | "expense"
@@ -55,6 +77,12 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
 
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false)
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false)
+  const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null)
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
+  const [deleteIncomeId, setDeleteIncomeId] = useState<string | null>(null)
+  const [deleteExpenseId, setDeleteExpenseId] = useState<string | null>(null)
+  const [deleteIncomeDialogOpen, setDeleteIncomeDialogOpen] = useState(false)
+  const [deleteExpenseDialogOpen, setDeleteExpenseDialogOpen] = useState(false)
 
   const [incomeForm, setIncomeForm] = useState<CreateIncomeDto>({
     date: new Date().toISOString().split("T")[0],
@@ -161,6 +189,7 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
     try {
       await createExpense(expenseForm)
       setExpenseDialogOpen(false)
+      setEditingExpenseId(null)
       await loadData()
       toast({
         title: "Expense recorded",
@@ -173,6 +202,170 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
         variant: "destructive",
       })
     }
+  }
+
+  const handleEditIncome = (row: any) => {
+    setEditingIncomeId(row.id)
+    setIncomeForm({
+      date: new Date(row.date).toISOString().split("T")[0],
+      source: row.source,
+      amount: Number(row.amount),
+      paymentMethod: row.paymentMethod || "CASH",
+      accountId: row.accountId,
+      reference: row.reference || "",
+      description: row.description || "",
+    })
+    setIncomeDialogOpen(true)
+  }
+
+  const handleEditExpense = (row: any) => {
+    setEditingExpenseId(row.id)
+    setExpenseForm({
+      date: new Date(row.date).toISOString().split("T")[0],
+      category: row.category,
+      amount: Number(row.amount),
+      paymentMethod: row.paymentMethod || "CASH",
+      accountId: row.accountId,
+      vendorName: row.vendorName || "",
+      reference: row.reference || "",
+      description: row.description || "",
+    })
+    setExpenseDialogOpen(true)
+  }
+
+  const handleUpdateIncome = async () => {
+    if (!editingIncomeId || !incomeForm.accountId || !incomeForm.source || !incomeForm.amount) {
+      toast({
+        title: "Validation error",
+        description: "Account, source and amount are required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      await updateIncome(editingIncomeId, {
+        date: incomeForm.date,
+        source: incomeForm.source,
+        amount: incomeForm.amount,
+        paymentMethod: incomeForm.paymentMethod,
+        accountId: incomeForm.accountId,
+        reference: incomeForm.reference,
+        description: incomeForm.description,
+      })
+      setIncomeDialogOpen(false)
+      setEditingIncomeId(null)
+      await loadData()
+      toast({
+        title: "Income updated",
+        description: "The income has been updated and account balance adjusted.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to update income",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleUpdateExpense = async () => {
+    if (!editingExpenseId || !expenseForm.accountId || !expenseForm.category || !expenseForm.amount) {
+      toast({
+        title: "Validation error",
+        description: "Account, category and amount are required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      await updateExpense(editingExpenseId, {
+        date: expenseForm.date,
+        category: expenseForm.category,
+        amount: expenseForm.amount,
+        paymentMethod: expenseForm.paymentMethod,
+        accountId: expenseForm.accountId,
+        vendorName: expenseForm.vendorName,
+        reference: expenseForm.reference,
+        description: expenseForm.description,
+      })
+      setExpenseDialogOpen(false)
+      setEditingExpenseId(null)
+      await loadData()
+      toast({
+        title: "Expense updated",
+        description: "The expense has been updated and account balance adjusted.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to update expense",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteIncome = async () => {
+    if (!deleteIncomeId) return
+    try {
+      await deleteIncome(deleteIncomeId)
+      setDeleteIncomeId(null)
+      setDeleteIncomeDialogOpen(false)
+      await loadData()
+      toast({
+        title: "Income deleted",
+        description: "The income has been removed and account balance adjusted.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete income",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteExpense = async () => {
+    if (!deleteExpenseId) return
+    try {
+      await deleteExpense(deleteExpenseId)
+      setDeleteExpenseId(null)
+      setDeleteExpenseDialogOpen(false)
+      await loadData()
+      toast({
+        title: "Expense deleted",
+        description: "The expense has been removed and account balance adjusted.",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete expense",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const resetIncomeForm = () => {
+    setEditingIncomeId(null)
+    setIncomeForm({
+      date: new Date().toISOString().split("T")[0],
+      source: "",
+      amount: 0,
+      paymentMethod: "CASH",
+      accountId: "",
+    })
+  }
+
+  const resetExpenseForm = () => {
+    setEditingExpenseId(null)
+    setExpenseForm({
+      date: new Date().toISOString().split("T")[0],
+      category: "",
+      amount: 0,
+      paymentMethod: "CASH",
+      accountId: "",
+    })
   }
 
   const accountOptions = [{ id: "all", name: "All accounts" }, ...accounts]
@@ -338,6 +531,9 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                         <TableHead className="text-xs font-semibold text-foreground text-right">
                           Amount
                         </TableHead>
+                        <TableHead className="text-xs font-semibold text-foreground text-right w-12">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -367,6 +563,31 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                               <DollarSign className="h-3.5 w-3.5" />
                               {Number(row.amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </span>
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => handleEditIncome(row)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setDeleteIncomeId(String(row.id))
+                                    setDeleteIncomeDialogOpen(true)
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -408,6 +629,9 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                         <TableHead className="text-xs font-semibold text-foreground text-right">
                           Amount
                         </TableHead>
+                        <TableHead className="text-xs font-semibold text-foreground text-right w-12">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -437,6 +661,31 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                               <DollarSign className="h-3.5 w-3.5" />
                               {Number(row.amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </span>
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => handleEditExpense(row)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setDeleteExpenseId(String(row.id))
+                                    setDeleteExpenseDialogOpen(true)
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -481,6 +730,9 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                         <TableHead className="text-xs font-semibold text-foreground text-right">
                           Amount
                         </TableHead>
+                        <TableHead className="text-xs font-semibold text-foreground text-right w-12">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -512,6 +764,31 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                                 maximumFractionDigits: 2,
                               })}
                             </span>
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => handleEditIncome(row)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setDeleteIncomeId(String(row.id))
+                                    setDeleteIncomeDialogOpen(true)
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -554,6 +831,9 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                         <TableHead className="text-xs font-semibold text-foreground text-right">
                           Amount
                         </TableHead>
+                        <TableHead className="text-xs font-semibold text-foreground text-right w-12">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -586,6 +866,31 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
                               })}
                             </span>
                           </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={() => handleEditExpense(row)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setDeleteExpenseId(String(row.id))
+                                    setDeleteExpenseDialogOpen(true)
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -597,10 +902,16 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
         </div>
       )}
 
-      <Dialog open={incomeDialogOpen} onOpenChange={setIncomeDialogOpen}>
+      <Dialog
+        open={incomeDialogOpen}
+        onOpenChange={(open) => {
+          setIncomeDialogOpen(open)
+          if (!open) resetIncomeForm()
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Record income</DialogTitle>
+            <DialogTitle>{editingIncomeId ? "Edit income" : "Record income"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -685,18 +996,26 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
             <Button variant="outline" onClick={() => setIncomeDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateIncome}>
+            <Button
+              onClick={editingIncomeId ? handleUpdateIncome : handleCreateIncome}
+            >
               <ArrowUpRight className="mr-1.5 h-4 w-4" />
-              Save income
+              {editingIncomeId ? "Update income" : "Save income"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
+      <Dialog
+        open={expenseDialogOpen}
+        onOpenChange={(open) => {
+          setExpenseDialogOpen(open)
+          if (!open) resetExpenseForm()
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Record expense</DialogTitle>
+            <DialogTitle>{editingExpenseId ? "Edit expense" : "Record expense"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -783,13 +1102,67 @@ export function FinancePage({ mode = "all" }: FinancePageProps) {
             <Button variant="outline" onClick={() => setExpenseDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateExpense}>
+            <Button
+              onClick={editingExpenseId ? handleUpdateExpense : handleCreateExpense}
+            >
               <ArrowUpRight className="mr-1.5 h-4 w-4" />
-              Save expense
+              {editingExpenseId ? "Update expense" : "Save expense"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deleteIncomeDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteIncomeDialogOpen(open)
+          if (!open) setDeleteIncomeId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete income?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the income record and adjust the account balance. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteIncome}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteExpenseDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteExpenseDialogOpen(open)
+          if (!open) setDeleteExpenseId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete expense?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the expense record and adjust the account balance. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteExpense}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

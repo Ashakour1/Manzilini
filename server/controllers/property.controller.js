@@ -175,6 +175,9 @@ export const getPropertiesForLandlord = asyncHandler(async (req, res) => {
                         role: true,
                         image: true,
                     }
+                },
+                _count: {
+                    select: { tenants: true, property_applications: true }
                 }
             },
             orderBy: [
@@ -313,8 +316,8 @@ export const createProperty = asyncHandler(async (req, res) => {
     try {
         const { title, description, property_type, status, price, currency, payment_frequency, deposit_amount, deposit_type, country, city, address, zip_code, latitude, longitude, bedrooms, bathrooms, garages, size, is_furnished, floor, total_floors, balcony, amenities, is_featured, landlord_id, is_published } = req.body || {};
 
-        if (!title || !description || !property_type || !status || !price || !currency || !payment_frequency || !deposit_amount || !country || !city || !address || !zip_code || !latitude || !longitude || !bedrooms || !bathrooms || !garages || !size || !is_furnished || !floor || !total_floors || !balcony || !amenities) {
-            return res.status(400).json({ message: 'All required fields must be provided' });
+        if (!title || !property_type || !status || !country || !city || !address) {
+            return res.status(400).json({ message: 'title, property_type, status, country, city, and address are required' });
         }
 
         // Get the authenticated user ID (creator)
@@ -379,32 +382,41 @@ export const createProperty = asyncHandler(async (req, res) => {
             }
         }
 
+        const safeInt = (v) => v != null && v !== '' ? parseInt(v, 10) : null;
+        const safeFloat = (v) => v != null && v !== '' ? parseFloat(v) : null;
+        const safeBool = (v) => v === 'true' || v === true;
+
+        let parsedAmenities = [];
+        if (amenities) {
+            try { parsedAmenities = Array.isArray(amenities) ? amenities : JSON.parse(amenities); } catch { parsedAmenities = []; }
+        }
+
         const propertyData = {
             title,
-            description,
+            description: description || '',
             property_type,
             status,
-            price : parseFloat(price),
-            currency,
-            payment_frequency,
+            price: safeFloat(price) ?? 0,
+            currency: currency || 'KES',
+            payment_frequency: payment_frequency || 'MONTHLY',
             deposit_amount: parsedDepositAmount,
             deposit_type: deposit_type || 'FIXED',
             country,
             city,
             address,
-            zip_code,
-            latitude : parseFloat(latitude),
-            longitude : parseFloat(longitude),
-            bedrooms : parseInt(bedrooms, 10),
-            bathrooms : parseInt(bathrooms, 10),
-            garages : parseInt(garages, 10),
-            size : parseFloat(size),
-            is_furnished : is_furnished === 'true' || is_furnished === true,
-            floor : parseInt(floor, 10),
-            total_floors : parseInt(total_floors, 10),
-            balcony : balcony === 'true' || balcony === true,
-            amenities: Array.isArray(amenities) ? amenities : JSON.parse(amenities),
-            is_featured : is_featured === 'true' || is_featured === true,
+            zip_code: zip_code || '',
+            latitude: safeFloat(latitude) ?? 0,
+            longitude: safeFloat(longitude) ?? 0,
+            bedrooms: safeInt(bedrooms),
+            bathrooms: safeInt(bathrooms),
+            garages: safeInt(garages),
+            size: safeFloat(size),
+            is_furnished: safeBool(is_furnished),
+            floor: safeInt(floor),
+            total_floors: safeInt(total_floors),
+            balcony: safeBool(balcony),
+            amenities: parsedAmenities,
+            is_featured: safeBool(is_featured),
             is_published: publishedValue,
         };
 

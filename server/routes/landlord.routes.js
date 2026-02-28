@@ -3,6 +3,7 @@ import {
     registerLandlord, 
     getLandlords, 
     getLandlordById, 
+    getLandlordMe,
     updateLandlord, 
     deleteLandlord,
     verifyLandlord,
@@ -22,6 +23,8 @@ router.post('/auth/register', upload.single('document'), registerLandlordWithUse
 // Admin route for landlord registration (auth required) with optional document upload
 router.post('/', AuthMiddleware, upload.single('document'), registerLandlord);
 router.get('/', getLandlords);
+// Current landlord profile (LANDLORD role only)
+router.get('/me', AuthMiddleware, getLandlordMe);
 // Agent-specific endpoint for landlords
 router.get('/agent', AuthMiddleware, getLandlordsForAgent);
 router.get('/:id', getLandlordById);
