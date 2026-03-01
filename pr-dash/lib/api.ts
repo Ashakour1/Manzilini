@@ -10,7 +10,7 @@ export function getToken(): string | null {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    const res = await fetch(`https://manzilline-production-fcab.up.railway.app/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
