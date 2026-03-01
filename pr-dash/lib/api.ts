@@ -1,6 +1,11 @@
 import { useAuthStore } from "./store/auth.store";
 
-const API_BASE =  "https://manzilline-production-fcab.up.railway.app/api/v1";
+// Client: use /api/v1 (same origin, proxied by Next.js) - no CORS
+// Server/SSR: use full Railway URL
+const API_BASE =
+  typeof window !== "undefined"
+    ? "/api/v1"
+    : "https://manzilline-production-fcab.up.railway.app/api/v1";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -10,7 +15,7 @@ export function getToken(): string | null {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const res = await fetch(`https://manzilline-production-fcab.up.railway.app/api/v1/auth/login`, {
+    const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
