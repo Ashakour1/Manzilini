@@ -86,8 +86,13 @@ export default function Header() {
                 Contact Us
               </Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
+              <Link href="https://manage.manzilini.com/login">
+                Login as landlord
+              </Link>
+            </Button>
             <Button size="sm" asChild className="bg-primary hover:bg-primary/90 shadow-md">
-              <Link href="/landlords/register">
+              <Link href="https://manage.manzilini.com/signup">
                 Access as landlord
               </Link>
             </Button>

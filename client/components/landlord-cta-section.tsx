@@ -68,7 +68,7 @@ export default function LandlordCTASection() {
               size="lg"
               className="gap-2 text-lg px-8 py-6 bg-primary hover:bg-primary/90"
             >
-              <Link href="/landlords/register">
+              <Link href="https://manage.manzilini.com/signup">
                 Register as Landlord
                 <ArrowRight className="w-5 h-5" />
               </Link>
