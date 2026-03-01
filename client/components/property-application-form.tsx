@@ -95,9 +95,10 @@ export default function PropertyApplicationForm({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-lg shadow-primary/5">
+    <div className="rounded-2xl border-none bg-card p-4 shadow-none shadow-primary/5">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground mb-1">Inquire about this Property</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">Contact About This Property
+        </h3>
         {propertyTitle && <p className="text-sm text-muted-foreground line-clamp-1">{propertyTitle}</p>}
       </div>
 

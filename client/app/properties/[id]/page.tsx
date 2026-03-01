@@ -17,7 +17,25 @@ import {
   ChevronLeft,
   ChevronRight,
   Share2,
-  Sparkles,
+  Dumbbell,
+  Waves,
+  ParkingCircle,
+  Wifi,
+  Shield,
+  Wind,
+  Flame,
+  Droplets,
+  Zap,
+  TreePine,
+  Dog,
+  Baby,
+  Shirt,
+  UtensilsCrossed,
+  Tv,
+  DoorOpen,
+  Warehouse,
+  CircleDot,
+  type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -103,6 +121,79 @@ export default function PropertyDetailPage() {
         .trim()
         .replace(/^,\s*|,\s*$/g, "") || "Address not available"
 
+  const amenityIconMap: Record<string, LucideIcon> = {
+    pool: Waves,
+    "swimming pool": Waves,
+    gym: Dumbbell,
+    gymnasium: Dumbbell,
+    fitness: Dumbbell,
+    "fitness center": Dumbbell,
+    parking: ParkingCircle,
+    "car park": ParkingCircle,
+    garage: Car,
+    wifi: Wifi,
+    internet: Wifi,
+    "wi-fi": Wifi,
+    security: Shield,
+    "24/7 security": Shield,
+    cctv: Shield,
+    "security guard": Shield,
+    "air conditioning": Wind,
+    "air conditioner": Wind,
+    ac: Wind,
+    hvac: Wind,
+    heating: Flame,
+    "hot water": Droplets,
+    water: Droplets,
+    "water tank": Droplets,
+    borehole: Droplets,
+    electricity: Zap,
+    generator: Zap,
+    backup: Zap,
+    "backup generator": Zap,
+    solar: Zap,
+    garden: TreePine,
+    "rooftop garden": TreePine,
+    compound: TreePine,
+    "green space": TreePine,
+    "pet friendly": Dog,
+    pets: Dog,
+    "pets allowed": Dog,
+    playground: Baby,
+    "children playground": Baby,
+    "kids area": Baby,
+    laundry: Shirt,
+    "washing machine": Shirt,
+    kitchen: UtensilsCrossed,
+    "shared kitchen": UtensilsCrossed,
+    tv: Tv,
+    cable: Tv,
+    "cable tv": Tv,
+    dstv: Tv,
+    elevator: DoorOpen,
+    lift: DoorOpen,
+    storage: Warehouse,
+    "storage room": Warehouse,
+    store: Warehouse,
+    balcony: Building2,
+    terrace: Building2,
+    "rooftop terrace": Building2,
+    furnished: Home,
+    "fully furnished": Home,
+    "semi furnished": Home,
+    intercom: CircleDot,
+    doorbell: CircleDot,
+  }
+
+  const getAmenityIcon = (amenity: string): LucideIcon => {
+    const key = amenity.toLowerCase().trim()
+    if (amenityIconMap[key]) return amenityIconMap[key]
+    for (const [mapKey, icon] of Object.entries(amenityIconMap)) {
+      if (key.includes(mapKey) || mapKey.includes(key)) return icon
+    }
+    return CheckCircle2
+  }
+
   const featureItems = [
     { icon: Bed, label: "Bedrooms", value: property.bedrooms, show: property.bedrooms != null },
     { icon: Bath, label: "Bathrooms", value: property.bathrooms, show: property.bathrooms != null },
@@ -173,7 +264,7 @@ export default function PropertyDetailPage() {
                 {selectedImageIndex + 1} / {images.length}
               </div>
             )}
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               className="bg-background/80 backdrop-blur-sm border-transparent hover:bg-background ml-auto"
@@ -181,13 +272,13 @@ export default function PropertyDetailPage() {
             >
               <Share2 className="w-4 h-4 mr-1.5" />
               Share
-            </Button>
+            </Button> */}
           </div>
         </div>
 
         {/* Thumbnail strip */}
         {images.length > 1 && (
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-7 mt-3 overflow-x-auto pb-2 scrollbar-hide">
             {images.map((img: any, index: number) => (
               <button
                 key={index}
@@ -345,15 +436,20 @@ export default function PropertyDetailPage() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">Amenities</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {property.amenities.map((amenity: string, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2.5 p-3 bg-card rounded-lg border border-border"
-                    >
-                      <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span className="text-sm text-foreground">{amenity}</span>
-                    </div>
-                  ))}
+                  {property.amenities.map((amenity: string, index: number) => {
+                    const AmenityIcon = getAmenityIcon(amenity)
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3.5 bg-card rounded-xl border border-border hover:border-primary/30 transition-colors group"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center flex-shrink-0 transition-colors">
+                          <AmenityIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{amenity}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
