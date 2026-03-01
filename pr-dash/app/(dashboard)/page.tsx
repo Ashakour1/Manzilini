@@ -10,6 +10,7 @@ import { getApplications } from "@/lib/services/application.service";
 import { getTenants } from "@/lib/services/tenant.service";
 import { getPropertyIncomes, getPropertyExpenses } from "@/lib/services/finance.service";
 import { useLoad } from "@/lib/hooks/useLoad";
+import { useAuthStore } from "@/lib/store/auth.store";
 
 function fmtAmount(amount: string | number) {
   return Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -21,6 +22,8 @@ function fmtDate(d: string | null) {
 }
 
 export default function DashboardPage() {
+  const user = useAuthStore((s) => s.user);
+  const userName = user?.name ?? user?.email ?? "User";
   const [propertiesCount, setPropertiesCount] = useState(0);
   const [applicationsCount, setApplicationsCount] = useState(0);
   const [tenantsCount, setTenantsCount] = useState(0);
@@ -60,7 +63,9 @@ export default function DashboardPage() {
   return (
     <div className="p-5 md:p-6 space-y-6">
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Dashboard</h1>
+        <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
+          Welcome back{userName ? `, ${userName}` : ""}
+        </h1>
         <p className="text-sm text-[var(--muted-foreground)] mt-1">Overview of your property management</p>
       </div>
 
