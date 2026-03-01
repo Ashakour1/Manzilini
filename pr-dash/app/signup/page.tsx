@@ -3,7 +3,7 @@
 import { useState, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { authApi, LandlordRegistrationData } from "@/lib/api";
+import { registerLandlord, LandlordRegistrationData } from "@/lib/api";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState<LandlordRegistrationData>({
@@ -56,7 +56,7 @@ export default function SignupPage() {
         return;
       }
 
-      await authApi.register({
+      await registerLandlord({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password.trim(),

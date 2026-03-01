@@ -34,17 +34,19 @@ export const authApi = {
     const user = data.user ?? { _id: data._id, name: data.name, email: data.email, role: data.role, status: data.status };
     return { token: data.token, user } as { token: string; user: Record<string, unknown> };
   },
-  register: async (data: LandlordRegistrationData) => {
-    const res = await fetch(`${API_BASE}/landlords/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || "Registration failed");
-    return json;
-  },
+  register: registerLandlord,
 };
+
+export async function registerLandlord(data: LandlordRegistrationData) {
+  const res = await fetch(`${API_BASE}/landlords/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Registration failed");
+  return json;
+}
 
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
