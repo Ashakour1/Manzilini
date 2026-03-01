@@ -22,6 +22,8 @@ export default function Header() {
     { href: "/", label: "Home" },
     { href: "/properties", label: "Properties" },
     { href: "/partnerships", label: "Partnerships" },
+    { href: "/contact", label: "Contact Us" },
+    
   ]
 
   const aboutLinks = [
@@ -80,20 +82,15 @@ export default function Header() {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
+            {/* <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
               <Link href="/contact" className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
                 Contact Us
               </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
-              <Link href="https://manage.manzilini.com/login">
-                Login as landlord
-              </Link>
-            </Button>
+            </Button> */}
+        
             <Button size="sm" asChild className="bg-primary hover:bg-primary/90 shadow-md">
-              <Link href="https://manage.manzilini.com/signup">
-                Access as landlord
+              <Link href="https://manage.manzilini.com/login">
+              Login as landlord
               </Link>
             </Button>
           </div>
