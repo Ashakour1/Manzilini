@@ -12,6 +12,7 @@ import ApartmentTypesSection from "@/components/apartment-types-section"
 import CTASection from "@/components/cta-section"
 import LandlordCTASection from "@/components/landlord-cta-section"
 import FeaturedHousesSection from "@/components/featured-houses-section"
+import ManagementSystemSection from "@/components/management-system-section"
 
 export default function Home() {
   const [selectedProperty, setSelectedProperty] = useState(null)
@@ -21,14 +22,17 @@ export default function Home() {
       <Hero />
       <FeaturedHousesSection />
       <HelpSection />
+      <ManagementSystemSection />
       <WhyChooseUsSection />
       <PropertyGrid onSelectProperty={setSelectedProperty} />
+      <LandlordCTASection />
       <ApartmentTypesSection />
       <CTASection />
+   
 
       {/* <TestimonialsSection /> */}
     
-      <LandlordCTASection />
+     
       {/* <ServicesSection /> */}
       {selectedProperty && <PropertyModal property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
     </>

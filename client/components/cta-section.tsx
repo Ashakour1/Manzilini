@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function CTASection() {
   return (
-    <section className="relative py-20 md:py-28 bg-primary text-primary-foreground overflow-hidden">
+    <section className="relative py-20 bg-primary text-primary-foreground overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0"/>
