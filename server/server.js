@@ -36,7 +36,7 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors(
 {
-     origin:[ "http://localhost:3000" , "http://localhost:3001", "http://localhost:3002", "https://panel.manzilini.com", "https://manzilini.com", "https://landlord.manzilini.com"],
+     origin:[ "http://localhost:3000" , "http://localhost:3001", "http://localhost:3002", "https://panel.manzilini.com", "https://manzilini.com", "https://manage.manzilini.com"],
      credentials: true,
       allowedHeaders: [
       "Content-Type",
