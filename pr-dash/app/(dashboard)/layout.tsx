@@ -1,22 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { Header } from "@/components/dashboard/Header";
+import { useAuthStore } from "@/lib/store/auth.store";
+
+type PersistApi = { hasHydrated?: () => boolean; onFinishHydration?: (cb: () => void) => () => void };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const { token, isHydrated, setHydrated } = useAuthStore();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const persist = (useAuthStore as { persist?: PersistApi }).persist;
+    if (!persist) {
+      setHydrated();
+      return;
+    }
+    if (persist.hasHydrated?.()) {
+      setHydrated();
+      return;
+    }
+    const unsub = persist.onFinishHydration?.(() => setHydrated());
+    return () => unsub?.();
+  }, [setHydrated]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
     if (!token) {
       router.replace("/login");
-    } else {
-      setReady(true);
     }
-  }, [router]);
+  }, [isHydrated, token, router]);
+
+  const ready = isHydrated && !!token;
 
   if (!ready) {
     return (

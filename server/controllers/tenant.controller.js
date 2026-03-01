@@ -9,29 +9,25 @@ export const getTenants = asyncHandler(async (req, res) => {
         const userId = req.user?.id;
         
         const whereClause = {};
+        let landlordIdForProps = null;
         if (status) whereClause.status = status;
         
         // If landlordId is provided, use it. Otherwise, if user is a landlord, auto-filter by their landlord profile
         if (landlordId) {
             whereClause.landlordId = landlordId;
         } else if (userId) {
-            // Get user to find their landlord profile
             const user = await prisma.user.findUnique({
                 where: { id: userId },
-                select: {
-                    email: true,
-                    role: true,
-                }
+                select: { email: true, role: true }
             });
-
-            // If user has LANDLORD role, find landlord by email and filter
-            if (user && user.role === 'LANDLORD' && user.email) {
+            if (user?.role === 'LANDLORD' && user.email) {
                 const landlord = await prisma.landlord.findUnique({
                     where: { email: user.email },
                     select: { id: true }
                 });
                 if (landlord) {
                     whereClause.landlordId = landlord.id;
+                    landlordIdForProps = landlord.id;
                 }
             }
         }
@@ -47,6 +43,7 @@ export const getTenants = asyncHandler(async (req, res) => {
         const tenants = await prisma.tenant.findMany({
             where: whereClause,
             include: {
+                property: { select: { id: true, title: true, city: true } },
                 applications: {
                     include: {
                         property: {
@@ -73,8 +70,17 @@ export const getTenants = asyncHandler(async (req, res) => {
                 createdAt: 'desc'
             }
         });
-        
-        res.status(200).json(tenants);
+
+        // When LANDLORD, include properties in response (avoids separate /properties/landlord call)
+        let properties = [];
+        if (landlordIdForProps) {
+            properties = await prisma.property.findMany({
+                where: { landlord_id: landlordIdForProps },
+                select: { id: true, title: true }
+            });
+        }
+
+        res.status(200).json({ tenants, properties });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

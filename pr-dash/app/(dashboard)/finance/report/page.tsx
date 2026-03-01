@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDownCircle, ArrowUpCircle, TrendingUp, FileSpreadsheet, FileText, Pencil } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import type { Property } from "@/lib/types";
 import { getProperties } from "@/lib/services/property.service";
 import { getPropertyIncomes, getPropertyExpenses, type PropertyIncome, type PropertyExpense } from "@/lib/services/finance.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 function fmtAmount(amount: string | number) {
   return Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -59,9 +60,7 @@ export default function ReportPage() {
     }
   }, [propertyFilter, dateFrom, dateTo, categoryFilter]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const filteredIncomes = sourceFilter ? incomes.filter((i) => i.source === sourceFilter) : incomes;
   const incomeTotal = filteredIncomes.reduce((s, i) => s + Number(i.amount || 0), 0);

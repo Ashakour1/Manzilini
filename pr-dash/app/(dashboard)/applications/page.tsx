@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   ClipboardList,
   User,
@@ -17,9 +17,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal";
-import type { Application, Property } from "@/lib/types";
+import type { Application } from "@/lib/types";
 import { getApplications, approveApplication, rejectApplication } from "@/lib/services/application.service";
-import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 border-amber-200",
@@ -41,7 +41,6 @@ function formatDate(d: string) {
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -54,12 +53,8 @@ export default function ApplicationsPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [apps, props] = await Promise.all([
-        getApplications(),
-        getProperties(),
-      ]);
-      setApplications(apps);
-      setProperties(props);
+      const apps = await getApplications();
+      setApplications(Array.isArray(apps) ? apps : []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -67,9 +62,7 @@ export default function ApplicationsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const openApprove = (app: Application) => {
     setApproveModal(app);
@@ -111,6 +104,16 @@ export default function ApplicationsPage() {
   };
 
   const hasApplications = applications.length > 0;
+
+  const properties = useMemo(() => {
+    const map = new Map<string, { id: string; title: string }>();
+    applications.forEach((app) => {
+      if (app.property && !map.has(app.property.id)) {
+        map.set(app.property.id, { id: app.property.id, title: app.property.title });
+      }
+    });
+    return Array.from(map.values());
+  }, [applications]);
 
   return (
     <div className="p-5 md:p-6 space-y-6">

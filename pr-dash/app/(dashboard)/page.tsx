@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Building2, ClipboardList, Users, DollarSign, ArrowDownCircle, ArrowUpCircle, TrendingUp, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { getProperties } from "@/lib/services/property.service";
 import { getApplications } from "@/lib/services/application.service";
 import { getTenants } from "@/lib/services/tenant.service";
 import { getPropertyIncomes, getPropertyExpenses } from "@/lib/services/finance.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 function fmtAmount(amount: string | number) {
   return Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -41,7 +42,7 @@ export default function DashboardPage() {
       ]);
       setPropertiesCount(props.length);
       setApplicationsCount(apps.length);
-      setTenantsCount(ten.length);
+      setTenantsCount(Array.isArray(ten) ? ten.length : (ten.tenants?.length ?? 0));
       setIncomeTotal(inc.reduce((s, i) => s + Number(i.amount || 0), 0));
       setExpenseTotal(exp.reduce((s, e) => s + Number(e.amount || 0), 0));
       setRecentApplications(apps.slice(0, 5).map((a) => ({ id: a.id, fullName: a.fullName, createdAt: a.createdAt, status: a.status })));
@@ -52,9 +53,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const net = incomeTotal - expenseTotal;
 

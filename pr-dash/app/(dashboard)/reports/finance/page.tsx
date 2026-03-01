@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ArrowDownCircle, ArrowUpCircle, TrendingUp, FileSpreadsheet, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import type { Property } from "@/lib/types";
 import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 import { getPropertyIncomes, getPropertyExpenses, type PropertyIncome, type PropertyExpense } from "@/lib/services/finance.service";
 
 function fmtAmount(amount: string | number) {
@@ -60,9 +61,7 @@ export default function FinanceReportPage() {
   const filteredIncomes = sourceFilter ? incomes.filter((i) => i.source === sourceFilter) : incomes;
   const incomeTotal = filteredIncomes.reduce((s, i) => s + Number(i.amount || 0), 0);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const expenseTotal = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
   const net = incomeTotal - expenseTotal;

@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Building2, ClipboardList, DollarSign, Users, UserCog, LogOut, BarChart3, ArrowDownCircle, ArrowUpCircle, FileBarChart2, Home } from "lucide-react";
+import { useAuthStore } from "@/lib/store/auth.store";
+import { LayoutDashboard, Building2, ClipboardList, DollarSign, Users, UserCog, LogOut, BarChart3, ArrowDownCircle, ArrowUpCircle, FileBarChart2, Home, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleNavGroup } from "@/components/CollapsibleNavGroup";
 
@@ -20,6 +21,7 @@ const menuItems: Array<{
   { id: "applications", icon: ClipboardList, label: "Applications", href: "/applications" },
   { id: "tenants", icon: Users, label: "Tenants", href: "/tenants" },
   { id: "staff", icon: UserCog, label: "Staff", href: "/staff" },
+  { id: "maintenance", icon: Wrench, label: "Maintenance", href: "/maintenance" },
   {
     id: "finance",
     icon: DollarSign,
@@ -56,9 +58,9 @@ export default function Sidebar() {
     );
   };
 
+  const logout = useAuthStore((s) => s.logout);
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout();
     router.push("/login");
   };
 

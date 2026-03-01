@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Application, Property } from "@/lib/types";
+import type { Application } from "@/lib/types";
 import { getApplications } from "@/lib/services/application.service";
-import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 function fmtDate(d: string | null) {
   if (!d) return "—";
@@ -26,7 +26,6 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function ApplicationsReportPage() {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [propertyFilter, setPropertyFilter] = useState<string>("");
@@ -35,30 +34,38 @@ export default function ApplicationsReportPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [apps, props] = await Promise.all([
-        getApplications(statusFilter || undefined),
-        getProperties(),
-      ]);
-      setApplications(apps);
-      setProperties(props);
+      const apps = await getApplications();
+      setApplications(Array.isArray(apps) ? apps : []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
-  const filtered = propertyFilter ? applications.filter((a) => a.propertyId === propertyFilter) : applications;
+  const properties = useMemo(() => {
+    const map = new Map<string, { id: string; title: string }>();
+    applications.forEach((app) => {
+      if (app.property && !map.has(app.property.id)) {
+        map.set(app.property.id, { id: app.property.id, title: app.property.title });
+      }
+    });
+    return Array.from(map.values());
+  }, [applications]);
+
+  const filtered = applications.filter((a) => {
+    const matchesProperty = !propertyFilter || a.propertyId === propertyFilter;
+    const matchesStatus = !statusFilter || a.status === statusFilter;
+    return matchesProperty && matchesStatus;
+  });
 
   const exportExcel = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
       ["Date", "Applicant", "Email", "Phone", "Property", "Status", "Message"],
-      ...filtered.map((a) => [fmtDate(a.createdAt), a.fullName, a.email ?? "—", a.phone, properties.find((p) => p.id === a.propertyId)?.title ?? "—", STATUS_LABELS[a.status] ?? a.status, (a.message ?? "").slice(0, 100)]),
+      ...filtered.map((a) => [fmtDate(a.createdAt), a.fullName, a.email ?? "—", a.phone, a.property?.title ?? properties.find((p) => p.id === a.propertyId)?.title ?? "—", STATUS_LABELS[a.status] ?? a.status, (a.message ?? "").slice(0, 100)]),
     ]), "Applications");
     XLSX.writeFile(wb, `applications-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
@@ -69,7 +76,7 @@ export default function ApplicationsReportPage() {
     doc.text("Applications Report", 14, 20);
     doc.setFontSize(10);
     doc.text(`Generated: ${new Date().toLocaleDateString()} · ${filtered.length} application(s)`, 14, 28);
-    autoTable(doc, { startY: 38, head: [["Date", "Applicant", "Email", "Phone", "Property", "Status"]], body: filtered.map((a) => [fmtDate(a.createdAt), a.fullName, a.email ?? "—", a.phone, properties.find((p) => p.id === a.propertyId)?.title ?? "—", STATUS_LABELS[a.status] ?? a.status]), theme: "striped", headStyles: { fillColor: [59, 130, 246] } });
+    autoTable(doc, { startY: 38, head: [["Date", "Applicant", "Email", "Phone", "Property", "Status"]], body: filtered.map((a) => [fmtDate(a.createdAt), a.fullName, a.email ?? "—", a.phone, a.property?.title ?? properties.find((p) => p.id === a.propertyId)?.title ?? "—", STATUS_LABELS[a.status] ?? a.status]), theme: "striped", headStyles: { fillColor: [59, 130, 246] } });
     doc.save(`applications-report-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
@@ -111,7 +118,7 @@ export default function ApplicationsReportPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-[var(--border)] bg-[var(--muted)]/50"><th className="text-left font-semibold px-4 py-3">Date</th><th className="text-left font-semibold px-4 py-3">Applicant</th><th className="text-left font-semibold px-4 py-3">Email</th><th className="text-left font-semibold px-4 py-3">Phone</th><th className="text-left font-semibold px-4 py-3">Property</th><th className="text-left font-semibold px-4 py-3">Status</th></tr></thead>
-                <tbody>{filtered.map((a) => <tr key={a.id} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/30"><td className="px-4 py-3 whitespace-nowrap">{fmtDate(a.createdAt)}</td><td className="px-4 py-3 font-medium">{a.fullName}</td><td className="px-4 py-3">{a.email ?? "—"}</td><td className="px-4 py-3">{a.phone}</td><td className="px-4 py-3">{a.property?.title ?? properties.find((p) => p.id === a.propertyId)?.title ?? "—"}</td><td className="px-4 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium bg-[var(--muted)]">{STATUS_LABELS[a.status] ?? a.status}</span></td></tr>)}</tbody>
+                <tbody>{filtered.map((a) => <tr key={a.id} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/30"><td className="px-4 py-3 whitespace-nowrap">{fmtDate(a.createdAt)}</td><td className="px-4 py-3 font-medium">{a.fullName}</td><td className="px-4 py-3">{a.email ?? "—"}</td><td className="px-4 py-3">{a.phone}</td><td className="px-4 py-3">{a.property?.title ?? "—"}</td><td className="px-4 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium bg-[var(--muted)]">{STATUS_LABELS[a.status] ?? a.status}</span></td></tr>)}</tbody>
               </table>
             </div>
           )}

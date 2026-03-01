@@ -332,19 +332,24 @@ export const rejectApplication = asyncHandler(async (req, res) => {
 export const getPortalStaff = asyncHandler(async (req, res) => {
   try {
     const landlord = await getLandlordFromUser(req.user.id);
-    const list = await prisma.staff.findMany({
-      where: { landlordId: landlord.id },
-      include: {
-        assignedProperties: { select: { id: true, title: true, city: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    // Map to include single `property` for backwards compatibility (first assigned property)
+    const [list, properties] = await Promise.all([
+      prisma.staff.findMany({
+        where: { landlordId: landlord.id },
+        include: {
+          assignedProperties: { select: { id: true, title: true, city: true } }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.property.findMany({
+        where: { landlord_id: landlord.id },
+        select: { id: true, title: true }
+      })
+    ]);
     const staff = list.map((s) => ({
       ...s,
       property: s.assignedProperties?.[0] ?? null
     }));
-    res.status(200).json(staff);
+    res.status(200).json({ staff, properties });
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
   }

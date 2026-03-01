@@ -159,18 +159,39 @@ export const createPropertyApplication = asyncHandler(async (req, res) => {
 
 
 
+// GET property applications - scoped by authenticated user (no params)
 export const getPropertyApplications = asyncHandler(async (req, res) => {
     try {
-        const { propertyId, landlordId, status } = req.query;
-        
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { id: true, email: true, role: true },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         const whereClause = {};
-        if (propertyId) whereClause.propertyId = propertyId;
-        if (landlordId) {
-            whereClause.landlordId = landlordId;
-            // Only fetch approved applications when filtering by landlordId
+
+        // LANDLORD: only applications for their properties, approved by admin
+        if (user.role === 'LANDLORD') {
+            const landlord = await prisma.landlord.findUnique({
+                where: { email: user.email },
+                select: { id: true },
+            });
+            if (!landlord) {
+                return res.status(200).json([]);
+            }
+            whereClause.landlordId = landlord.id;
             whereClause.isApproved = true;
         }
-        if (status) whereClause.status = status;
+        // ADMIN / SUPER_ADMIN: all applications
+        else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+            // no extra filter
+        }
+        else {
+            return res.status(403).json({ message: 'Access denied' });
+        }
 
         const propertyApplications = await prisma.propertyApplication.findMany({
             where: whereClause,
@@ -181,13 +202,14 @@ export const getPropertyApplications = asyncHandler(async (req, res) => {
                         landlord: true
                     }
                 },
-                landlord: true
+                landlord: true,
+                tenant: true
             },
             orderBy: {
                 createdAt: 'desc'
             }
         });
-        
+
         res.status(200).json(propertyApplications);
     } catch (error) {
         res.status(500).json({ message: error.message });

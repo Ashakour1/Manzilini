@@ -15,6 +15,7 @@ import {
   deletePropertyExpense,
   type PropertyExpense,
 } from "@/lib/services/finance.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 const emptyExpenseForm = {
   propertyId: "",
@@ -63,9 +64,7 @@ export default function ExpensePage() {
     }
   }, [propertyFilter]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   useEffect(() => {
     const editId = searchParams.get("edit");

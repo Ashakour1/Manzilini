@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Building2, Plus, MapPin, Pencil, Trash2, FileText, Home, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Property } from "@/lib/types";
 import { getProperties, deleteProperty } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 function getStatusStyle(published: boolean) {
   return published ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-600";
@@ -30,9 +31,7 @@ export default function PropertiesPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -48,7 +47,7 @@ export default function PropertiesPage() {
   const hasProperties = properties.length > 0;
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">My Properties</h1>
@@ -152,7 +151,7 @@ export default function PropertiesPage() {
                         <span className="text-xs text-[var(--muted-foreground)]">
                           {p._count?.tenants ?? 0} tenant(s)
                           {(p._count?.property_applications ?? 0) > 0 && (
-                            <span className="ml-1">&bull; {p._count.property_applications} application(s)</span>
+                            <span className="ml-1">&bull; {p._count?.property_applications ?? 0} application(s)</span>
                           )}
                         </span>
                         <div className="flex gap-0.5">

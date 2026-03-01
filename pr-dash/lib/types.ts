@@ -74,3 +74,23 @@ export interface Staff {
   property?: { id: string; title: string } | null;
   createdAt: string;
 }
+
+export interface MaintenanceRequest {
+  id: string;
+  propertyId: string;
+  property?: { id: string; title: string; address?: string } | null;
+  issue: string;
+  reportedBy: string;
+  reportedDate: string;
+  status: string;
+  statusEnum?: string;
+  priority: string;
+  priorityEnum?: string;
+  assignedTo: string;
+  landlordId?: string | null;
+  tenantId?: string | null;
+  tenant?: { id: string; fullName: string } | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -329,7 +329,7 @@ export const createProperty = asyncHandler(async (req, res) => {
         // Validate that user exists
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, role: true }
+            select: { id: true, role: true, email: true }
         });
 
         if (!user) {
@@ -342,12 +342,19 @@ export const createProperty = asyncHandler(async (req, res) => {
             publishedValue = false;
         }
 
-        // Validate that landlord exists if landlord_id is provided
-        if (landlord_id) {
+        // Derive landlord_id from user when LANDLORD role and not provided (avoid frontend getProfile)
+        let effectiveLandlordId = landlord_id;
+        if (!effectiveLandlordId && user.role === 'LANDLORD' && user.email) {
             const landlord = await prisma.landlord.findUnique({
-                where: { id: landlord_id }
+                where: { email: user.email },
+                select: { id: true }
             });
-
+            effectiveLandlordId = landlord?.id ?? null;
+        }
+        if (effectiveLandlordId) {
+            const landlord = await prisma.landlord.findUnique({
+                where: { id: effectiveLandlordId }
+            });
             if (!landlord) {
                 return res.status(400).json({ message: 'Landlord not found' });
             }
@@ -420,9 +427,9 @@ export const createProperty = asyncHandler(async (req, res) => {
             is_published: publishedValue,
         };
 
-        // Only include landlord_id if provided
-        if (landlord_id) {
-            propertyData.landlord_id = landlord_id;
+        // Include landlord_id when derived from user or provided
+        if (effectiveLandlordId) {
+            propertyData.landlord_id = effectiveLandlordId;
         }
 
         // Set the creator userId

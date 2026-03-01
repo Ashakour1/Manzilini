@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import type { Tenant } from "@/lib/types";
 import { getTenants } from "@/lib/services/tenant.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 function fmtDate(d: string | null) {
   if (!d) return "—";
@@ -24,8 +25,8 @@ export default function TenantsReportPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const list = await getTenants();
-      setTenants(list);
+      const data = await getTenants();
+      setTenants(data.tenants ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -33,9 +34,7 @@ export default function TenantsReportPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const filtered = statusFilter ? tenants.filter((t) => t.status === statusFilter) : tenants;
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { UserCog, Plus, Pencil, Trash2, Home } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal";
 import type { Staff, Property } from "@/lib/types";
 import { getStaff, createStaff, updateStaff, deleteStaff } from "@/lib/services/staff.service";
-import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 const ROLES = ["MANAGER", "CARETAKER", "ACCOUNTANT", "CLEANER", "SECURITY", "ELECTRICIAN", "PLUMBER", "MAINTENANCE_TECHNICIAN", "GARDENER", "RECEPTIONIST"];
 const ROLE_STYLES: Record<string, string> = {
@@ -53,9 +53,9 @@ export default function StaffPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [s, p] = await Promise.all([getStaff(), getProperties()]);
-      setStaff(s);
-      setProperties(p);
+      const data = await getStaff();
+      setStaff(data?.staff ?? []);
+      setProperties(data?.properties ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -63,9 +63,7 @@ export default function StaffPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const openAdd = () => {
     setEditingId(null);

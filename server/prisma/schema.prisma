@@ -72,6 +72,7 @@ model Landlord {
 
   // link to property applications
   propertyApplications PropertyApplication[]
+  maintenanceRequests MaintenanceRequest[]
   // creator
   createdBy            String?
   creator              User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
@@ -158,6 +159,7 @@ model Property {
 
   tenants Tenant[]
   staff   Staff[] @relation("StaffAssignedProperties")
+  maintenanceRequests MaintenanceRequest[]
 }
 
 model PropertyImages {
@@ -202,6 +204,7 @@ model Tenant {
   activities   TenantActivity[]
 
   incomes Income[] @relation("TenantIncomes")
+  maintenanceRequests MaintenanceRequest[]
 }
 
 model PropertyApplication {
@@ -492,6 +495,38 @@ model Task {
   @@map("tasks")
 }
 
+model MaintenanceRequest {
+  id           String                    @id @default(cuid())
+  propertyId   String
+  property     Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  issue        String                    @db.Text
+  reportedBy   String
+  reportedDate DateTime
+
+  status       MaintenanceRequestStatus  @default(PENDING)
+  priority     MaintenanceRequestPriority @default(MEDIUM)
+  assignedTo   String                    // Vendor, team, or staff name
+
+  landlordId   String?
+  landlord     Landlord?                 @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+
+  tenantId     String?
+  tenant       Tenant?                   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  notes        String?                   @db.Text
+
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([propertyId])
+  @@index([landlordId])
+  @@index([status])
+  @@index([priority])
+  @@index([reportedDate])
+  @@map("maintenance_requests")
+}
+
 model Notification {
   id        String           @id @default(cuid())
   userId    String           @map("user_id")
@@ -747,6 +782,18 @@ enum TaskStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+enum MaintenanceRequestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MaintenanceRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum NotificationType {

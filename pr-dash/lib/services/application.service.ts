@@ -1,9 +1,9 @@
 import { api } from "@/lib/api";
 import type { Application } from "@/lib/types";
 
-export function getApplications(status?: string) {
-  const query = status ? `?status=${status}` : "";
-  return api.get<Application[]>(`/property-applications/landlord/me${query}`);
+/** Fetch property applications scoped by authenticated user (no params) */
+export function getApplications() {
+  return api.get<Application[]>(`/property-applications`);
 }
 
 export function approveApplication(id: string, data?: Record<string, unknown>) {

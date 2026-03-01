@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal";
 import type { Property } from "@/lib/types";
 import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 import {
   getPropertyIncomes,
   createPropertyIncome,
@@ -63,9 +64,7 @@ export default function IncomePage() {
     }
   }, [propertyFilter]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   useEffect(() => {
     const editId = searchParams.get("edit");

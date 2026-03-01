@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Image as ImageIcon, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createProperty } from "@/lib/services/property.service";
-import { getProfile } from "@/lib/services/landlord.service";
 
 const PROPERTY_TYPES = ["APARTMENT", "HOUSE", "COMMERCIAL", "OFFICE", "STUDIO", "LAND"];
 const STATUSES = ["FOR_RENT", "FOR_SALE", "RENTED", "SOLD"];
@@ -51,14 +50,6 @@ export default function NewPropertyPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [landlordId, setLandlordId] = useState<string | null>(null);
-
-  useEffect(() => {
-    getProfile()
-      .then((p) => setLandlordId(p.id))
-      .catch(() => {});
-  }, []);
-
   const amenityList = useMemo(
     () =>
       form.amenities
@@ -119,7 +110,7 @@ export default function NewPropertyPage() {
         amenities: amenityList.length > 0 ? amenityList : undefined,
         is_published: false,
       };
-      if (landlordId) payload.landlord_id = landlordId;
+      // landlord_id is derived from user on the backend (no getProfile needed)
 
       await createProperty(payload, images.length > 0 ? images : undefined);
       window.location.href = "/properties";

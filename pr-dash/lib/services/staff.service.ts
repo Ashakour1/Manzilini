@@ -1,8 +1,13 @@
 import { api } from "@/lib/api";
-import type { Staff } from "@/lib/types";
+import type { Staff, Property } from "@/lib/types";
+
+export interface StaffResponse {
+  staff: Staff[];
+  properties: Property[];
+}
 
 export function getStaff() {
-  return api.get<Staff[]>("/staff");
+  return api.get<StaffResponse>("/staff");
 }
 
 export function getStaffMember(id: string) {

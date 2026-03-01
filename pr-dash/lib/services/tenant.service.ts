@@ -1,8 +1,13 @@
 import { api } from "@/lib/api";
-import type { Tenant } from "@/lib/types";
+import type { Tenant, Property } from "@/lib/types";
+
+export interface TenantsResponse {
+  tenants: Tenant[];
+  properties: Property[];
+}
 
 export function getTenants() {
-  return api.get<Tenant[]>("/tenants");
+  return api.get<TenantsResponse>("/tenants");
 }
 
 export function getTenant(id: string) {

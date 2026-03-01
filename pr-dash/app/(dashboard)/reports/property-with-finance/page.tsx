@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import type { Property } from "@/lib/types";
 import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 import { getPropertyIncomes, getPropertyExpenses } from "@/lib/services/finance.service";
 
 function fmtAmount(amount: string | number) {
@@ -49,9 +50,7 @@ export default function PropertyWithFinanceReportPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const propertyFinance: PropertyFinance[] = properties.map((p) => {
     const propIncomes = incomes.filter((i) => i.propertyId === p.id);

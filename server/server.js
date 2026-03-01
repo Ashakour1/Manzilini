@@ -22,6 +22,7 @@ import propertyApplicationsRoutes from './routes/property.applications.routes.js
 import tenantRoutes from './routes/tenant.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import maintenanceRoutes from './routes/maintenance.routes.js';
 import staffRoutes from './routes/staff.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -81,6 +82,7 @@ app.use('/api/v1/property-applications', propertyApplicationsRoutes);
 app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/maintenance', maintenanceRoutes);
 app.use('/api/v1/staff', staffRoutes);
 app.use(errorHandler);
 

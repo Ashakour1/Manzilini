@@ -1,8 +1,11 @@
+import { useAuthStore } from "./store/auth.store";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
+  const token = useAuthStore.getState().token;
+  return token ?? localStorage.getItem("");
 }
 
 export const authApi = {
@@ -29,14 +32,13 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-  if (res.status === 401) {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-    throw new Error("Unauthorized");
-  }
+  // if (res.status === 401) {
+  //   if (typeof window !== "undefined") {
+  //     useAuthStore.getState().logout();
+  //     window.location.href = "/login";
+  //   }
+  //   throw new Error("Unauthorized");
+  // }
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Request failed");
@@ -52,8 +54,7 @@ export async function requestFormData<T>(path: string, formData: FormData, metho
 
   if (res.status === 401) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      useAuthStore.getState().logout();
       window.location.href = "/login";
     }
     throw new Error("Unauthorized");

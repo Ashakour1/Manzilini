@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Users, Plus, Mail, Phone, Calendar, FileText, Pencil, Trash2, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal";
 import type { Tenant, Property } from "@/lib/types";
 import { getTenants, createTenant, updateTenant, deleteTenant } from "@/lib/services/tenant.service";
-import { getProperties } from "@/lib/services/property.service";
+import { useLoad } from "@/lib/hooks/useLoad";
 
 const STATUSES = ["NEW", "ACTIVE", "INACTIVE", "BLOCKED"];
 const STATUS_STYLES: Record<string, string> = {
@@ -48,9 +48,9 @@ export default function TenantsPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [t, p] = await Promise.all([getTenants(), getProperties()]);
-      setTenants(t);
-      setProperties(p);
+      const data = await getTenants();
+      setTenants(data.tenants ?? []);
+      setProperties(data.properties ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -58,9 +58,7 @@ export default function TenantsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useLoad(load);
 
   const openAdd = () => {
     setEditingId(null);
