@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import bcrypt from 'bcrypt';
 import prisma from '../db/prisma.js';
 import { generateUniqueIdAndCreate } from '../utils/idGenerator.js';
 import { sendWelcomeEmail, sendLandlordApprovalEmail, sendLandlordInactiveEmail, sendLandlordRejectionEmail, sendLandlordActivationEmail } from '../services/email.service.js';

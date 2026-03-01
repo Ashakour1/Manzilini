@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/auth.store";
@@ -162,6 +163,13 @@ export default function LoginPage() {
                 "Sign in"
               )}
             </button>
+
+            <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-[var(--primary)] hover:underline font-medium">
+                Create account
+              </Link>
+            </p>
           </form>
         </div>
       </div>
