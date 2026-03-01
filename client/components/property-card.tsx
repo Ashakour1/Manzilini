@@ -53,11 +53,15 @@ export default function PropertyCard({ property, onClick }: PropertyCardProps) {
       </div>
 
       <div className="p-5">
-        {/* Price - prominently displayed */}
-        <div className="mb-3">
-          <span className="text-2xl font-bold text-gray-900">
-            KES {property.price?.toLocaleString() || property.price}
+        {/* Price */}
+        <div className="mb-3 flex items-baseline gap-1">
+          <span className="text-sm font-medium text-primary">KES</span>
+          <span className="text-2xl font-extrabold text-foreground tabular-nums">
+            {Number(property.price || 0).toLocaleString("en-KE")}
           </span>
+          {property.payment_frequency && (
+            <span className="text-sm text-muted-foreground">/{property.payment_frequency.toLowerCase()}</span>
+          )}
         </div>
 
         {/* Property Title */}
