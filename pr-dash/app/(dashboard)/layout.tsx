@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -11,6 +11,7 @@ type PersistApi = { hasHydrated?: () => boolean; onFinishHydration?: (cb: () => 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { token, isHydrated, setHydrated } = useAuthStore();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const persist = (useAuthStore as { persist?: PersistApi }).persist;
@@ -45,9 +46,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)]">
-      <Sidebar />
-      <div className="relative flex flex-1 flex-col overflow-hidden">
-        <Header />
+      <Sidebar
+        mobileOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
+      <div className="relative flex flex-1 flex-col overflow-hidden min-w-0">
+        <Header onMenuClick={() => setMobileSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>

@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/lib/store/auth.store";
-import { LayoutDashboard, Building2, ClipboardList, DollarSign, Users, UserCog, LogOut, BarChart3, ArrowDownCircle, ArrowUpCircle, FileBarChart2, Home, Wrench } from "lucide-react";
+import { LayoutDashboard, Building2, ClipboardList, DollarSign, Users, UserCog, LogOut, BarChart3, ArrowDownCircle, ArrowUpCircle, FileBarChart2, Home, Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleNavGroup } from "@/components/CollapsibleNavGroup";
 
@@ -47,10 +47,27 @@ const menuItems: Array<{
   },
 ];
 
-export default function Sidebar() {
+type SidebarProps = {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+};
+
+export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (mobileOpen && onClose) {
+      const handleEsc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+      document.addEventListener("keydown", handleEsc);
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleEsc);
+        document.body.style.overflow = "";
+      };
+    }
+  }, [mobileOpen, onClose]);
 
   const handleToggleGroup = (id: string) => {
     setExpandedGroups((prev) =>
@@ -64,17 +81,33 @@ export default function Sidebar() {
     router.push("/login");
   };
 
-  return (
-    <aside className="relative hidden lg:flex h-screen w-52 flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--card)]">
-      {/* Brand */}
-      <div className="px-5 pt-5 pb-4">
-        <Link href="/" className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 rounded-md">
+  const handleNavClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      onClose?.();
+    }
+  };
+
+  const sidebarContent = (
+    <>
+      {/* Brand + close (mobile) */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-4">
+        <Link href="/" onClick={handleNavClick} className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 rounded-md">
           <Image src="/logo.png" alt="Manzilini" width={36} height={36} className="rounded-lg" />
           <div>
             <span className="text-lg font-bold tracking-tight text-[var(--foreground)] leading-tight block">Manzilini</span>
             <span className="text-[10px] text-[var(--muted-foreground)] leading-none">Landlord Portal</span>
           </div>
         </Link>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="lg:hidden p-2 -mr-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -95,6 +128,7 @@ export default function Sidebar() {
                 items={item.children!}
                 expanded={isExpanded}
                 onToggle={handleToggleGroup}
+                onNavClick={handleNavClick}
               />
             );
           }
@@ -104,6 +138,7 @@ export default function Sidebar() {
             <Link
               key={item.id}
               href={item.href}
+              onClick={handleNavClick}
               className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? "bg-[var(--primary)]/10 text-[var(--primary)]"
@@ -135,6 +170,27 @@ export default function Sidebar() {
           Log out
         </Button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {onClose && (
+        <div
+          className={`fixed inset-0 z-40 bg-black/50 lg:hidden transition-opacity duration-200 ${
+            mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={onClose}
+          aria-hidden
+        />
+      )}
+      <aside
+        className={`fixed lg:relative inset-y-0 left-0 z-50 flex h-screen w-52 flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--card)] transition-transform duration-200 ease-out lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

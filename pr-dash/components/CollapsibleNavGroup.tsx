@@ -19,6 +19,7 @@ interface CollapsibleNavGroupProps {
   items: CollapsibleNavChild[];
   expanded?: boolean;
   onToggle?: (id: string) => void;
+  onNavClick?: () => void;
 }
 
 export function CollapsibleNavGroup({
@@ -29,6 +30,7 @@ export function CollapsibleNavGroup({
   items,
   expanded,
   onToggle,
+  onNavClick,
 }: CollapsibleNavGroupProps) {
   const pathname = usePathname();
   const list = Array.isArray(items) ? items : [];
@@ -81,6 +83,7 @@ export function CollapsibleNavGroup({
               <Link
                 key={child.id}
                 href={child.href}
+                onClick={onNavClick}
                 className={`group flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium transition-colors ${
                   childActive
                     ? "bg-[var(--primary)]/10 text-[var(--primary)]"
