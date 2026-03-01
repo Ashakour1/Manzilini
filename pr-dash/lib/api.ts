@@ -1,6 +1,6 @@
 import { useAuthStore } from "./store/auth.store";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://manzilline-production-fcab.up.railway.app/api/v1";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
