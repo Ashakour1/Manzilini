@@ -4,6 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+} from "lucide-react";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/auth.store";
 
@@ -12,6 +21,8 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -32,145 +43,231 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel - Branding */}
-      <div className="hidden lg:flex lg:w-[48%] flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
+      {/* Left panel - Branding with cityscape */}
+      <div className="hidden lg:flex lg:w-[52%] flex-col justify-between p-12 relative overflow-hidden">
+        <Image
+          src="/dash.jpg"
+          alt="City skyline"
+          fill
+          priority
+          sizes="(min-width: 1024px) 52vw, 0vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0f1e2e]/85 via-[#163049]/70 to-[#2a6f97]/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center">
+            <Image src="/logo.png" alt="Manzilini" width={28} height={28} className="rounded-md" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-white tracking-tight leading-tight">Manzilini</h1>
+            <p className="text-white/70 text-xs">Landlord Portal</p>
+          </div>
         </div>
-        <div className="relative z-10">
-          <Image src="/logo.png" alt="Manzilini" width={48} height={48} className="rounded-xl" />
-          <h1 className="mt-6 text-2xl font-bold text-white tracking-tight">Manzilini</h1>
-          <p className="mt-1 text-white/80 text-sm">Landlord Portal</p>
-        </div>
-        <div className="relative z-10">
-          <blockquote className="text-white/90 text-lg leading-relaxed">
-            &ldquo;Manage your properties, tenants, and finances in one place.&rdquo;
-          </blockquote>
+
+        <div className="relative z-10 max-w-md">
+          <h2 className="text-white text-3xl font-semibold tracking-tight leading-tight">
+            Run your portfolio with confidence.
+          </h2>
+          <p className="mt-3 text-white/80 text-sm leading-relaxed">
+            Properties, tenants, leases and finances — all connected in one calm, modern workspace built for landlords.
+          </p>
+
+          <div className="mt-8 flex items-center gap-6 text-white/70 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              All systems operational
+            </div>
+            <span className="text-white/40">© {new Date().getFullYear()} Manzilini</span>
+          </div>
         </div>
       </div>
 
       {/* Right panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-[#fafbfc]">
-        <div className="w-full max-w-[400px]">
-          <div className="lg:hidden mb-10 text-center">
-            <Image src="/logo.png" alt="Manzilini" width={44} height={44} className="mx-auto rounded-xl" />
-            <h1 className="mt-3 text-xl font-bold text-[var(--foreground)]">Manzilini</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">Landlord Portal</p>
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-[#fafbfc] relative">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.5]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(15,23,42,0.06) 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+
+        <div className="w-full max-w-[420px] relative">
+          <div className="lg:hidden mb-8 flex items-center gap-3">
+            <Image src="/logo.png" alt="Manzilini" width={40} height={40} className="rounded-xl" />
+            <div>
+              <h1 className="text-base font-semibold text-[var(--foreground)] leading-tight">Manzilini</h1>
+              <p className="text-xs text-[var(--muted-foreground)]">Landlord Portal</p>
+            </div>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] tracking-tight">
-              Sign in
+          <div className="mb-7">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-full px-2.5 py-1 mb-4">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+              Welcome back
+            </span>
+            <h2 className="text-[28px] leading-[1.15] font-semibold text-[var(--foreground)] tracking-tight">
+              Sign in to your account
             </h2>
-            <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
-              Enter your credentials to access your account
+            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+              Enter your credentials below to access the dashboard.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {error && (
               <div
                 role="alert"
-                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="flex items-start gap-2.5 rounded-lg border border-red-200/80 bg-red-50 px-3.5 py-3 text-sm text-red-700"
               >
-                <svg
-                  className="h-4 w-4 shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  aria-hidden
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {error}
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                <div className="leading-snug">
+                  <p className="font-medium text-red-800">Couldn&apos;t sign in</p>
+                  <p className="text-red-700/90">{error}</p>
+                </div>
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
+              >
                 Email address
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="name@company.com"
-                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-white text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-sm transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none"
-              />
+              <div className="relative">
+                <Mail
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)] pointer-events-none"
+                  aria-hidden
+                />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="name@company.com"
+                  className="w-full h-11 pl-10 pr-4 rounded-lg border border-[var(--border)] bg-white text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/80 text-sm shadow-sm transition-all focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:outline-none"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-white text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-sm transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none"
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)] pointer-events-none"
+                  aria-hidden
+                />
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Enter your password"
+                  className="w-full h-11 pl-10 pr-11 rounded-lg border border-[var(--border)] bg-white text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/80 text-sm shadow-sm transition-all focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 inline-flex items-center justify-center rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden />
+                  )}
+                </button>
+              </div>
             </div>
+
+            <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <span className="relative inline-flex h-4 w-4 items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="peer absolute inset-0 h-4 w-4 cursor-pointer appearance-none rounded border border-[var(--border)] bg-white shadow-sm transition-colors checked:border-[var(--primary)] checked:bg-[var(--primary)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)]/10"
+                />
+                <svg
+                  className="pointer-events-none relative h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M2.5 6.5L5 9l4.5-5.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="text-sm text-[var(--foreground)] group-hover:text-[var(--foreground)]">
+                Remember me for 30 days
+              </span>
+            </label>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-medium text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="group w-full h-11 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-medium text-sm shadow-sm shadow-[var(--primary)]/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-[var(--primary)]/25"
             >
               {loading ? (
                 <>
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   Signing in...
                 </>
               ) : (
-                "Sign in"
+                <>
+                  Sign in
+                  <ArrowRight
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
+                </>
               )}
             </button>
 
-            <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+            <p className="pt-2 text-center text-sm text-[var(--muted-foreground)]">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-[var(--primary)] hover:underline font-medium">
+              <Link
+                href="/signup"
+                className="text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline font-medium"
+              >
                 Create account
               </Link>
             </p>
           </form>
+
+          <p className="mt-10 text-center text-xs text-[var(--muted-foreground)]">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="underline hover:text-[var(--foreground)]">Terms</Link>{" "}
+            &amp;{" "}
+            <Link href="/privacy" className="underline hover:text-[var(--foreground)]">Privacy Policy</Link>.
+          </p>
         </div>
       </div>
     </div>
