@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRight, Filter, Search } from "lucide-react"
+import { ArrowRight, Search, MapPin, Home, Wallet } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import {
@@ -17,12 +17,12 @@ import { fetchPropertyCountsByCity } from "@/services/properties.service"
 
 const heroTabs = [
   { label: "All", value: "all" },
-  { label: "Sale", value: "sale" },
-  { label: "Rent", value: "rent" },
+  { label: "For Sale", value: "sale" },
+  { label: "For Rent", value: "rent" },
 ]
 
 const propertyTypes = [
-  { value: "all", label: "All Type" },
+  { value: "all", label: "All Types" },
   { value: "APARTMENT", label: "Apartment" },
   { value: "HOUSE", label: "House" },
   { value: "STUDIO", label: "Studio" },
@@ -31,237 +31,34 @@ const propertyTypes = [
 ]
 
 const heroStats = [
-  { value: "47", label: "Counties Covered" },
-  { value: "24/7", label: "Available Support" },
-  { value: "100%", label: "Trusted Platform" },
+  { value: "47+", label: "Counties" },
+  { value: "4,300+", label: "Properties" },
+  { value: "10K+", label: "Active users" },
+  { value: "24/7", label: "Support" },
 ]
 
 const nairobiVillages = [
-  {
-    name: "Nairobi",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Mombasa",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kisumu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Nakuru",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Eldoret",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Thika",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Malindi",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Nyeri",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Embu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Meru",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kitale",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kakamega",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Garissa",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Lamu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Machakos",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kericho",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Naivasha",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Nanyuki",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Bungoma",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Busia",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Homa Bay",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kisii",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kilifi",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Voi",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Narok",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Nyamira",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Migori",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Siaya",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Bomet",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kajiado",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kiambu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Murang'a",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Nyahururu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Lodwar",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Marsabit",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Wajir",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Mandera",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Isiolo",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Kapenguria",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Maralal",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Moyale",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Diani",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Watamu",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Ruiru",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop"
-  },
-  {
-    name: "Athi River",
-    properties: 0,
-    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop"
-  },
+  { name: "Nairobi", properties: 0, image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop" },
+  { name: "Mombasa", properties: 0, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop" },
+  { name: "Kisumu", properties: 0, image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop" },
+  { name: "Nakuru", properties: 0, image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop" },
+  { name: "Eldoret", properties: 0, image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop" },
+  { name: "Thika", properties: 0, image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop" },
+  { name: "Malindi", properties: 0, image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop" },
+  { name: "Nyeri", properties: 0, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop" },
+  { name: "Embu", properties: 0, image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop" },
+  { name: "Meru", properties: 0, image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop" },
+  { name: "Kitale", properties: 0, image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop" },
+  { name: "Kakamega", properties: 0, image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop" },
+  { name: "Garissa", properties: 0, image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop" },
+  { name: "Lamu", properties: 0, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop" },
+  { name: "Machakos", properties: 0, image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop" },
+  { name: "Kericho", properties: 0, image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop" },
+  { name: "Naivasha", properties: 0, image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop" },
+  { name: "Nanyuki", properties: 0, image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop" },
+  { name: "Kiambu", properties: 0, image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop" },
+  { name: "Ruiru", properties: 0, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop" },
+  { name: "Athi River", properties: 0, image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop" },
 ]
 
 const getLocationOptions = (villagesList: typeof nairobiVillages) => {
@@ -278,14 +75,11 @@ export default function Hero() {
   const [location, setLocation] = useState<string>("")
   const [type, setType] = useState<string>("")
   const [budget, setBudget] = useState<string>("")
-  const [keyword, setKeyword] = useState<string>("")
 
   useEffect(() => {
     const loadPropertyCounts = async () => {
       try {
         const cityCounts = await fetchPropertyCountsByCity()
-        
-        // Create a map of city name to count (case-insensitive matching)
         const countsMap = new Map<string, number>()
         cityCounts.forEach((item: { city: string; count: number }) => {
           const cityName = item.city?.trim()
@@ -294,19 +88,14 @@ export default function Hero() {
           }
         })
 
-        // Update villages with dynamic counts
         const updatedVillages = nairobiVillages.map((village) => {
           const count = countsMap.get(village.name.toLowerCase()) || 0
-          return {
-            ...village,
-            properties: count
-          }
+          return { ...village, properties: count }
         })
 
         setVillages(updatedVillages)
       } catch (error) {
         console.error("Failed to load property counts:", error)
-        // Keep default villages with 0 counts if fetch fails
       }
     }
 
@@ -314,75 +103,58 @@ export default function Hero() {
   }, [])
 
   const handleChange = (value: string, key: string) => {
-    switch (key) {
-      case "location":
-        setLocation(value)
-        break
-      case "type":
-        setType(value)
-        break
-      default:
-        break
-    }
+    if (key === "location") setLocation(value)
+    else if (key === "type") setType(value)
   }
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-    
-    // if (activeTab !== "all") {
-    //   params.set("listingType", activeTab)
-    // }
-    
-    if (location && location !== "all") {
-      params.set("city", location)
-    }
-    
-    if (type && type !== "all") {
-      params.set("property_type", type)
-    }
-    
-    // if (budget.trim()) {
-    //   params.set("price", budget.trim())
-    // }
-    
-    // if (keyword.trim()) {
-    //   params.set("keyword", keyword.trim())
-    // }
-    
+    if (location && location !== "all") params.set("city", location)
+    if (type && type !== "all") params.set("property_type", type)
+    if (activeTab && activeTab !== "all") params.set("status", activeTab)
     const queryString = params.toString()
     window.location.href = `/properties${queryString ? `?${queryString}` : ""}`
   }
 
-
-
-
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-background py-24">
+      <section className="relative isolate overflow-hidden bg-background pb-20 pt-20 md:pt-28 md:pb-28">
+        {/* Background image + overlay */}
         <Image
           src="/hero.jpg"
-          alt="Luxury modern home"
+          alt="Modern Kenyan home"
           fill
           priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/80" />
+        {/* Decorative blurs */}
+        <div className="pointer-events-none absolute -top-20 -right-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
 
         <div className="relative z-10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Hero copy */}
             <div className="mx-auto max-w-3xl text-center text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
-              All in One Platform              </p>
-              <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              Kenya’s Housing, Simplified
+              <span className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
+                All-In-One Real Estate Platform
+              </span>
+
+              <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                Kenya&apos;s Housing,
+                <span className="block bg-gradient-to-r from-primary via-primary/80 to-white bg-clip-text text-transparent">
+                  Simplified.
+                </span>
               </h1>
-              <p className="mt-4 text-lg text-white/80">
-                Find your perfect home with our extensive collection of premium properties. Expertly curated listings tailored to match your unique lifestyle and preferences.
+
+              <p className="mx-auto mt-5 max-w-2xl text-base text-white/80 md:text-lg">
+                Discover verified homes, apartments, and rentals across Kenya. Find your next place with confidence — fast, secure, and transparent.
               </p>
-              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+              <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
                   size="lg"
-                  className="h-12 min-w-[170px] gap-2 rounded-full bg-white text-primary hover:bg-white/90"
+                  className="h-12 min-w-[170px] gap-2 rounded-full bg-white text-foreground hover:bg-white/90"
                   onClick={() => (window.location.href = "/properties")}
                 >
                   Explore Listings
@@ -391,113 +163,121 @@ export default function Hero() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-12 min-w-[170px] rounded-full border-white/50 bg-transparent text-white hover:bg-white/10"
+                  className="h-12 min-w-[170px] rounded-full border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
                   onClick={() => (window.location.href = "/contact")}
                 >
-                  Contact Agent
+                  Talk to us
                 </Button>
               </div>
             </div>
 
-            <div className="mx-auto mt-10 w-full max-w-4xl  rounded-[36px] bg-white/95 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.35)] backdrop-blur">
-              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                {heroTabs.map((tab) => {
-                  const isActive = activeTab === tab.value
-                  return (
-                    <button
-                      key={tab.value}
-                      type="button"
-                      onClick={() => setActiveTab(tab.value)}
-                      className={`rounded-full px-6 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-black/40 ${
-                        isActive ? "bg-primary text-white " : "border border-primary text-gray-500"
-                      }`}
-                      aria-pressed={isActive}
+            {/* Search card */}
+            <div className="mx-auto mt-12 w-full max-w-5xl">
+              {/* Tabs */}
+              <div className="flex justify-center md:justify-start">
+                <div className="inline-flex rounded-t-2xl bg-white/95 p-1 backdrop-blur">
+                  {heroTabs.map((tab) => {
+                    const isActive = activeTab === tab.value
+                    return (
+                      <button
+                        key={tab.value}
+                        type="button"
+                        onClick={() => setActiveTab(tab.value)}
+                        className={`rounded-xl px-5 py-2 text-sm font-semibold transition focus:outline-none ${
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        aria-pressed={isActive}
+                      >
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Search form */}
+              <div className="rounded-2xl rounded-tl-none bg-white/95 p-3 backdrop-blur md:p-4">
+                <div className="grid gap-2 md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-stretch">
+                  {/* Location */}
+                  <div className="rounded-xl bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                      <MapPin className="h-3 w-3" />
+                      Location
+                    </p>
+                    <Select
+                      onValueChange={(value) => handleChange(value, "location")}
+                      value={location}
                     >
-                      {tab.label}
-                    </button>
-                  )
-                })}
-              </div>
+                      <SelectTrigger className="mt-1 h-auto border-0 bg-transparent px-0 text-base font-medium text-gray-900 shadow-none focus-visible:ring-0">
+                        <SelectValue placeholder="Anywhere in Kenya" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getLocationOptions(villages).map((loc) => (
+                          <SelectItem key={loc.value} value={loc.value}>
+                            {loc.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-[1.3fr_1fr_1fr_1fr_auto_auto] md:items-end">
-                <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Keyword
-                  </p>
-                  <Input
-                    className="mt-2 border-0 px-0 text-base text-gray-900 shadow-none focus-visible:ring-0"
-                    placeholder="Enter Keyword"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                  />
-                </div>
-                <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Location
-                  </p>
-                  <Select 
-                    onValueChange={(value) => handleChange(value, "location")}
-                    value={location || getLocationOptions(villages)[0]?.value}
+                  {/* Type */}
+                  <div className="rounded-xl bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                      <Home className="h-3 w-3" />
+                      Property Type
+                    </p>
+                    <Select
+                      onValueChange={(value) => handleChange(value, "type")}
+                      value={type}
+                    >
+                      <SelectTrigger className="mt-1 h-auto border-0 bg-transparent px-0 text-base font-medium text-gray-900 shadow-none focus-visible:ring-0">
+                        <SelectValue placeholder="Any type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {propertyTypes.map((propType) => (
+                          <SelectItem key={propType.value} value={propType.value}>
+                            {propType.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Budget */}
+                  <div className="rounded-xl bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                      <Wallet className="h-3 w-3" />
+                      Budget
+                    </p>
+                    <Input
+                      className="mt-1 border-0 bg-transparent px-0 text-base text-gray-900 shadow-none focus-visible:ring-0"
+                      placeholder="Any budget"
+                      value={budget}
+                      onChange={(e) => setBudget(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Search button */}
+                  <Button
+                    onClick={handleSearch}
+                    className="h-auto min-h-[64px] gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
                   >
-                    <SelectTrigger className="mt-2 h-auto border-0 px-0 text-base font-medium text-gray-900 shadow-none focus-visible:ring-0">
-                      <SelectValue placeholder="Select Location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getLocationOptions(villages).map((loc) => (
-                        <SelectItem key={loc.value} value={loc.value}>
-                          {loc.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Search className="h-4 w-4" />
+                    Search
+                  </Button>
                 </div>
-                <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Type
-                  </p>
-                  <Select 
-                    onValueChange={(value) => handleChange(value, "type")}
-                    value={type || propertyTypes[0].value}
-                  >
-                    <SelectTrigger className="mt-2 h-auto border-0 px-0 text-base font-medium text-gray-900 shadow-none focus-visible:ring-0">
-                      <SelectValue placeholder="All Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {propertyTypes.map((propType) => (
-                        <SelectItem key={propType.value} value={propType.value}>
-                          {propType.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="rounded-2xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Budget
-                  </p>
-                  <Input
-                    className="mt-2 border-0 px-0 text-base text-gray-900 shadow-none focus-visible:ring-0"
-                    placeholder="$1,000 - $3,000"
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                  />
-                </div>
-           
-                <Button
-                  onClick={handleSearch}
-                  className="group relative h-14 min-w-[160px] overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 px-10 text-base font-semibold text-white shadow-lg shadow-primary/30 transition-all duration-300 hover:scale-[1.02] hover:from-black hover:to-black focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">
-                  <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-10 group-active:opacity-20 bg-white" />
-                  <Search className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  <span className="relative">Search</span>
-                </Button>
               </div>
             </div>
 
-            <div className="mx-auto mt-10 grid max-w-3xl gap-6 text-center text-white sm:grid-cols-3">
+            {/* Stats */}
+            <div className="mx-auto mt-14 grid max-w-3xl grid-cols-2 gap-6 text-center text-white sm:grid-cols-4">
               {heroStats.map((stat) => (
                 <div key={stat.label}>
-                  <p className="text-3xl font-semibold">{stat.value}</p>
-                  <p className="mt-1 text-sm text-white/80">{stat.label}</p>
+                  <p className="text-2xl font-bold tabular-nums md:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-xs text-white/70 md:text-sm">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -505,45 +285,49 @@ export default function Hero() {
         </div>
       </section>
 
+      {/* Top Neighborhoods */}
       <section className="bg-background py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">Premium Locations</p>
-              <h2 className="mt-3 text-3xl font-semibold text-foreground">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                Premium Locations
+              </span>
+              <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                 Explore Top Neighborhoods
               </h2>
-              <p className="mt-2 text-base text-muted-foreground">
-                Browse through our handpicked selection of premium neighborhoods, each offering unique lifestyle opportunities and exceptional properties.
+              <p className="mt-3 text-muted-foreground">
+                Browse handpicked premium neighborhoods, each offering unique lifestyle opportunities and exceptional properties.
               </p>
             </div>
-            <Button variant="ghost" className="gap-2 text-sm" asChild>
-              <Link href="/cities" className="text-primary hover:text-primary/80 transition-colors">
-                View all locations
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+            <Link
+              href="/cities"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-primary/40 hover:text-primary"
+            >
+              View all locations
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             {villages.slice(0, 6).map((village) => (
               <Link
                 key={village.name}
                 href={`/properties?city=${village.name.toLowerCase().replace(/\s+/g, "-")}`}
-                className="flex items-center gap-4 rounded-3xl border border-border/60 bg-card/70 p-4 transition hover:-translate-y-1 hover:border-primary/70"
+                className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-all hover:-translate-y-1 hover:border-primary/30"
               >
-                <div className="relative h-16 w-16 overflow-hidden rounded-2xl flex-shrink-0">
+                <div className="relative h-14 w-14 overflow-hidden rounded-xl flex-shrink-0">
                   <Image
                     src={village.image}
                     alt={village.name}
                     fill
-                    sizes="64px"
-                    className="object-cover"
+                    sizes="56px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-base font-semibold text-foreground truncate">{village.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-semibold text-foreground truncate">{village.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {village.properties} {village.properties === 1 ? "property" : "properties"}
                   </p>
                 </div>

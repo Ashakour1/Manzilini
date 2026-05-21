@@ -6,22 +6,26 @@ import { Button } from "@/components/ui/button"
 const teamMembers = [
   {
     name: "Abdishakur Mohamed",
-    role: "Chief Executive Officer (CEO) & Chief Technology Officer (CTO)",
+    role: "CEO & CTO",
+    fullRole: "Chief Executive Officer & Chief Technology Officer",
     image: "/avatars/abdishakur-fake-avatar.svg",
   },
   {
     name: "Farah Abdi Daud",
-    role: "Chief Product Officer (CPO)",
+    role: "CPO",
+    fullRole: "Chief Product Officer",
     image: "/avatars/farah-fake-avatar.svg",
   },
   {
-    name: "Maryan Noor Shire",
-    role: "Chief Operating Officer (COO)",
-    image: "/avatars/maryan-fake-avatar.svg",
+    name: "Mohamed Ahmed",
+    role: "CFO",
+    fullRole: "Chief Financial Officer",
+    image: "/avatars/mohamed-fake-avatar.svg",
   },
   {
-    name: "Mohamed Ahmed",
-    role: "Chief Financial Officer (CFO)",
+    name: "Najat Se'id Farah",
+    role: "CMO",
+    fullRole: "Chief Marketing Officer",
     image: "/avatars/mohamed-fake-avatar.svg",
   },
 ]
@@ -47,29 +51,37 @@ const principles = [
 export default function TeamPage() {
   return (
     <>
-      <section className="py-16 md:py-24 bg-gradient-to-b from-background to-card">
+      <section className="relative overflow-hidden py-20 md:py-28 bg-gradient-to-b from-background via-background to-card">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        </div>
+
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-              Meet the <span className="text-primary">Manzilini</span> Executive Management
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-6">
+              Our Leadership
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight mb-6">
+              Meet the <span className="text-primary">Manzilini</span> Executive Team
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              We are a focused executive management group working to modernize the housing journey in Kenya with trusted listings, practical tools,
-              and reliable service partnerships.
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+              A focused executive group modernizing the housing journey in Kenya with trusted listings, practical tools, and reliable service partnerships.
             </p>
           </div>
         </div>
       </section>
 
-      <section className=" bg-background">
+      <section className="pb-20 md:pb-28 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {teamMembers.map((member) => (
               <article
                 key={member.name}
-                className="group relative rounded-none border-none border-border bg-card overflow-hidden transition-all duration-500 ease-out"
+                className="group relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-primary/30"
               >
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-muted">
                   <Image
                     src={member.image}
                     alt={`${member.name} portrait`}
@@ -77,10 +89,19 @@ export default function TeamPage() {
                     className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-                <div className="relative z-20 p-5">
-                  <h2 className="text-lg font-semibold text-foreground">{member.name}</h2>
-                  <p className="text-sm text-primary mt-1">{member.role}</p>
+
+                <div className="p-5">
+                  <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary mb-2">
+                    {member.role}
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground leading-tight">
+                    {member.name}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    {member.fullRole}
+                  </p>
                 </div>
               </article>
             ))}
@@ -88,23 +109,34 @@ export default function TeamPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-card">
+      <section className="py-20 md:py-28 bg-card border-y border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">How We Work</h2>
-            <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">
-              Our culture is built around trust, delivery, and user experience.
-            </p>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
+                How We Work
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Our culture is built around trust, delivery, and user experience.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-5">
               {principles.map((principle) => {
                 const Icon = principle.icon
                 return (
-                  <div key={principle.title} className="rounded-xl border border-border bg-background p-6">
-                    <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <div
+                    key={principle.title}
+                    className="group relative rounded-2xl border border-border bg-background p-6 transition-all hover:border-primary/30 hover:shadow-md"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/15 transition-colors">
                       <Icon className="w-5 h-5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{principle.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{principle.description}</p>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {principle.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {principle.description}
+                    </p>
                   </div>
                 )
               })}
@@ -113,21 +145,23 @@ export default function TeamPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-gradient-to-br from-primary/10 to-primary/5">
+      <section className="py-20 md:py-28 bg-gradient-to-br from-primary/10 via-primary/5 to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Work With Our Executive Management</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
+              Work With Our Team
+            </h2>
             <p className="text-lg text-muted-foreground mb-8">
               Whether you are searching for a home or listing a property, we are here to help you move forward confidently.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="gap-2">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild className="gap-2 rounded-xl">
                 <Link href="/properties">
                   Browse Properties
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" asChild className="rounded-xl">
                 <Link href="/contact">Contact Us</Link>
               </Button>
             </div>

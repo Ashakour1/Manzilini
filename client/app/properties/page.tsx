@@ -6,7 +6,7 @@ import PropertyModal from "@/components/property-modal"
 import { fetchProperties } from "@/services/properties.service"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
-import { X, Filter } from "lucide-react"
+import { X, Filter, RotateCcw, ArrowUpDown, MapPin, Home, BedDouble, Bath, Sofa } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 
 interface Property {
@@ -167,179 +167,272 @@ export default function PropertiesPage() {
     })
   }
 
-  const hasActiveFilters =
-    filters.type !== "all" ||
-    filters.city !== "all" ||
-    filters.bedrooms !== "all" ||
-    filters.bathrooms !== "all" ||
-    filters.furnished !== "all" ||
-    filters.priceRange[0] > 0 ||
-    filters.priceRange[1] < Math.max(...properties.map((p) => p.price || 0), 1000000)
+  const maxAvailablePrice = Math.max(...properties.map((p) => p.price || 0), 1000000)
+
+  const activeFilterCount =
+    (filters.type !== "all" ? 1 : 0) +
+    (filters.city !== "all" ? 1 : 0) +
+    (filters.bedrooms !== "all" ? 1 : 0) +
+    (filters.bathrooms !== "all" ? 1 : 0) +
+    (filters.furnished !== "all" ? 1 : 0) +
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < maxAvailablePrice ? 1 : 0)
+
+  const hasActiveFilters = activeFilterCount > 0
 
   return (
     <>
-      <div className="w-full">
-        {/* Header */}
-        <div className="bg-card pt-16">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Browse Properties</h1>
-                <p className="text-muted-foreground">
-                  {filteredProperties.length} {filteredProperties.length === 1 ? "property" : "properties"} found
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="gap-2"
+      <div className="w-full bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-12">
+          {/* Top bar: sort + filter buttons */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline-flex items-center gap-1.5 text-sm text-muted-foreground mr-2">
+                <span className="inline-block h-2.5 w-2.5 rotate-45 rounded-sm bg-pink-500" />
+                Prices include all fees
+              </span>
+
+              {/* Sort dropdown */}
+              <div className="relative">
+                <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+                  className="appearance-none rounded-full border border-border bg-background pl-8 pr-7 py-1.5 text-sm text-foreground transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
-                  <Filter className="w-4 h-4" />
-                  Filters
-                </Button>
-                {hasActiveFilters && (
-                  <Button variant="ghost" onClick={clearFilters} className="gap-2">
-                    <X className="w-4 h-4" />
-                    Clear
-                  </Button>
-                )}
+                  <option value="newest">Newest</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                </select>
               </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="gap-2 rounded-full"
+                size="sm"
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="ml-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="gap-2 rounded-full text-muted-foreground hover:text-foreground"
+                  size="sm"
+                >
+                  <X className="w-4 h-4" />
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
           <div className="flex gap-8">
             {/* Sidebar Filters */}
             <aside
               className={`${
                 showFilters ? "block" : "hidden"
-              } md:block w-full md:w-64 flex-shrink-0 space-y-6 mb-8 md:mb-0`}
+              } md:block w-full md:w-72 flex-shrink-0 mb-8 md:mb-0`}
             >
-              <div className="bg-card  rounded-xl p-6 space-y-6 sticky top-24">
-                <h2 className="text-lg font-semibold text-foreground">Filters</h2>
-
-                {/* Property Type */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Property Type</label>
-                  <select
-                    value={filters.type}
-                    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Types</option>
-                    {propertyTypes
-                      .filter((t) => t !== "all")
-                      .map((type) =>
-                        typeof type === "string" ? (
-                          <option key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </option>
-                        ) : null
-                      )}
-                  </select>
+              <div className="sticky top-24 rounded-2xl border border-border bg-card overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-primary" />
+                    <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+                    {activeFilterCount > 0 && (
+                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </div>
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      Reset
+                    </button>
+                  )}
                 </div>
 
-                {/* City */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">City</label>
-                  <select
-                    value={filters.city}
-                    onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Cities</option>
-                    {cities
-                      .filter((c) => c !== "all")
-                      .map((city) =>
-                        typeof city === "string" ? (
-                          <option key={city} value={city}>
-                            {city.charAt(0).toUpperCase() + city.slice(1)}
-                          </option>
-                        ) : null
-                      )}
-                  </select>
-                </div>
+                <div className="px-5 py-5 space-y-6">
+                  {/* Property Type */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Home className="h-3.5 w-3.5 text-primary" />
+                      Property Type
+                    </label>
+                    <select
+                      value={filters.type}
+                      onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      <option value="all">All types</option>
+                      {propertyTypes
+                        .filter((t) => t !== "all")
+                        .map((type) =>
+                          typeof type === "string" ? (
+                            <option key={type} value={type}>
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </option>
+                          ) : null
+                        )}
+                    </select>
+                  </div>
 
-                {/* Price Range */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Price Range: KES {filters.priceRange[0].toLocaleString()} - KES{" "}
-                    {filters.priceRange[1].toLocaleString()}
-                  </label>
-                  <Slider
-                    value={filters.priceRange}
-                    onValueChange={(value) => {
-                      if (Array.isArray(value) && value.length === 2) {
-                        setFilters({ ...filters, priceRange: [value[0], value[1]] })
-                      }
-                    }}
-                    min={0}
-                    max={Math.max(...properties.map((p) => p.price || 0), 1000000)}
-                    step={10000}
-                    className="w-full"
-                  />
-                </div>
+                  {/* City */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                      City
+                    </label>
+                    <select
+                      value={filters.city}
+                      onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      <option value="all">All cities</option>
+                      {cities
+                        .filter((c) => c !== "all")
+                        .map((city) =>
+                          typeof city === "string" ? (
+                            <option key={city} value={city}>
+                              {city.charAt(0).toUpperCase() + city.slice(1)}
+                            </option>
+                          ) : null
+                        )}
+                    </select>
+                  </div>
 
-                {/* Bedrooms */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Bedrooms</label>
-                  <select
-                    value={filters.bedrooms}
-                    onChange={(e) => setFilters({ ...filters, bedrooms: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4+">4+</option>
-                  </select>
-                </div>
+                  <div className="border-t border-border" />
 
-                {/* Bathrooms */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Bathrooms</label>
-                  <select
-                    value={filters.bathrooms}
-                    onChange={(e) => setFilters({ ...filters, bathrooms: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All</option>
-                    <option value="1">1</option>
-                    <option value="1.5">1.5</option>
-                    <option value="2">2</option>
-                    <option value="3+">3+</option>
-                  </select>
-                </div>
+                  {/* Price Range */}
+                  <div>
+                    <div className="mb-3 flex items-center justify-between">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Price Range
+                      </label>
+                      <span className="text-xs font-medium text-foreground tabular-nums">
+                        KES {filters.priceRange[0].toLocaleString()} – {filters.priceRange[1].toLocaleString()}
+                      </span>
+                    </div>
+                    <Slider
+                      value={filters.priceRange}
+                      onValueChange={(value) => {
+                        if (Array.isArray(value) && value.length === 2) {
+                          setFilters({ ...filters, priceRange: [value[0], value[1]] })
+                        }
+                      }}
+                      min={0}
+                      max={maxAvailablePrice}
+                      step={10000}
+                      className="w-full"
+                    />
+                    <div className="mt-2 flex justify-between text-[11px] text-muted-foreground tabular-nums">
+                      <span>KES 0</span>
+                      <span>KES {maxAvailablePrice.toLocaleString()}+</span>
+                    </div>
+                  </div>
 
-                {/* Furnished */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Furnished</label>
-                  <select
-                    value={filters.furnished}
-                    onChange={(e) => setFilters({ ...filters, furnished: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All</option>
-                    <option value="yes">Furnished</option>
-                    <option value="no">Unfurnished</option>
-                  </select>
-                </div>
+                  <div className="border-t border-border" />
 
-                {/* Sort By */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Sort By</label>
-                  <select
-                    value={filters.sortBy}
-                    onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                  </select>
+                  {/* Bedrooms */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <BedDouble className="h-3.5 w-3.5 text-primary" />
+                      Bedrooms
+                    </label>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {["all", "1", "2", "3", "4+"].map((value) => {
+                        const active = filters.bedrooms === value
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setFilters({ ...filters, bedrooms: value })}
+                            className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition ${
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            }`}
+                          >
+                            {value === "all" ? "Any" : value}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Bathrooms */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Bath className="h-3.5 w-3.5 text-primary" />
+                      Bathrooms
+                    </label>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {["all", "1", "1.5", "2", "3+"].map((value) => {
+                        const active = filters.bathrooms === value
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setFilters({ ...filters, bathrooms: value })}
+                            className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition ${
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            }`}
+                          >
+                            {value === "all" ? "Any" : value}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border" />
+
+                  {/* Furnished */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Sofa className="h-3.5 w-3.5 text-primary" />
+                      Furnished
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { value: "all", label: "Any" },
+                        { value: "yes", label: "Yes" },
+                        { value: "no", label: "No" },
+                      ].map((opt) => {
+                        const active = filters.furnished === opt.value
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setFilters({ ...filters, furnished: opt.value })}
+                            className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition ${
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             </aside>
@@ -360,7 +453,7 @@ export default function PropertiesPage() {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8">
                   {filteredProperties.map((property) => (
                     <PropertyCard
                       key={property.id}
